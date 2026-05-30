@@ -14,6 +14,7 @@ import {
   ArrowDown,
   Layers,
   MoreVertical,
+  ArrowLeft,
 } from "lucide-react";
 import {
   useReactTable,
@@ -244,18 +245,26 @@ export default function ProductCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Product Categories"
-        description="Manage product catalog grouping and organization"
-        actions={
-          canManage && (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Category
-            </Button>
-          )
-        }
-      />
+      <div className="flex items-center gap-4">
+        <Link href="/admin/products">
+           <Button variant="ghost" size="icon">
+             <ArrowLeft className="h-4 w-4" />
+           </Button>
+        </Link>
+        <PageHeader
+          className="flex-1"
+          title="Product Categories"
+          description="Manage product catalog grouping and organization"
+          actions={
+            canManage && (
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Category
+              </Button>
+            )
+          }
+        />
+      </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">

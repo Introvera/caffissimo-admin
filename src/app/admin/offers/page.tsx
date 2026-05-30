@@ -21,7 +21,7 @@ import { useAppSelector } from "@/stores/store";
 import { useGetOffersQuery } from "@/stores/api/offerApi";
 import { canManageOffers } from "@/lib/rbac";
 import { OfferType } from "@/types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 
 const OFFER_TYPE_LABELS: Record<OfferType, string> = {
   AmountOff: "Flat Discount",
@@ -31,10 +31,10 @@ const OFFER_TYPE_LABELS: Record<OfferType, string> = {
 };
 
 const OFFER_TYPE_COLORS: Record<OfferType, string> = {
-  AmountOff: "bg-blue-100 text-blue-900 dark:bg-blue-950/40 dark:text-blue-200",
-  PercentageOff: "bg-purple-100 text-purple-900 dark:bg-purple-950/40 dark:text-purple-200",
-  FixedPrice: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200",
-  BuyXGetY: "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+  AmountOff: "bg-blue-500/10 text-blue-500 dark:bg-blue-500/15 dark:text-blue-300",
+  PercentageOff: "bg-purple-500/10 text-purple-500 dark:bg-purple-500/15 dark:text-purple-300",
+  FixedPrice: "bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/15 dark:text-emerald-300",
+  BuyXGetY: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300",
 };
 
 export default function OffersPage() {
@@ -127,9 +127,15 @@ export default function OffersPage() {
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${OFFER_TYPE_COLORS[offer.offerType as OfferType]}`}>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "text-[10px] font-semibold border-transparent shadow-none px-2.5 py-0.5 rounded-full",
+                            OFFER_TYPE_COLORS[offer.offerType as OfferType]
+                          )}
+                        >
                           {OFFER_TYPE_LABELS[offer.offerType as OfferType] || offer.offerType}
-                        </span>
+                        </Badge>
                         <Badge
                           variant={offer.isActive && !isExpired ? "default" : "outline"}
                           className="text-[10px]"
