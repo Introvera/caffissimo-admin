@@ -115,6 +115,16 @@ export default function UsersPage() {
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const currentRole = uiRole || authRole;
   const effectiveBranchId = (selectedBranchId || assignedBranchId) ?? undefined;
+  const loggedInUser = useAppSelector((state) => state.auth.user);
+  const loggedInUserRole = loggedInUser?.role;
+  const isBranchOwnerOrAdmin =
+    loggedInUserRole === UserRole.BranchOwner ||
+    loggedInUserRole === UserRole.BranchAdmin ||
+    currentRole === UserRole.BranchOwner ||
+    currentRole === UserRole.BranchAdmin;
+
+  const loggedInUserBranchId = loggedInUser?.branchId || assignedBranchId || selectedBranchId || "";
+  const displayedBranchId = isBranchOwnerOrAdmin ? loggedInUserBranchId : effectiveBranchId;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -178,13 +188,13 @@ export default function UsersPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!canAccessAllBranches(currentRole) && effectiveBranchId) {
+    if (!canAccessAllBranches(currentRole) && displayedBranchId) {
       setFormData((prev) => ({
         ...prev,
-        branchId: effectiveBranchId,
+        branchId: displayedBranchId,
       }));
     }
-  }, [currentRole, effectiveBranchId]);
+  }, [currentRole, displayedBranchId]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -224,7 +234,7 @@ export default function UsersPage() {
       email: "",
       password: "",
       role: UserRole.Cashier,
-      branchId: canAccessAllBranches(currentRole) ? "" : effectiveBranchId || "",
+      branchId: canAccessAllBranches(currentRole) ? "" : displayedBranchId || "",
     });
     setFormErrors({});
   };
@@ -551,7 +561,7 @@ export default function UsersPage() {
                     ) : (
                       <Input 
                         id="branch" 
-                        value={getBranchName(effectiveBranchId)} 
+                        value={getBranchName(displayedBranchId)} 
                         disabled 
                         className="bg-muted text-muted-foreground"
                       />
@@ -581,10 +591,25 @@ export default function UsersPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
-              <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-              <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-              <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+              {canAccessAllBranches(currentRole) ? (
+                <>
+                  <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
+                  <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
+                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>

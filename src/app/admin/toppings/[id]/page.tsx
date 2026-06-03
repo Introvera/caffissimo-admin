@@ -173,43 +173,68 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
   const onSubmit = async (data: ToppingFormData) => {
     setIsSubmittingForm(true);
     try {
-      // 1. Update Base Topping
-      await updateTopping({
-        id: resolvedParams.id,
-        data: {
-          toppingName: data.toppingName,
-          toppingCategoryId: data.toppingCategoryId,
-          toppingPrice: Number(data.price),
-          isActive: data.isActive,
-        } as never,
-      }).unwrap();
-
-      // 2. Handle Branch Toppings
-      const branchIdsInState = new Set(branchConfigs.map(b => b.branchId));
-      const deletedBranchToppings = branchToppings.filter(bt => !branchIdsInState.has(bt.branchId));
-
-      for (const dbt of deletedBranchToppings) {
-        await deleteBranchTopping(dbt.branchToppingId).unwrap();
+      // 1. Update Base Topping (only if Super Admin)
+      if (isSuper) {
+        await updateTopping({
+          id: resolvedParams.id,
+          data: {
+            toppingName: data.toppingName,
+            toppingCategoryId: data.toppingCategoryId,
+            toppingPrice: Number(data.price),
+            isActive: data.isActive,
+          } as never,
+        }).unwrap();
       }
 
-      for (const branchConf of branchConfigs) {
-        if (!branchConf.originalId) {
-          // CREATE Branch Topping
-          await createBranchTopping({
-            branchId: branchConf.branchId,
-            toppingId: resolvedParams.id,
-            isAvailable: branchConf.isAvailable,
-            overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-          }).unwrap();
-        } else {
-          // UPDATE Branch Topping
-          await updateBranchTopping({
-            id: branchConf.originalId,
-            data: {
+      // 2. Handle Branch Toppings
+      if (isSuper) {
+        const branchIdsInState = new Set(branchConfigs.map(b => b.branchId));
+        const deletedBranchToppings = branchToppings.filter(bt => !branchIdsInState.has(bt.branchId));
+
+        for (const dbt of deletedBranchToppings) {
+          await deleteBranchTopping(dbt.branchToppingId).unwrap();
+        }
+
+        for (const branchConf of branchConfigs) {
+          if (!branchConf.originalId) {
+            // CREATE Branch Topping
+            await createBranchTopping({
+              branchId: branchConf.branchId,
+              toppingId: resolvedParams.id,
               isAvailable: branchConf.isAvailable,
               overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-            }
-          }).unwrap();
+            }).unwrap();
+          } else {
+            // UPDATE Branch Topping
+            await updateBranchTopping({
+              id: branchConf.originalId,
+              data: {
+                isAvailable: branchConf.isAvailable,
+                overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
+              }
+            }).unwrap();
+          }
+        }
+      } else if (assignedBranchId) {
+        // Non-super admins (Branch Owner/Admin) only update/create their own branch topping override
+        const branchConf = branchConfigs.find(b => b.branchId === assignedBranchId);
+        if (branchConf) {
+          if (!branchConf.originalId) {
+            await createBranchTopping({
+              branchId: assignedBranchId,
+              toppingId: resolvedParams.id,
+              isAvailable: branchConf.isAvailable,
+              overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
+            }).unwrap();
+          } else {
+            await updateBranchTopping({
+              id: branchConf.originalId,
+              data: {
+                isAvailable: branchConf.isAvailable,
+                overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
+              }
+            }).unwrap();
+          }
         }
       }
 
@@ -237,6 +262,7 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
 
   const unconfiguredBranches = branches.filter(b => !branchConfigs.find(c => c.branchId === b.branchId));
   const isFormDisabled = !canEdit || !isEditing;
+  const isBaseDisabled = !isSuper || !isEditing;
 
   if (toppingLoading || branchToppingsLoading || !isInitialized) {
     return (
@@ -352,7 +378,7 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                       <Input
                         id="toppingName"
                         {...register("toppingName")}
-                        disabled={isFormDisabled}
+                        disabled={isBaseDisabled}
                       />
                       {errors.toppingName && (
                         <p className="text-sm text-destructive">{errors.toppingName.message}</p>
@@ -365,7 +391,7 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                         <Select
                           value={watch("toppingCategoryId")}
                           onValueChange={(value) => setValue("toppingCategoryId", value)}
-                          disabled={isFormDisabled}
+                          disabled={isBaseDisabled}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a category" />
@@ -392,7 +418,7 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                             step="0.01"
                             {...register("price", { valueAsNumber: true })}
                             className="pl-7"
-                            disabled={isFormDisabled}
+                            disabled={isBaseDisabled}
                           />
                         </div>
                         {errors.price && (
@@ -419,7 +445,7 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                       <Switch
                         checked={watch("isActive")}
                         onCheckedChange={(checked) => setValue("isActive", checked)}
-                        disabled={isFormDisabled}
+                        disabled={isBaseDisabled}
                       />
                     </div>
                   </CardContent>

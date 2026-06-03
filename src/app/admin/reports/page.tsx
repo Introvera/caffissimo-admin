@@ -52,6 +52,7 @@ export default function ReportsPage() {
   const { dateRange, selectedBranchId, currentRole: uiRole } = useAppSelector((state) => state.ui);
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const currentRole = uiRole || authRole;
+  const showBranchComparison = canAccessAdmin(currentRole) && currentRole !== UserRole.BranchOwner && currentRole !== UserRole.BranchAdmin;
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [dailyPage, setDailyPage] = useState(0);
@@ -386,7 +387,7 @@ export default function ReportsPage() {
       <Tabs defaultValue="daily" className="space-y-4">
         <TabsList>
           <TabsTrigger value="daily">Daily Summary</TabsTrigger>
-          {canAccessAdmin(currentRole) && (
+          {showBranchComparison && (
             <TabsTrigger value="branches">Branch Comparison</TabsTrigger>
           )}
         </TabsList>
@@ -491,7 +492,7 @@ export default function ReportsPage() {
           </Card>
         </TabsContent>
 
-        {canAccessAdmin(currentRole) && (
+        {showBranchComparison && (
           <TabsContent value="branches" className="space-y-4">
             {/* Branch Comparison Chart */}
             <Card>

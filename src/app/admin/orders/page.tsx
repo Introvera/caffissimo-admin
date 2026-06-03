@@ -91,17 +91,34 @@ export default function OrdersPage() {
 
   const PAGE_SIZE = 10;
 
-  const queryParams = useMemo(() => ({
-    page,
-    pageSize: PAGE_SIZE,
-    branchId: selectedBranchId || undefined,
-    search: search || undefined,
-    orderStatus: statusFilter !== "all" ? (statusFilter as OrderStatus) : undefined,
-    orderType: orderTypeFilter !== "all" ? (orderTypeFilter as OrderType) : undefined,
-    orderDateFrom: dateRange.from ? format(dateRange.from, "yyyy-MM-dd'T'00:00:00.000'Z'") : undefined,
-    orderDateTo: dateRange.to ? format(dateRange.to, "yyyy-MM-dd'T'23:59:59.999'Z'") : undefined,
-    sortDescending,
-  }), [page, search, statusFilter, orderTypeFilter, selectedBranchId, dateRange, sortDescending]);
+  const queryParams = useMemo(
+    () => ({
+      page,
+      pageSize: PAGE_SIZE,
+      branchId: selectedBranchId || undefined,
+      search: search || undefined,
+      orderStatus:
+        statusFilter !== "all" ? (statusFilter as OrderStatus) : undefined,
+      orderType:
+        orderTypeFilter !== "all" ? (orderTypeFilter as OrderType) : undefined,
+      orderDateFrom: dateRange.from
+        ? format(dateRange.from, "yyyy-MM-dd'T'00:00:00.000'Z'")
+        : undefined,
+      orderDateTo: dateRange.to
+        ? format(dateRange.to, "yyyy-MM-dd'T'23:59:59.999'Z'")
+        : undefined,
+      sortDescending,
+    }),
+    [
+      page,
+      search,
+      statusFilter,
+      orderTypeFilter,
+      selectedBranchId,
+      dateRange,
+      sortDescending,
+    ],
+  );
 
   const { data, isLoading, isFetching } = useGetOrdersQuery(queryParams);
 
@@ -127,24 +144,34 @@ export default function OrdersPage() {
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={orderTypeFilter} onValueChange={handleFilterChange(setOrderTypeFilter)}>
+          <Select
+            value={orderTypeFilter}
+            onValueChange={handleFilterChange(setOrderTypeFilter)}
+          >
             <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
               {ORDER_TYPE_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={statusFilter} onValueChange={handleFilterChange(setStatusFilter)}>
+          <Select
+            value={statusFilter}
+            onValueChange={handleFilterChange(setStatusFilter)}
+          >
             <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -153,11 +180,16 @@ export default function OrdersPage() {
             variant="outline"
             size="sm"
             className="h-9 gap-1.5"
-            onClick={() => { setSortDescending((d) => !d); setPage(1); }}
+            onClick={() => {
+              setSortDescending((d) => !d);
+              setPage(1);
+            }}
           >
-            {sortDescending
-              ? <ArrowDown className="h-3.5 w-3.5" />
-              : <ArrowUp className="h-3.5 w-3.5" />}
+            {sortDescending ? (
+              <ArrowDown className="h-3.5 w-3.5" />
+            ) : (
+              <ArrowUp className="h-3.5 w-3.5" />
+            )}
             {sortDescending ? "Newest" : "Oldest"}
           </Button>
         </div>
@@ -167,7 +199,10 @@ export default function OrdersPage() {
           <Input
             placeholder="Search by order number..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="pl-9 w-[220px] h-9 bg-background rounded-lg"
           />
         </div>
@@ -189,37 +224,6 @@ export default function OrdersPage() {
                 search || statusFilter !== "all" || orderTypeFilter !== "all"
                   ? "No orders match your current filters."
                   : "No orders found for the selected date range and branch."
-              }
-              action={
-                (search || statusFilter !== "all" || orderTypeFilter !== "all") ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearch("");
-                      setStatusFilter("all");
-                      setOrderTypeFilter("all");
-                      setPage(1);
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <p className="text-xs text-muted-foreground max-w-xs text-center">
-                      Try selecting a wider date range in the top header (e.g., Last 30 Days) to see older orders.
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        // We can't easily reset the global date range from here without dispatching,
-                        // but we can at least guide the user.
-                        toast.info("Use the date picker in the header to expand your search.");
-                      }}
-                    >
-                      How to change dates?
-                    </Button>
-                  </div>
-                )
               }
             />
           </div>
@@ -250,7 +254,10 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
-                        {order.orderType ? (ORDER_TYPE_LABELS[order.orderType] ?? order.orderType) : "Unknown"}
+                        {order.orderType
+                          ? (ORDER_TYPE_LABELS[order.orderType] ??
+                            order.orderType)
+                          : "Unknown"}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -263,7 +270,12 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
-                        {order.orderDate ? format(parseISO(order.orderDate), "MMM d, yyyy h:mm a") : "Unknown Date"}
+                        {order.orderDate
+                          ? format(
+                              parseISO(order.orderDate),
+                              "MMM d, yyyy h:mm a",
+                            )
+                          : "Unknown Date"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -274,13 +286,19 @@ export default function OrdersPage() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/admin/orders/${order.orderId}`}>View</Link>
+                            <Link href={`/admin/orders/${order.orderId}`}>
+                              View
+                            </Link>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -296,34 +314,42 @@ export default function OrdersPage() {
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {(page - 1) * PAGE_SIZE + 1}
-                </span>
-                {" "}to{" "}
+                </span>{" "}
+                to{" "}
                 <span className="font-medium text-foreground">
                   {Math.min(page * PAGE_SIZE, totalCount)}
-                </span>
-                {" "}of{" "}
-                <span className="font-medium text-foreground">{totalCount}</span>
-                {" "}orders
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-foreground">
+                  {totalCount}
+                </span>{" "}
+                orders
               </p>
               <div className="flex items-center gap-1.5">
                 <Button
-                  variant="outline" size="sm" className="h-8 w-8 p-0"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
                   onClick={() => setPage((p) => p - 1)}
                   disabled={page <= 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const pageNum = totalPages <= 5
-                    ? i + 1
-                    : page <= 3 ? i + 1
-                    : page > totalPages - 3 ? totalPages - 4 + i
-                    : page - 2 + i;
+                  const pageNum =
+                    totalPages <= 5
+                      ? i + 1
+                      : page <= 3
+                        ? i + 1
+                        : page > totalPages - 3
+                          ? totalPages - 4 + i
+                          : page - 2 + i;
                   return (
                     <Button
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
-                      size="sm" className="h-8 w-8 p-0 text-xs"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-xs"
                       onClick={() => setPage(pageNum)}
                     >
                       {pageNum}
@@ -331,7 +357,9 @@ export default function OrdersPage() {
                   );
                 })}
                 <Button
-                  variant="outline" size="sm" className="h-8 w-8 p-0"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
                   onClick={() => setPage((p) => p + 1)}
                   disabled={page >= totalPages}
                 >

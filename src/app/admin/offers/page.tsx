@@ -9,7 +9,6 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -137,7 +136,7 @@ export default function OffersPage() {
                           {OFFER_TYPE_LABELS[offer.offerType as OfferType] || offer.offerType}
                         </Badge>
                         <Badge
-                          variant={offer.isActive && !isExpired ? "default" : "outline"}
+                          variant={offer.isActive && !isExpired ? "success" : "secondary"}
                           className="text-[10px]"
                         >
                           {isExpired ? "Expired" : offer.isActive ? "Active" : "Inactive"}
@@ -148,7 +147,6 @@ export default function OffersPage() {
                     {/* Value indicator */}
                     {discountLabel && (
                       <div className="flex items-center gap-1 text-xs font-semibold text-primary bg-primary/5 dark:bg-primary/10 w-fit px-2 py-1 rounded-md">
-                        <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
                         <span>{discountLabel}</span>
                       </div>
                     )}
