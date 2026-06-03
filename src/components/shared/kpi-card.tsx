@@ -63,47 +63,80 @@ export function KPICard({
 
   if (isLoading) {
     return (
-      <div className={cn("rounded-lg border bg-card p-4", className)}>
+      <div className={cn("rounded-xl border bg-card p-4 shadow-sm", className)}>
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-6 w-28 mt-2" />
       </div>
     );
   }
 
+  // Define professional color configurations based on title or trend
+  const isRevenue = title.toLowerCase().includes("revenue") || title.toLowerCase().includes("sales") || title.toLowerCase().includes("earning");
+  const isOrders = title.toLowerCase().includes("order");
+  const isCustomers = title.toLowerCase().includes("user") || title.toLowerCase().includes("customer");
+  
+  let cardBgClass = "bg-card border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
+  let iconBgClass = "bg-secondary text-secondary-foreground";
+  let sparklineColor = "hsl(var(--primary))";
+
+  if (featured) {
+    cardBgClass = "bg-gradient-to-br from-amber-500 to-amber-600 dark:from-amber-600 dark:to-amber-700 text-white border-transparent shadow-[0_4px_20px_-4px_rgba(217,119,6,0.3)]";
+    iconBgClass = "bg-white/20 text-white border border-white/10";
+    sparklineColor = "#ffffff";
+  } else if (isRevenue) {
+    // Beautiful subtle emerald theme
+    cardBgClass = "bg-gradient-to-b from-card to-emerald-50/20 dark:to-emerald-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
+    iconBgClass = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+    sparklineColor = "#10B981";
+  } else if (isOrders) {
+    // Elegant soft blue theme
+    cardBgClass = "bg-gradient-to-b from-card to-blue-50/20 dark:to-blue-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
+    iconBgClass = "bg-blue-500/10 text-blue-600 dark:text-blue-400";
+    sparklineColor = "#3B82F6";
+  } else if (isCustomers) {
+    // Regal purple/indigo theme
+    cardBgClass = "bg-gradient-to-b from-card to-indigo-50/20 dark:to-indigo-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
+    iconBgClass = "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400";
+    sparklineColor = "#6366F1";
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.25 }}
       className="h-full"
     >
       <div
         className={cn(
-          "rounded-lg border px-3.5 py-3 relative overflow-hidden h-full",
-          featured
-            ? "bg-[#232323] text-white border-[#232323]"
-            : "bg-card text-card-foreground",
+          "rounded-xl border px-4 py-3.5 relative overflow-hidden h-full flex flex-col justify-between",
+          cardBgClass,
           className
         )}
       >
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className={cn(
               "flex items-center gap-1.5",
-              featured ? "text-white/60" : "text-muted-foreground"
+              featured ? "text-white/80" : "text-muted-foreground"
             )}>
-              <Icon className="h-3.5 w-3.5 shrink-0" />
-              <span className="text-xs">{title}</span>
+              <span className={cn("p-1.5 rounded-lg shrink-0", iconBgClass)}>
+                <Icon className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-[11px] font-semibold tracking-wider uppercase">{title}</span>
             </div>
-            <div className="flex items-baseline gap-1.5 mt-1">
-              <p className="text-lg font-semibold tracking-tight">{displayValue}</p>
+            
+            <div className="flex items-baseline gap-2 mt-3">
+              <p className="text-2xl font-bold tracking-tight">{displayValue}</p>
               {trend && (
                 <span
                   className={cn(
-                    "flex items-center text-[10px] font-medium",
-                    featured
-                      ? trend.value >= 0 ? "text-emerald-400" : "text-red-400"
-                      : trend.value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
+                    "flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                    featured 
+                      ? "bg-white/20 text-white" 
+                      : trend.value >= 0
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "bg-red-500/10 text-red-600 dark:text-red-400"
                   )}
                 >
                   {trend.value >= 0 ? (
@@ -115,20 +148,24 @@ export function KPICard({
                 </span>
               )}
             </div>
+            
             {subtitle && (
               <p className={cn(
-                "text-[10px] mt-0.5",
-                featured ? "text-white/40" : "text-muted-foreground"
+                "text-[10px] mt-1.5",
+                featured ? "text-white/60" : "text-muted-foreground"
               )}>
                 {subtitle}
               </p>
             )}
           </div>
+          
           {sparkline && sparkline.length > 1 && (
-            <MiniSparkline
-              data={sparkline}
-              color={featured ? "#099699" : "#099699"}
-            />
+            <div className="self-center">
+              <MiniSparkline
+                data={sparkline}
+                color={sparklineColor}
+              />
+            </div>
           )}
         </div>
       </div>

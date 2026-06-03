@@ -25,11 +25,13 @@ import { useAppSelector } from "@/stores/store";
 import { useGetBranchesQuery, useUpdateBranchMutation } from "@/stores/api/branchApi";
 import { canManageBranch, canAccessAllBranches, canCreateBranch } from "@/lib/rbac";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Branch } from "@/types";
+import { Branch, UserRole } from "@/types";
 import { toast } from "sonner";
 
 export default function BranchesPage() {
-  const currentRole = useAppSelector((state) => state.auth.user?.role);
+  const uiRole = useAppSelector((state) => state.ui.currentRole);
+  const authRole = useAppSelector((state) => state.auth.user?.role);
+  const currentRole = uiRole || authRole || UserRole.Cashier;
   const assignedBranchId = useAppSelector((state) => state.auth.user?.branchId) || null;
   
   const [page, setPage] = useState(1);
@@ -78,11 +80,13 @@ export default function BranchesPage() {
     return `${hours.openAt} - ${hours.closeAt}`;
   };
 
+  const isBranchUser = currentRole === UserRole.BranchAdmin || currentRole === UserRole.BranchOwner;
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Branches"
-        description="Manage your coffee shop locations"
+        title={isBranchUser ? "Branch" : "Branches"}
+        description={isBranchUser ? "Manage your coffee shop location" : "Manage your coffee shop locations"}
         actions={
           canCreateBranch(currentRole) && (
             <Link href="/admin/branches/new">
@@ -96,20 +100,22 @@ export default function BranchesPage() {
       />
 
       {/* Filter Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search branches..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1); // Reset to first page on search
-            }}
-            className="pl-9"
-          />
+      {!isBranchUser && (
+        <div className="flex items-center justify-between gap-4">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search branches..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1); // Reset to first page on search
+              }}
+              className="pl-9"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -140,7 +146,6 @@ export default function BranchesPage() {
                           <div className="flex items-center gap-2 mt-1">
                             <Badge
                               variant={branch.isOpen ? "success" : "secondary"}
-                              className={branch.isOpen ? "bg-primary/10 !text-primary border-primary/20" : undefined}
                             >
                               {branch.isOpen ? "Open" : "Closed"}
                             </Badge>

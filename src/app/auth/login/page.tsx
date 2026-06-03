@@ -168,7 +168,7 @@ export default function LoginPage() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(160deg, hsl(181 89% 12% / 0.1) 0%, hsl(181 89% 8% / 0.2) 60%, hsl(181 89% 4% / 0.3) 100%)",
+              "linear-gradient(160deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.28) 60%, rgba(0,0,0,0.52) 100%)",
           }}
         />
 

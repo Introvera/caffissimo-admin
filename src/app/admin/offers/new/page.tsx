@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -39,9 +39,14 @@ import { toast } from "sonner";
 export default function NewOfferPage() {
   const router = useRouter();
 
+  const [apiSearchText, setApiSearchText] = useState("");
+
   // API hooks
   const { data: branchesData, isLoading: isLoadingBranches } = useGetBranchesQuery();
-  const { data: productsData, isLoading: isLoadingProducts } = useGetProductsQuery({ pageSize: 100 });
+  const { data: productsData, isLoading: isLoadingProducts } = useGetProductsQuery({
+    pageSize: 100,
+    search: apiSearchText || undefined,
+  });
   const { data: categoriesData } = useGetCategoriesQuery();
   const [createOffer, { isLoading: isCreating }] = useCreateOfferMutation();
 
@@ -71,6 +76,19 @@ export default function NewOfferPage() {
   const [productSearchText, setProductSearchText] = useState("");
   const [buySearchText, setBuySearchText] = useState("");
   const [getSearchText, setGetSearchText] = useState("");
+
+  // Debounce the search input updates to trigger backend queries safely
+  useEffect(() => {
+    const activeSearch = offerType === "BuyXGetY"
+      ? (buySearchText || getSearchText || "")
+      : (productSearchText || "");
+
+    const timer = setTimeout(() => {
+      setApiSearchText(activeSearch);
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [buySearchText, getSearchText, productSearchText, offerType]);
 
   const branches = branchesData?.items || [];
   const products = productsData?.items || [];

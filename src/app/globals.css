@@ -1,87 +1,179 @@
 @import "tailwindcss";
 @custom-variant dark (&:is(.dark *));
-/* Light theme — bg:#FFFFFF, card:#FFFFFF, sidebar:#F6F6F6, accent:#099699 */
+
+/* ==========================================================================
+   Design System: 60-30-10 Rule
+   60% = Dominant neutral (page bg, main surfaces)
+   30% = Secondary neutral (sidebar, cards, borders, muted elements)
+   10% = Amber accent (buttons, active nav, focus rings, chart primary)
+   ========================================================================== */
+
+/* ── Light Mode ─────────────────────────────────────────────────────────── */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 14%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 14%;
-  --popover: 0 0% 100%;
+  /* 60% — Dominant neutral base */
+  --background: 0 0% 100%;          /* #FFFFFF — pure white page background */
+  --foreground: 0 0% 14%;           /* #242424 — text */
+  --popover: 0 0% 100%;             /* #FFFFFF — popover surface */
   --popover-foreground: 0 0% 14%;
-  --sidebar: 0 0% 96%;
-  --primary: 181 89% 32%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 93%;
-  --secondary-foreground: 0 0% 14%;
-  --muted: 0 0% 93%;
-  --muted-foreground: 0 0% 61%;
-  --accent: 0 0% 93%;
-  --accent-foreground: 0 0% 14%;
-  --destructive: 0 72% 50%;
+
+  /* 30% — Secondary neutral (depth & hierarchy) */
+  --sidebar: 252 18% 97%;           /* #F7F6F9 — sidebar surface */
+  --card: 0 0% 100%;                 /* #FFFFFF — card surface */
+  --card-foreground: 0 0% 14%;
+  --secondary: 0 0% 93%;            /* #ECECEC — secondary surface, chips */
+  --secondary-foreground: 0 0% 20%; /* #333333 */
+  --muted: 0 0% 95%;                /* #F2F2F2 — muted backgrounds */
+  --muted-foreground: 0 0% 46%;     /* #757575 — subdued text, labels */
+  --accent: 0 0% 93%;               /* #EDEDED — hover on ghost/nav items */
+  --accent-foreground: 0 0% 9%;
+  --border: 0 0% 88%;               /* #E0E0E0 — borders & dividers */
+  --input: 0 0% 88%;
+
+  /* 10% — Amber accent */
+  --primary: 35 92% 45%;            /* #D97706 — amber */
+  --primary-foreground: 0 0% 100%;  /* #FFFFFF — white text on amber */
+  --ring: 35 92% 45%;               /* #D97706 — focus ring */
+
+  /* Destructive */
+  --destructive: 0 72% 48%;         /* #DC2626 */
   --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 181 89% 32%;
-  --radius: 0.5rem;
-  --chart-1: 181 89% 32%;
-  --chart-2: 187 80% 42%;
-  --chart-3: 215 16% 47%;
-  --chart-4: 215 14% 63%;
-  --chart-5: 174 60% 40%;
-  --chart-grid: rgba(35, 35, 35, 0.10);
-  --chart-area: rgba(9, 150, 153, 0.18);
+
+  /* Semantic status — muted, functional only */
+  --status-success-bg: 145 40% 92%;   /* #E0F0E8 */
+  --status-success-text: 145 50% 28%; /* #236B38 */
+  --status-warning-bg: 40 50% 92%;    /* #F5EDD8 */
+  --status-warning-text: 35 65% 32%;  /* #7D5218 */
+  --status-info-bg: 215 45% 92%;      /* #DDE8F5 */
+  --status-info-text: 215 55% 36%;    /* #1E4A8C */
+  --status-error-bg: 0 45% 93%;       /* #F5DEDE */
+  --status-error-text: 0 62% 38%;     /* #8C2020 */
+
+  /* Charts — amber primary, gray secondaries */
+  --chart-1: 35 92% 45%;           /* amber — primary series */
+  --chart-2: 0 0% 55%;             /* mid gray */
+  --chart-3: 0 0% 68%;             /* light gray */
+  --chart-4: 0 0% 78%;             /* pale gray */
+  --chart-5: 35 70% 62%;           /* amber tint */
+  --chart-grid: rgba(0, 0, 0, 0.07);
+  --chart-area: rgba(217, 119, 6, 0.10);
+
+  /* Border RGBA overlay */
+  --border-rgba: rgba(0, 0, 0, 0.09);
+
+  /* Radius scale */
+  --radius: 0.625rem;               /* 10px base (--radius-lg) */
+  --radius-xs: 0.25rem;             /* 4px */
+  --radius-sm: 0.375rem;            /* 6px */
+  --radius-md: 0.5rem;              /* 8px */
+  --radius-lg: 0.625rem;            /* 10px */
+  --radius-xl: 0.875rem;            /* 14px */
+  --radius-2xl: 1.25rem;            /* 20px */
+  --radius-full: 9999px;
+
+  /* Shadow scale */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.09), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 20px -4px rgba(0, 0, 0, 0.09), 0 4px 6px -3px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 30px -8px rgba(0, 0, 0, 0.13), 0 8px 12px -5px rgba(0, 0, 0, 0.06);
+  --shadow-focus: 0 0 0 3px hsl(35 92% 45% / 0.16);
+
+  /* KPI featured card */
+  --kpi-featured-bg: 0 0% 11%;      /* near-black dark surface in light mode */
+  --kpi-featured-fg: 0 0% 94%;
 }
 
-/* Dark theme — bg:#1A1A1A, card/sidebar:#232323, accent:#099699 */
+/* ── Dark Mode ──────────────────────────────────────────────────────────── */
 .dark {
-  --background: 0 0% 10%;
-  --foreground: 0 0% 96%;
-  --card: 0 0% 14%;
-  --sidebar: 0 0% 14%;
-  --card-foreground: 0 0% 96%;
-  --popover: 0 0% 14%;
+  /* 60% — Dominant neutral base */
+  --background: 0 0% 10%;            /* #1A1A1A — original dark page bg */
+  --foreground: 0 0% 96%;           /* #F5F5F5 — text */
+  --popover: 0 0% 14%;              /* #232323 — popover surface */
   --popover-foreground: 0 0% 96%;
-  --primary: 181 89% 32%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 18%;
-  --secondary-foreground: 0 0% 96%;
-  --muted: 0 0% 18%;
-  --muted-foreground: 0 0% 61%;
-  --accent: 0 0% 18%;
+
+  /* 30% — Secondary neutral */
+  --sidebar: 0 0% 14%;              /* #232323 — sidebar surface */
+  --card: 0 0% 14%;                 /* #232323 — card surface */
+  --card-foreground: 0 0% 96%;
+  --secondary: 0 0% 18%;            /* #2E2E2E — secondary surfaces */
+  --secondary-foreground: 0 0% 82%; /* #D1D1D1 */
+  --muted: 0 0% 18%;                /* #2E2E2E — muted backgrounds */
+  --muted-foreground: 0 0% 50%;     /* #808080 — subdued text */
+  --accent: 0 0% 19%;               /* #303030 — hover ghost/nav */
   --accent-foreground: 0 0% 96%;
-  --destructive: 0 62% 50%;
-  --destructive-foreground: 0 0% 96%;
-  --border: 0 0% 20%;
+  --border: 0 0% 20%;               /* #333333 — borders */
   --input: 0 0% 20%;
-  --ring: 181 89% 32%;
-  --chart-1: 181 89% 32%;
-  --chart-2: 187 80% 42%;
-  --chart-3: 215 16% 47%;
-  --chart-4: 215 14% 63%;
-  --chart-5: 174 60% 40%;
-  --chart-grid: rgba(255, 255, 255, 0.10);
-  --chart-area: rgba(9, 150, 153, 0.18);
+
+  /* 10% — Amber accent (brighter in dark for contrast) */
+  --primary: 40 95% 52%;            /* #F59E0B — bright amber */
+  --primary-foreground: 0 0% 8%;    /* #141414 — dark text on amber */
+  --ring: 40 95% 52%;
+
+  /* Destructive */
+  --destructive: 0 68% 52%;         /* #E03333 */
+  --destructive-foreground: 0 0% 94%;
+
+  /* Semantic status — muted for dark mode */
+  --status-success-bg: 145 30% 18%;
+  --status-success-text: 145 45% 60%;
+  --status-warning-bg: 38 30% 18%;
+  --status-warning-text: 38 70% 60%;
+  --status-info-bg: 215 30% 18%;
+  --status-info-text: 215 60% 65%;
+  --status-error-bg: 0 30% 18%;
+  --status-error-text: 0 58% 62%;
+
+  /* Charts */
+  --chart-1: 40 95% 52%;            /* amber — primary */
+  --chart-2: 0 0% 42%;              /* mid gray */
+  --chart-3: 0 0% 30%;              /* dark gray */
+  --chart-4: 0 0% 22%;              /* deeper gray */
+  --chart-5: 40 75% 62%;            /* amber light */
+  --chart-grid: rgba(255, 255, 255, 0.07);
+  --chart-area: rgba(245, 158, 11, 0.12);
+
+  /* Border RGBA overlay */
+  --border-rgba: rgba(255, 255, 255, 0.08);
+
+  /* Radius scale — same as light */
+  --radius: 0.625rem;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Shadows — minimal in dark mode */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28), 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md: none;
+  --shadow-lg: 0 10px 20px -4px rgba(0, 0, 0, 0.35), 0 4px 6px -3px rgba(0, 0, 0, 0.20);
+  --shadow-xl: 0 20px 30px -8px rgba(0, 0, 0, 0.50), 0 8px 12px -5px rgba(0, 0, 0, 0.28);
+  --shadow-focus: 0 0 0 3px hsl(40 95% 52% / 0.22);
+
+  /* KPI featured card */
+  --kpi-featured-bg: 0 0% 17%;
+  --kpi-featured-fg: 0 0% 94%;
 }
 
-/* Base styles */
+/* ── Base styles ────────────────────────────────────────────────────────── */
 * {
   border-color: var(--border-rgba);
-}
-
-:root {
-  --border-rgba: rgba(35, 35, 35, 0.12);
-}
-.dark {
-  --border-rgba: rgba(255, 255, 255, 0.10);
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Tailwind theme tokens */
+/* ── Tailwind theme tokens ──────────────────────────────────────────────── */
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -103,18 +195,42 @@ body {
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-geist-sans);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }
 
-/* Custom scrollbar */
+/* ── Semantic status utilities ──────────────────────────────────────────── */
+.status-success {
+  background-color: hsl(var(--status-success-bg));
+  color: hsl(var(--status-success-text));
+}
+.status-warning {
+  background-color: hsl(var(--status-warning-bg));
+  color: hsl(var(--status-warning-text));
+}
+.status-info {
+  background-color: hsl(var(--status-info-bg));
+  color: hsl(var(--status-info-text));
+}
+.status-error {
+  background-color: hsl(var(--status-error-bg));
+  color: hsl(var(--status-error-text));
+}
+
+/* Dot colors for status badges */
+.status-dot-success { background-color: hsl(var(--status-success-text)); }
+.status-dot-warning { background-color: hsl(var(--status-warning-text)); }
+.status-dot-info    { background-color: hsl(var(--status-info-text)); }
+.status-dot-error   { background-color: hsl(var(--status-error-text)); }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -123,65 +239,58 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: hsl(var(--muted-foreground) / 0.35);
 }
 
-/* Animations */
+/* ── Animations ─────────────────────────────────────────────────────────── */
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.animate-slideDown {
-  animation: slideDown 0.2s ease-out;
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-.animate-slideUp {
-  animation: slideUp 0.2s ease-out;
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.2s ease-out;
+.animate-slideDown { animation: slideDown 0.2s ease-out; }
+.animate-slideUp   { animation: slideUp 0.2s ease-out; }
+.animate-fadeIn    { animation: fadeIn 0.2s ease-out; }
+.animate-scaleIn   { animation: scaleIn 0.2s ease-out; }
+
+/* ── KPI featured card utility ──────────────────────────────────────────── */
+.kpi-featured {
+  background-color: hsl(var(--kpi-featured-bg));
+  color: hsl(var(--kpi-featured-fg));
 }
 
 /* ==========================================================================
-   Google Maps Autocomplete (Places API) Premium Theme overrides
+   Google Maps Autocomplete (Places API) overrides
    ========================================================================== */
 .pac-container {
   background-color: hsl(var(--popover)) !important;
   border: 1px solid hsl(var(--border)) !important;
-  border-radius: var(--radius) !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
   font-family: inherit !important;
   margin-top: 6px !important;
   z-index: 9999 !important;
@@ -191,12 +300,12 @@ body {
 .pac-item {
   border-top: none !important;
   padding: 8px 12px !important;
-  font-size: 13.5px !important;
+  font-size: 13px !important;
   color: hsl(var(--foreground)) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
-  border-radius: calc(var(--radius) - 2px) !important;
+  border-radius: var(--radius-sm) !important;
   transition: background-color 0.15s ease, color 0.15s ease !important;
   min-height: 38px !important;
 }
@@ -207,7 +316,7 @@ body {
 }
 
 .pac-item-query {
-  font-size: 13.5px !important;
+  font-size: 13px !important;
   color: hsl(var(--foreground)) !important;
   font-weight: 500 !important;
   margin-right: 4px !important;
@@ -226,11 +335,10 @@ body {
   color: hsl(var(--accent-foreground)) !important;
 }
 
-/* Custom Location Pin Icon */
 .pac-icon {
   margin-right: 10px !important;
   margin-top: 0 !important;
-  background-image: none !important; /* Hide Google default grey key icon */
+  background-image: none !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -254,18 +362,17 @@ body {
   background-color: hsl(var(--accent-foreground)) !important;
 }
 
-/* Secondary address formatting (e.g. city/country) */
 .pac-item span:not(.pac-item-query):not(.pac-matched) {
   color: hsl(var(--muted-foreground)) !important;
   font-size: 11.5px !important;
   margin-left: 2px !important;
 }
 
-.pac-item:hover span:not(.pac-item-query):not(.pac-matched), .pac-item.pac-selected span:not(.pac-item-query):not(.pac-matched) {
+.pac-item:hover span:not(.pac-item-query):not(.pac-matched),
+.pac-item.pac-selected span:not(.pac-item-query):not(.pac-matched) {
   color: hsl(var(--accent-foreground) / 0.75) !important;
 }
 
-/* Hide Default Google Logo and Style Custom Footer */
 .hdpi .pac-logo:after, .pac-logo:after {
   background-image: none !important;
   padding: 0 !important;

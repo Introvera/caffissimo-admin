@@ -168,6 +168,13 @@ export default function NewProductPage() {
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   useEffect(() => {
+    if (currentRole && !isSuper) {
+      toast.error("You are not authorized to create products.");
+      router.push("/admin/products");
+    }
+  }, [currentRole, isSuper, router]);
+
+  useEffect(() => {
     if (!isSuper && assignedBranchId && branchConfigs.length === 0) {
       const variantId = generateId();
       setBranchConfigs([{

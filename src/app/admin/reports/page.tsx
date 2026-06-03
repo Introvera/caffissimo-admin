@@ -408,18 +408,18 @@ export default function ReportsPage() {
                     <Tooltip
                       formatter={(value) => formatCurrency(Number(value))}
                       contentStyle={{
-                        backgroundColor: "#232323",
-                        color: "#FFFFFF",
-                        border: "none",
-                        borderRadius: "var(--radius)",
+                        backgroundColor: "hsl(var(--popover))",
+                        color: "hsl(var(--popover-foreground))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "var(--radius-lg)",
                       }}
-                      labelStyle={{ color: "#9B9B9B" }}
+                      labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                     />
                     <Legend />
-                    <Bar dataKey="POS" fill="#099699" stackId="a" />
-                    <Bar dataKey="E-Commerce" fill="#06B6D4" stackId="a" />
-                    <Bar dataKey="Uber Eats" fill="#64748B" stackId="a" />
-                    <Bar dataKey="DoorDash" fill="#94A3B8" stackId="a" />
+                    <Bar dataKey="POS" fill="#D97706" stackId="a" />
+                    <Bar dataKey="E-Commerce" fill="#8C8C8C" stackId="a" />
+                    <Bar dataKey="Uber Eats" fill="#ADADAD" stackId="a" />
+                    <Bar dataKey="DoorDash" fill="#C7C7C7" stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -516,7 +516,7 @@ export default function ReportsPage() {
                         }}
                         labelStyle={{ color: "#9B9B9B" }}
                       />
-                      <Bar dataKey="totalSales" fill="#099699" radius={4} />
+                      <Bar dataKey="totalSales" fill="#D97706" radius={4} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

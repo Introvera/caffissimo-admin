@@ -58,6 +58,7 @@ export function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const dispatch = useAppDispatch();
   const {
     selectedBranchId,
@@ -143,40 +144,42 @@ export function Header() {
 
       <div className="flex items-center justify-end gap-2 md:gap-4">
         {/* Date Range Picker */}
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-muted/30 p-1 text-muted-foreground">
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-muted/20 p-1 text-muted-foreground">
             {(["12m", "30d", "7d", "24h"] as const).map((preset) => (
               <button
                 key={preset}
                 type="button"
                 onClick={() => dispatch(setDateRangePreset(preset))}
                 className={cn(
-                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 text-xs font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 text-xs font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   dateRangePreset === preset
-                    ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                    : "hover:bg-background/50 text-muted-foreground hover:text-foreground"
+                    ? "bg-background text-foreground font-bold shadow-sm border border-border rounded-sm"
+                    : "hover:text-foreground text-muted-foreground"
                 )}
               >
                 {preset === "12m" ? "12 months" : preset === "30d" ? "30 days" : preset === "7d" ? "7 days" : "24 hours"}
               </button>
             ))}
           </div>
-          <Popover>
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 text-xs rounded-md text-foreground px-4 hover:bg-muted/50">
-                <Filter className="w-3.5 h-3.5 mr-2" />
-                {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
+              <Button variant="outline" size="sm" className="h-9 text-xs font-bold rounded-md border border-input text-foreground px-3.5 hover:bg-muted/50 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 shadow-sm bg-background">
+                <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>{format(dateRange.from, "MMM dd, yyyy")} – {format(dateRange.to, "MMM dd, yyyy")}</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
+            <PopoverContent className="w-auto p-0 border-none bg-transparent" align="end">
               <DateRangeCalendar
                 from={dateRange.from}
                 to={dateRange.to}
                 onSelect={(range) => {
                   if (range.from && range.to) {
                     dispatch(setDateRange({ from: range.from, to: range.to }));
+                    setPopoverOpen(false);
                   }
                 }}
+                onCancel={() => setPopoverOpen(false)}
               />
             </PopoverContent>
           </Popover>

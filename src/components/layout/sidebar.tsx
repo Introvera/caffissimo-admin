@@ -150,7 +150,9 @@ export function Sidebar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { sidebarCollapsed, mobileMenuOpen } = useAppSelector((state) => state.ui);
-  const currentRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const uiRole = useAppSelector((state) => state.ui.currentRole);
+  const authRole = useAppSelector((state) => state.auth.user?.role);
+  const currentRole = uiRole || authRole || UserRole.Cashier;
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -182,9 +184,19 @@ export function Sidebar() {
     setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
   };
 
-  const filteredEntries = navEntries.filter(
-    (entry) => !entry.permission || entry.permission(currentRole)
-  );
+  const isBranchUser = currentRole === UserRole.BranchAdmin || currentRole === UserRole.BranchOwner;
+
+  const filteredEntries = navEntries
+    .filter((entry) => !entry.permission || entry.permission(currentRole))
+    .map((entry) => {
+      if (entry.type === "single" && entry.href === "/admin/branches") {
+        return {
+          ...entry,
+          title: isBranchUser ? "Branch" : "Branches",
+        };
+      }
+      return entry;
+    });
 
   const isChildActive = (child: NavChild) =>
     pathname === child.href || pathname.startsWith(`${child.href}/`);
@@ -328,7 +340,7 @@ export function Sidebar() {
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className="mt-1.5 flex flex-col gap-1 border-l border-zinc-200 dark:border-zinc-800 ml-[20px] pl-2">
+              <div className="mt-1.5 flex flex-col gap-1 border-l border-border ml-[20px] pl-2">
                 {group.children.map((child) => (
                   <NavLink
                     key={child.href}

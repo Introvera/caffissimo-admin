@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Search,
@@ -62,7 +63,7 @@ import {
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
 } from "@/stores/api/productApi";
-import { canManageProducts } from "@/lib/rbac";
+import { canManageProducts, isSuperAdmin } from "@/lib/rbac";
 import { Category, UserRole } from "@/types";
 import { toast } from "sonner";
 
@@ -78,8 +79,17 @@ function SortIcon({ header }: { header: Header<Category, unknown> }) {
 }
 
 export default function ProductCategoriesPage() {
+  const router = useRouter();
   const currentRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const isSuper = isSuperAdmin(currentRole);
   const canManage = canManageProducts(currentRole);
+
+  useEffect(() => {
+    if (currentRole && !isSuper) {
+      toast.error("You are not authorized to manage categories.");
+      router.push("/admin/products");
+    }
+  }, [currentRole, isSuper, router]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");

@@ -274,14 +274,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           isActive: true,
           overridePosImage: null,
           overrideEcomImages: [],
-          variants: [{ id: variantId, variantName: "Normal", price: 0, isAvailable: true }]
+          variants: [{ id: variantId, variantName: "Normal", price: product.productPrice ?? 0, isAvailable: true }]
         });
       }
 
-      setBranchConfigs(initialConfigs);
+      let filteredConfigs = initialConfigs;
+      if (!isSuper && assignedBranchId) {
+        filteredConfigs = initialConfigs.filter(c => c.branchId === assignedBranchId);
+      }
+
+      setBranchConfigs(filteredConfigs);
 
       const variantTabs: Record<string, string> = {};
-      initialConfigs.forEach(c => {
+      filteredConfigs.forEach(c => {
         if (c.variants.length > 0) {
           variantTabs[c.branchId] = c.variants[0].id;
         }
@@ -339,29 +344,37 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmittingForm(true);
     try {
-      // 1. Update Base Product
-      await updateProduct({
-        id: resolvedParams.id,
-        data: {
-          productName: data.name,
-          productDescription: data.description,
-          productCategoryId: data.categoryId,
-          productPrice: Number(data.price),
-          isActive: data.isActive,
-          // Handle images uploads and URLs...
-        } as never
-      }).unwrap();
+      if (isSuper) {
+        // 1. Update Base Product
+        await updateProduct({
+          id: resolvedParams.id,
+          data: {
+            productName: data.name,
+            productDescription: data.description,
+            productCategoryId: data.categoryId,
+            productPrice: Number(data.price),
+            isActive: data.isActive,
+            // Handle images uploads and URLs...
+          } as never
+        }).unwrap();
+      }
 
       // 2. Handle Branch Products
-      // Find deleted branches
-      const branchIdsInState = new Set(branchConfigs.map(b => b.branchId));
-      const deletedBranches = branchProducts.filter(bp => !branchIdsInState.has(bp.branchId));
-      
-      for (const db of deletedBranches) {
-        await deleteBranchProduct(db.branchProductId).unwrap();
+      if (isSuper) {
+        // Find deleted branches
+        const branchIdsInState = new Set(branchConfigs.map(b => b.branchId));
+        const deletedBranches = branchProducts.filter(bp => !branchIdsInState.has(bp.branchId));
+        
+        for (const db of deletedBranches) {
+          await deleteBranchProduct(db.branchProductId).unwrap();
+        }
       }
 
       for (const branchConf of branchConfigs) {
+        if (!isSuper && branchConf.branchId !== assignedBranchId) {
+          continue;
+        }
+
         if (!branchConf.originalId) {
           // CREATE Branch Product
           await createBranchProduct({
@@ -417,22 +430,24 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         }
       }
 
-      // Handle Toppings
-      const originalToppingIds = new Set(productToppings?.map(pt => pt.toppingId) || []);
-      const currentToppingIds = new Set(selectedToppingIds);
-      
-      const addedToppings = selectedToppingIds.filter(id => !originalToppingIds.has(id));
-      const removedToppings = (productToppings || []).filter(pt => !currentToppingIds.has(pt.toppingId));
-      
-      for (const rt of removedToppings) {
-        await deleteProductTopping(rt.productToppingId).unwrap();
-      }
-      for (const at of addedToppings) {
-        await createProductTopping({
-          productId: resolvedParams.id,
-          toppingId: at,
-          isActive: true
-        }).unwrap();
+      if (isSuper) {
+        // Handle Toppings
+        const originalToppingIds = new Set(productToppings?.map(pt => pt.toppingId) || []);
+        const currentToppingIds = new Set(selectedToppingIds);
+        
+        const addedToppings = selectedToppingIds.filter(id => !originalToppingIds.has(id));
+        const removedToppings = (productToppings || []).filter(pt => !currentToppingIds.has(pt.toppingId));
+        
+        for (const rt of removedToppings) {
+          await deleteProductTopping(rt.productToppingId).unwrap();
+        }
+        for (const at of addedToppings) {
+          await createProductTopping({
+            productId: resolvedParams.id,
+            toppingId: at,
+            isActive: true
+          }).unwrap();
+        }
       }
 
       toast.success("Product updated successfully");
@@ -491,6 +506,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   }
 
   const isFormDisabled = !canEdit || !isEditing;
+  const isBaseFormDisabled = !isSuper || !isEditing;
 
   return (
     <div className="space-y-6">
@@ -567,17 +583,17 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Product Name</Label>
-                      <Input id="name" disabled={isFormDisabled} {...register("name")} />
+                      <Input id="name" disabled={isBaseFormDisabled} {...register("name")} />
                       {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" disabled={isFormDisabled} rows={4} {...register("description")} />
+                      <Textarea id="description" disabled={isBaseFormDisabled} rows={4} {...register("description")} />
                       {errors.description && <p className="text-sm text-destructive">{errors.description.message as string}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
-                      <Select disabled={isFormDisabled} value={watch("categoryId")} onValueChange={(value) => setValue("categoryId", value)}>
+                      <Select disabled={isBaseFormDisabled} value={watch("categoryId")} onValueChange={(value) => setValue("categoryId", value)}>
                         <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
                         <SelectContent>
                           {categories.map((cat: Category) => (
@@ -597,7 +613,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                           type="number"
                           step="0.01"
                           className="pl-7"
-                          disabled={isFormDisabled}
+                          disabled={isBaseFormDisabled}
                           placeholder="e.g. 4.50"
                           {...register("price", { valueAsNumber: true })}
                         />
@@ -606,7 +622,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                     </div>
                      <div className="space-y-2 flex flex-col justify-center mt-4 pt-4 border-t">
                        <Label>Active</Label>
-                       <Switch disabled={isFormDisabled} checked={watch("isActive")} onCheckedChange={(val) => setValue("isActive", val)} />
+                       <Switch disabled={isBaseFormDisabled} checked={watch("isActive")} onCheckedChange={(val) => setValue("isActive", val)} />
                      </div>
                   </CardContent>
                 </Card>
@@ -618,7 +634,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                       Toppings
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" disabled={isFormDisabled || allToppings.length === selectedToppingIds.length}>
+                          <Button variant="outline" size="sm" disabled={isBaseFormDisabled || allToppings.length === selectedToppingIds.length}>
                             <Plus className="h-4 w-4 mr-2" />
                             Add Topping
                           </Button>
@@ -645,7 +661,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                           return (
                             <Badge key={id} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-3">
                               {topping.toppingName}
-                              {!isFormDisabled && (
+                              {!isBaseFormDisabled && (
                                 <X className="h-3 w-3 cursor-pointer hover:text-destructive ml-1" onClick={() => setSelectedToppingIds(prev => prev.filter(tid => tid !== id))} />
                               )}
                             </Badge>
@@ -666,11 +682,11 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       <Label>POS Image (Single)</Label>
-                      <ImageUploader disabled={isFormDisabled} multiple={false} value={basePosImage} onChange={(val) => canEdit && setBasePosImage(val as File | string | null)} />
+                      <ImageUploader disabled={isBaseFormDisabled} multiple={false} value={basePosImage} onChange={(val) => isSuper && setBasePosImage(val as File | string | null)} />
                     </div>
                     <div className="space-y-2">
                       <Label>Ecommerce Images (Multiple)</Label>
-                      <ImageUploader disabled={isFormDisabled} multiple={true} value={baseEcomImages} onChange={(val) => canEdit && setBaseEcomImages(val as (File|string)[])} />
+                      <ImageUploader disabled={isBaseFormDisabled} multiple={true} value={baseEcomImages} onChange={(val) => isSuper && setBaseEcomImages(val as (File|string)[])} />
                     </div>
                   </CardContent>
                 </Card>

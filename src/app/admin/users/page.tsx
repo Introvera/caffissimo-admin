@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   ChevronLeft,
@@ -114,6 +114,7 @@ export default function UsersPage() {
   const { currentRole: uiRole, selectedBranchId, assignedBranchId } = useAppSelector((state) => state.ui);
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const currentRole = uiRole || authRole;
+  const effectiveBranchId = (selectedBranchId || assignedBranchId) ?? undefined;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -126,7 +127,11 @@ export default function UsersPage() {
   const { data: branchesData } = useGetBranchesQuery({ pageSize: 100 });
   const branches = branchesData?.items || [];
   
-  const { data: usersData } = useGetUsersQuery({ page: 1, pageSize: 100 });
+  const { data: usersData } = useGetUsersQuery({
+    page: 1,
+    pageSize: 100,
+    branchId: canAccessAllBranches(currentRole) ? undefined : (effectiveBranchId || undefined),
+  });
   const users: User[] = useMemo(() => {
     return (usersData?.items || []).map((u) => ({
       id: u.id,
@@ -141,7 +146,6 @@ export default function UsersPage() {
   }, [usersData]);
 
   const canManage = canManageUsers(currentRole);
-  const effectiveBranchId = selectedBranchId || assignedBranchId;
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -152,7 +156,6 @@ export default function UsersPage() {
       const matchesRole = roleFilter === "all" || user.role === (roleFilter as UserRole);
       const matchesBranch =
         canAccessAllBranches(currentRole) ||
-        !user.branchId ||
         user.branchId === effectiveBranchId;
       return matchesSearch && matchesRole && matchesBranch;
     });
@@ -173,6 +176,15 @@ export default function UsersPage() {
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!canAccessAllBranches(currentRole) && effectiveBranchId) {
+      setFormData((prev) => ({
+        ...prev,
+        branchId: effectiveBranchId,
+      }));
+    }
+  }, [currentRole, effectiveBranchId]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -212,7 +224,7 @@ export default function UsersPage() {
       email: "",
       password: "",
       role: UserRole.Cashier,
-      branchId: "",
+      branchId: canAccessAllBranches(currentRole) ? "" : effectiveBranchId || "",
     });
     setFormErrors({});
   };
@@ -507,6 +519,7 @@ export default function UsersPage() {
                         </>
                       ) : (
                         <>
+                          <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
                           <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
                           <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
                           <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
@@ -519,21 +532,30 @@ export default function UsersPage() {
 {formData.role !== UserRole.SuperAdmin && formData.role !== UserRole.SuperAdminDeveloper && (
                   <div className="space-y-2">
                     <Label htmlFor="branch">Branch Assignment</Label>
-                    <Select 
-                      value={formData.branchId} 
-                      onValueChange={(v) => setFormData({ ...formData, branchId: v })}
-                    >
-                      <SelectTrigger id="branch">
-                        <SelectValue placeholder="Select branch" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {branches.map((branch) => (
-                          <SelectItem key={branch.branchId} value={branch.branchId}>
-                            {branch.branchName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {canAccessAllBranches(currentRole) ? (
+                      <Select 
+                        value={formData.branchId} 
+                        onValueChange={(v) => setFormData({ ...formData, branchId: v })}
+                      >
+                        <SelectTrigger id="branch">
+                          <SelectValue placeholder="Select branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branches.map((branch) => (
+                            <SelectItem key={branch.branchId} value={branch.branchId}>
+                              {branch.branchName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input 
+                        id="branch" 
+                        value={getBranchName(effectiveBranchId)} 
+                        disabled 
+                        className="bg-muted text-muted-foreground"
+                      />
+                    )}
                   </div>
                 )}
               </div>
