@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Search,
   MapPin,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +33,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { trainingApi } from "@/lib/training-api";
 import { useAppSelector } from "@/stores/store";
 import { canAccessAllBranches } from "@/lib/rbac";
-import { UserRole, type EmployeeTrainingStatusResponse, type TrainingQualificationStatus } from "@/types";
+import {
+  UserRole,
+  type EmployeeTrainingStatusResponse,
+  type TrainingQualificationStatus,
+  type EmployeeTrainingCertificateResponse,
+} from "@/types";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -102,7 +117,34 @@ export default function AcademyProgressPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TrainingQualificationStatus | "all">("all");
 
+  // Certificates Dialog states
+  const [certsDialogOpen, setCertsDialogOpen] = useState(false);
+  const [certsList, setCertsList] = useState<EmployeeTrainingCertificateResponse[]>([]);
+  const [certsLoading, setCertsLoading] = useState(false);
+  const [viewingEmployeeId, setViewingEmployeeId] = useState("");
+  const [viewingModuleTitle, setViewingModuleTitle] = useState("");
+
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const handleViewCertificates = async (
+    employeeId: string,
+    moduleId: string,
+    moduleTitle: string
+  ) => {
+    setViewingEmployeeId(employeeId);
+    setViewingModuleTitle(moduleTitle);
+    setCertsDialogOpen(true);
+    setCertsLoading(true);
+    setCertsList([]);
+    try {
+      const data = await trainingApi.getEmployeeCertificates(employeeId, moduleId);
+      setCertsList(data);
+    } catch {
+      toast.error("Failed to load employee certificates");
+    } finally {
+      setCertsLoading(false);
+    }
+  };
 
   const loadProgress = async (branchId: string, pg: number) => {
     setIsLoading(true);
@@ -317,7 +359,27 @@ export default function AcademyProgressPage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={row.status} />
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={row.status} />
+                        {row.certificateCount > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-primary hover:bg-primary/10"
+                            onClick={() =>
+                              handleViewCertificates(
+                                row.employeeId,
+                                row.trainingModuleId,
+                                row.trainingModuleTitle
+                              )
+                            }
+                            title="View uploaded certificates"
+                            id={`view-certificates-${row.employeeId}-${row.trainingModuleId}`}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
@@ -390,6 +452,62 @@ export default function AcademyProgressPage() {
           </>
         )}
       </Card>
+
+      {/* ── Certificates Viewer Dialog ───────────────────────────────────────── */}
+      <Dialog open={certsDialogOpen} onOpenChange={setCertsDialogOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Training Certificates</DialogTitle>
+            <DialogDescription>
+              Certificates uploaded by employee <strong>{viewingEmployeeId.slice(0, 8)}…</strong> for module: <strong>{viewingModuleTitle}</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            {certsLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : certsList.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-6">
+                No certificate uploads found for this module.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {certsList.map((cert) => (
+                  <Card key={cert.employeeTrainingCertificateId} className="border border-border/80 shadow-none">
+                    <CardContent className="p-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate" title={cert.originalFileName}>
+                          {cert.originalFileName}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Size: {(cert.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB · Uploaded: {formatDate(cert.uploadedAt)}
+                        </p>
+                      </div>
+                      <a
+                        href={cert.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 flex items-center justify-center h-8 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium transition-colors"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                        View
+                      </a>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCertsDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

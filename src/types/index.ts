@@ -830,6 +830,11 @@ export interface PlatformConnectionSummary {
 
 export type TrainingQualificationStatus = "NotStarted" | "InProgress" | "Passed";
 
+export enum TrainingModuleType {
+  Internal = "Internal",
+  External = "External",
+}
+
 export interface TrainingQuizOptionResponse {
   trainingQuizOptionId: string;
   optionText: string;
@@ -853,12 +858,36 @@ export interface TrainingVideoResponse {
   isActive: boolean;
 }
 
+export interface TrainingExternalCourseResponse {
+  trainingExternalCourseId: string;
+  trainingModuleId: string;
+  title: string;
+  courseUrl: string;
+  sortOrder: number;
+  isRequired: boolean;
+  isActive: boolean;
+}
+
+export interface EmployeeTrainingCertificateResponse {
+  employeeTrainingCertificateId: string;
+  trainingModuleId: string;
+  employeeId: string;
+  fileUrl: string;
+  originalFileName: string;
+  contentType: string;
+  fileSizeBytes: number;
+  uploadedAt: string;
+  updatedAt: string;
+}
+
 export interface TrainingModuleSummaryResponse {
   trainingModuleId: string;
+  moduleType: TrainingModuleType;
   title: string;
   description?: string;
   videoCount: number;
   questionCount: number;
+  externalCourseCount: number;
   isActive: boolean;
   branchId?: string;
 }
@@ -866,6 +895,7 @@ export interface TrainingModuleSummaryResponse {
 export interface TrainingModuleDetailResponse {
   trainingModuleId: string;
   branchId?: string;
+  moduleType: TrainingModuleType;
   title: string;
   description?: string;
   isActive: boolean;
@@ -873,6 +903,8 @@ export interface TrainingModuleDetailResponse {
   updatedAt: string;
   videos: TrainingVideoResponse[];
   questions: TrainingQuizQuestionResponse[];
+  externalCourses: TrainingExternalCourseResponse[];
+  myCertificates: EmployeeTrainingCertificateResponse[];
 }
 
 export interface EmployeeTrainingStatusResponse {
@@ -882,11 +914,14 @@ export interface EmployeeTrainingStatusResponse {
   status: TrainingQualificationStatus;
   passedAt?: string;
   passedAttemptId?: string;
+  certificateCount: number;
   updatedAt: string;
 }
 
 // Request types
 export interface CreateTrainingModuleRequest {
+  branchId?: string;
+  moduleType: TrainingModuleType;
   title: string;
   description?: string;
   isActive: boolean;
@@ -916,6 +951,35 @@ export interface CreateTrainingQuestionRequest {
   sortOrder: number;
   isActive: boolean;
   options: CreateTrainingQuestionOptionRequest[];
+}
+
+export interface UpdateTrainingQuestionOptionRequest {
+  trainingQuizOptionId?: string;
+  optionText: string;
+  isCorrect: boolean;
+}
+
+export interface UpdateTrainingQuestionRequest {
+  questionText: string;
+  sortOrder: number;
+  isActive: boolean;
+  options: UpdateTrainingQuestionOptionRequest[];
+}
+
+export interface CreateTrainingExternalCourseRequest {
+  title: string;
+  courseUrl: string;
+  sortOrder: number;
+  isRequired: boolean;
+  isActive: boolean;
+}
+
+export interface UpdateTrainingExternalCourseRequest {
+  title: string;
+  courseUrl: string;
+  sortOrder: number;
+  isRequired: boolean;
+  isActive: boolean;
 }
 
 export interface SubmitTrainingAttemptAnswerRequest {

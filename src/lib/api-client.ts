@@ -9,7 +9,9 @@ async function request<T>(
   const token = Cookies.get("auth_token");
 
   const headers = new Headers(options.headers);
-  headers.set("Content-Type", "application/json");
+  if (!(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -47,26 +49,32 @@ async function request<T>(
 const apiClient = {
   get: <T>(endpoint: string, options?: RequestInit) =>
     request<T>(endpoint, { ...options, method: "GET" }),
-  post: <T>(endpoint: string, data: unknown, options?: RequestInit) =>
-    request<T>(endpoint, {
+  post: <T>(endpoint: string, data: unknown, options?: RequestInit) => {
+    const isFormData = data instanceof FormData;
+    return request<T>(endpoint, {
       ...options,
       method: "POST",
-      body: JSON.stringify(data),
-    }),
-  put: <T>(endpoint: string, data: unknown, options?: RequestInit) =>
-    request<T>(endpoint, {
+      body: isFormData ? data : JSON.stringify(data),
+    });
+  },
+  put: <T>(endpoint: string, data: unknown, options?: RequestInit) => {
+    const isFormData = data instanceof FormData;
+    return request<T>(endpoint, {
       ...options,
       method: "PUT",
-      body: JSON.stringify(data),
-    }),
+      body: isFormData ? data : JSON.stringify(data),
+    });
+  },
   delete: <T>(endpoint: string, options?: RequestInit) =>
     request<T>(endpoint, { ...options, method: "DELETE" }),
-  patch: <T>(endpoint: string, data: unknown, options?: RequestInit) =>
-    request<T>(endpoint, {
+  patch: <T>(endpoint: string, data: unknown, options?: RequestInit) => {
+    const isFormData = data instanceof FormData;
+    return request<T>(endpoint, {
       ...options,
       method: "PATCH",
-      body: JSON.stringify(data),
-    }),
+      body: isFormData ? data : JSON.stringify(data),
+    });
+  },
 };
 
 export default apiClient;

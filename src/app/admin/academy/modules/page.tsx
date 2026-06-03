@@ -14,6 +14,8 @@ import {
   Power,
   Loader2,
   GraduationCap,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,17 +40,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { trainingApi } from "@/lib/training-api";
-import type {
-  TrainingModuleSummaryResponse,
-  CreateTrainingModuleRequest,
-  UpdateTrainingModuleRequest,
+import { useAppSelector } from "@/stores/store";
+import { canAccessAllBranches } from "@/lib/rbac";
+import {
+  UserRole,
+  TrainingModuleType,
+  type TrainingModuleSummaryResponse,
+  type CreateTrainingModuleRequest,
+  type UpdateTrainingModuleRequest,
 } from "@/types";
 import { toast } from "sonner";
 
 const defaultCreateForm: CreateTrainingModuleRequest = {
+  moduleType: TrainingModuleType.Internal,
   title: "",
   description: "",
   isActive: true,
@@ -56,6 +70,17 @@ const defaultCreateForm: CreateTrainingModuleRequest = {
 
 export default function AcademyModulesPage() {
   const router = useRouter();
+
+  // Branch scoping selectors
+  const currentRole = useAppSelector(
+    (state) => state.ui.currentRole || state.auth.user?.role || UserRole.Cashier
+  );
+  const selectedBranchId = useAppSelector((state) => state.ui.selectedBranchId);
+  const assignedBranchId = useAppSelector(
+    (state) => state.ui.assignedBranchId || state.auth.user?.branchId
+  );
+  const isSuperAdmin = canAccessAllBranches(currentRole);
+  const effectiveBranchId = isSuperAdmin ? selectedBranchId : assignedBranchId;
 
   const [modules, setModules] = useState<TrainingModuleSummaryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +136,7 @@ export default function AcademyModulesPage() {
     try {
       await trainingApi.createModule({
         ...createForm,
+        branchId: (effectiveBranchId && effectiveBranchId !== "all") ? effectiveBranchId : undefined,
         description: createForm.description || undefined,
       });
       toast.success("Module created successfully");
@@ -121,6 +147,23 @@ export default function AcademyModulesPage() {
       toast.error(e?.message || "Failed to create module");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDelete = async (moduleId: string) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this module? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+    try {
+      await trainingApi.deleteModule(moduleId);
+      toast.success("Module deleted successfully");
+      await loadModules();
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to delete module");
     }
   };
 
@@ -201,6 +244,30 @@ export default function AcademyModulesPage() {
                       setCreateForm({ ...createForm, title: e.target.value })
                     }
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="create-type">Module Type</Label>
+                  <Select
+                    value={createForm.moduleType}
+                    onValueChange={(val) =>
+                      setCreateForm({
+                        ...createForm,
+                        moduleType: val as TrainingModuleType,
+                      })
+                    }
+                  >
+                    <SelectTrigger id="create-type">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={TrainingModuleType.Internal}>
+                        Internal (Videos & Quiz)
+                      </SelectItem>
+                      <SelectItem value={TrainingModuleType.External}>
+                        External (Course Link & Certificate Upload)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="create-description">Description</Label>
@@ -292,6 +359,7 @@ export default function AcademyModulesPage() {
               }
               onEdit={() => openEdit(mod)}
               onToggleActive={() => handleToggleActive(mod)}
+              onDelete={() => handleDelete(mod.trainingModuleId)}
             />
           ))}
         </div>
@@ -370,11 +438,13 @@ function ModuleCard({
   onView,
   onEdit,
   onToggleActive,
+  onDelete,
 }: {
   module: TrainingModuleSummaryResponse;
   onView: () => void;
   onEdit: () => void;
   onToggleActive: () => void;
+  onDelete: () => void;
 }) {
   return (
     <Card
@@ -384,9 +454,11 @@ function ModuleCard({
       {/* Top accent bar */}
       <div
         className={`h-1 w-full rounded-t-xl ${
-          module.isActive
-            ? "bg-gradient-to-r from-emerald-500 to-teal-400"
-            : "bg-border"
+          !module.isActive
+            ? "bg-border"
+            : module.moduleType === TrainingModuleType.External
+            ? "bg-gradient-to-r from-indigo-500 to-purple-400"
+            : "bg-gradient-to-r from-emerald-500 to-teal-400"
         }`}
       />
 
@@ -397,7 +469,9 @@ function ModuleCard({
             <div
               className={`shrink-0 flex h-9 w-9 items-center justify-center rounded-lg ${
                 module.isActive
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  ? module.moduleType === TrainingModuleType.External
+                    ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -447,6 +521,14 @@ function ModuleCard({
                     </>
                   )}
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Module
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -457,26 +539,50 @@ function ModuleCard({
         <div className="flex items-center justify-between">
           {/* Stats */}
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Video className="h-3.5 w-3.5" />
-              {module.videoCount} video{module.videoCount !== 1 ? "s" : ""}
-            </span>
-            <span className="flex items-center gap-1">
-              <HelpCircle className="h-3.5 w-3.5" />
-              {module.questionCount} Q
-            </span>
+            {module.moduleType === TrainingModuleType.External ? (
+              <span className="flex items-center gap-1">
+                <ExternalLink className="h-3.5 w-3.5" />
+                {module.externalCourseCount} course{module.externalCourseCount !== 1 ? "s" : ""}
+              </span>
+            ) : (
+              <>
+                <span className="flex items-center gap-1">
+                  <Video className="h-3.5 w-3.5" />
+                  {module.videoCount} video{module.videoCount !== 1 ? "s" : ""}
+                </span>
+                <span className="flex items-center gap-1">
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  {module.questionCount} Q
+                </span>
+              </>
+            )}
           </div>
-          {/* Status badge */}
-          <Badge
-            variant={module.isActive ? "default" : "secondary"}
-            className={`text-[10px] px-1.5 py-0 ${
-              module.isActive
-                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
-                : ""
-            }`}
-          >
-            {module.isActive ? "Active" : "Inactive"}
-          </Badge>
+
+          <div className="flex items-center gap-1.5">
+            {/* Module Type badge */}
+            <Badge
+              variant="outline"
+              className={`text-[10px] px-1.5 py-0 border-0 ${
+                module.moduleType === TrainingModuleType.External
+                  ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
+                  : "bg-blue-500/10 text-blue-700 dark:text-blue-300"
+              }`}
+            >
+              {module.moduleType}
+            </Badge>
+
+            {/* Status badge */}
+            <Badge
+              variant={module.isActive ? "default" : "secondary"}
+              className={`text-[10px] px-1.5 py-0 ${
+                module.isActive
+                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
+                  : ""
+              }`}
+            >
+              {module.isActive ? "Active" : "Inactive"}
+            </Badge>
+          </div>
         </div>
       </CardContent>
     </Card>
