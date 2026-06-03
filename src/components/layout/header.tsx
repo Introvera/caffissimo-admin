@@ -274,7 +274,7 @@ export function Header() {
               className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive transition-colors" 
               onClick={() => {
                 dispatch(logout());
-                router.push("/admin/login");
+                router.push("/auth/login");
               }}
             >
               <LogOut className="w-4 h-4" />
