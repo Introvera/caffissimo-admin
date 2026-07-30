@@ -278,6 +278,8 @@ export interface UberMenuSummary {
 export interface UberMenu extends UberMenuSummary {
   description?: string;
   currencyCode?: string;
+  taxRatePercentage?: number;
+  isTaxInclusive?: boolean;
   externalReferenceId?: string;
   lastSyncPayloadHash?: string;
   branchProductIds: string[];
@@ -292,6 +294,10 @@ export interface CreateUberMenuRequest {
   description?: string;
   currencyCode?: string;
   menuType: UberMenuType;
+  /** Tax % applied to this menu's items. */
+  taxRatePercentage?: number;
+  /** true → tax included in price (VAT); false → added on top. */
+  isTaxInclusive?: boolean;
   branchProductIds: string[];
   serviceAvailabilities: UberMenuAvailability[];
 }
@@ -442,15 +448,61 @@ export interface UberOrderActionResult {
 }
 
 // Uber Promotions (Uber API managed)
+export interface MenuItemDiscountInput {
+  itemExternalId: string;
+  percentValue: number;
+}
+
+export interface TimeIntervalInput {
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+}
+
+export interface DaypartConstraintInput {
+  hours: TimeIntervalInput[];
+  daysOfWeek: string[];
+}
+
 export interface CreateUberPromotionRequest {
   promoType: string;
   title?: string;
-  discountPercentage?: number;
+
+  // FLATOFF
   discountAmount?: number;
+  // PERCENTOFF
+  discountPercentage?: number;
+  maxDiscountAmount?: number;
+  // min_basket_constraint
   minOrderAmount?: number;
+
+  // FREEITEM_MINBASKET
+  freeItemExternalId?: string;
+  // BOGO
+  targetItemExternalIds?: string[];
+  // MENU_ITEM_DISCOUNT
+  menuItemDiscounts?: MenuItemDiscountInput[];
+
   startDate?: string;
   endDate?: string;
-  eligibleItemIds?: string[];
+
+  // Envelope
+  externalPromotionId?: string;
+  userGroup?: string; // ALL_CUSTOMERS | FIRST_TIME_CUSTOMER
+  currencyCode?: string;
+  allowUnlimitedApply?: boolean;
+
+  // Budget
+  unlimitedBudget?: boolean;
+  budgetAmount?: number;
+  periodicBudgetAmount?: number;
+  budgetPeriod?: string; // WEEKLY
+
+  // Customization
+  marketingExperienceType?: string; // HAPPY_HOUR
+  engagementCampaignType?: string; // UBER_ONE_OFFERS
+  customSchedule?: DaypartConstraintInput[];
 }
 
 export interface UberPromotionResponse {
@@ -458,8 +510,12 @@ export interface UberPromotionResponse {
   promoType: string;
   title: string | null;
   discountPercentage: number | null;
+  percentValue: number | null;
   discountAmount: number | null;
+  maxDiscountAmount: number | null;
   minOrderAmount: number | null;
+  freeItemIds: string[] | null;
+  targetItemIds: string[] | null;
   status: string | null;
   startDate: string | null;
   endDate: string | null;

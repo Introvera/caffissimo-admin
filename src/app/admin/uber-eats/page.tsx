@@ -98,6 +98,8 @@ type MenuFormState = {
   description: string;
   currencyCode: string;
   menuType: UberMenuType;
+  taxRatePercentage: number;
+  isTaxInclusive: boolean;
   isActive: boolean;
   branchProductIds: string[];
   serviceAvailabilities: Array<{
@@ -129,6 +131,8 @@ const EMPTY_MENU_FORM: MenuFormState = {
   description: "",
   currencyCode: "AUD",
   menuType: "Delivery",
+  taxRatePercentage: 0,
+  isTaxInclusive: false,
   isActive: true,
   branchProductIds: [],
   serviceAvailabilities: DEFAULT_AVAILABILITY,
@@ -156,6 +160,13 @@ function getApiErrorMessage(error: unknown) {
 function formatOptionalDate(value?: string) {
   if (!value) return "Never";
   return formatDateTime(value);
+}
+
+function minutesBetween(openAt: string, closeAt: string): number {
+  const [oh, om] = openAt.split(":").map(Number);
+  const [ch, cm] = closeAt.split(":").map(Number);
+  if ([oh, om, ch, cm].some((n) => Number.isNaN(n))) return 0;
+  return ch * 60 + cm - (oh * 60 + om);
 }
 
 function formatMoney(value?: number, currencyCode = "AUD") {
@@ -201,6 +212,8 @@ function mapMenuDetailToForm(menu: UberMenu): MenuFormState {
     description: menu.description ?? "",
     currencyCode: menu.currencyCode ?? "AUD",
     menuType: menu.menuType,
+    taxRatePercentage: menu.taxRatePercentage ?? 0,
+    isTaxInclusive: menu.isTaxInclusive ?? false,
     isActive: menu.isActive,
     branchProductIds: menu.branchProductIds ?? [],
     serviceAvailabilities:
@@ -481,6 +494,14 @@ export default function UberEatsPage() {
     ) {
       return "Each service day must close after it opens.";
     }
+    // Uber rejects service intervals of 60 minutes or less.
+    if (
+      menuForm.serviceAvailabilities.some(
+        (item) => minutesBetween(item.openAt, item.closeAt) <= 60
+      )
+    ) {
+      return "Each service interval must be longer than 60 minutes (Uber Eats requirement).";
+    }
     return null;
   };
 
@@ -501,6 +522,8 @@ export default function UberEatsPage() {
       description: menuForm.description.trim() || undefined,
       currencyCode: menuForm.currencyCode.trim().toUpperCase() || "AUD",
       menuType: menuForm.menuType,
+      taxRatePercentage: menuForm.taxRatePercentage,
+      isTaxInclusive: menuForm.isTaxInclusive,
       branchProductIds: menuForm.branchProductIds,
       serviceAvailabilities: menuForm.serviceAvailabilities,
     };
@@ -963,6 +986,44 @@ export default function UberEatsPage() {
                         }))
                       }
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tax Rate (%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      value={menuForm.taxRatePercentage}
+                      onChange={(event) =>
+                        setMenuForm((current) => ({
+                          ...current,
+                          taxRatePercentage: event.target.value
+                            ? Number(event.target.value)
+                            : 0,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tax Mode</Label>
+                    <Select
+                      value={menuForm.isTaxInclusive ? "inclusive" : "added"}
+                      onValueChange={(value) =>
+                        setMenuForm((current) => ({
+                          ...current,
+                          isTaxInclusive: value === "inclusive",
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="added">Added on top (tax_rate)</SelectItem>
+                        <SelectItem value="inclusive">Included in price (VAT)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   {editingMenu ? (
                     <div className="space-y-2">
