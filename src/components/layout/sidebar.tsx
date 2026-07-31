@@ -29,7 +29,6 @@ import {
   FileText,
   GraduationCap,
   BookOpen,
-  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -101,7 +100,6 @@ const navEntries: NavEntry[] = [
       { title: "Products", href: "/admin/products", icon: Package },
       { title: "Toppings", href: "/admin/toppings", icon: Coffee },
       { title: "Offers", href: "/admin/offers", icon: Tag },
-      { title: "Uber Eats", href: "/admin/uber-menus", icon: ShoppingBag },
     ],
   },
   {
@@ -123,7 +121,6 @@ const navEntries: NavEntry[] = [
       { title: "Sales Reports", href: "/admin/reports", icon: BarChart3 },
     ],
   },
-
   {
     type: "group",
     title: "System Logs",

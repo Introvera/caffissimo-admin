@@ -99,6 +99,8 @@ export interface Branch {
   updatedAt: string;
 }
 
+// PlatformEnvironment enum and extended PlatformConnectionSummary declared in BACKEND-ALIGNED section below
+
 // ============== PRODUCTS ==============
 export interface Category {
   productCategoryId: string;
@@ -131,6 +133,18 @@ export interface BranchProduct {
   isVisible: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BranchProductCatalogItem {
+  branchProductId: string;
+  branchId: string;
+  productId: string;
+  productName: string;
+  isAvailable: boolean;
+  overridePosImage?: string;
+  overrideEcomImages?: string;
+  isActive: boolean;
+  variants: BranchProductVariant[];
 }
 
 // ============== ORDERS ==============
@@ -228,6 +242,315 @@ export interface Offer {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// ============== UBER EATS ==============
+export type PlatformCode = "UberEats" | "DoorDash";
+export type UberMenuType = "Delivery" | "PickUp" | "DineIn";
+export type SyncStatus = "Pending" | "Success" | "Failed";
+export type UberDayOfWeek =
+  | "Sunday"
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday";
+
+export interface UberMenuAvailability {
+  uberMenuAvailabilityId?: string;
+  dayOfWeek: UberDayOfWeek;
+  openAt: string;
+  closeAt: string;
+}
+
+export interface UberMenuItemCustomization {
+  branchProductId: string;
+  modifiers: UberMenuModifierCustomization[];
+}
+
+export interface UberMenuModifierCustomization {
+  toppingId: string;
+  overridePrice?: number;
+}
+
+export interface UberMenuItem {
+  uberMenuItemId: string;
+  branchProductId: string;
+  productId: string;
+  productCategoryId: string;
+  displayName: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  externalItemId?: string;
+  externalReferenceId?: string;
+  sortOrder: number;
+  modifierGroupIds: string[];
+}
+
+export interface UberMenuCategory {
+  uberMenuCategoryId: string;
+  productCategoryId: string;
+  displayName: string;
+  externalCategoryId?: string;
+  externalReferenceId?: string;
+  sortOrder: number;
+}
+
+export interface UberMenuModifier {
+  uberMenuModifierId: string;
+  toppingId: string;
+  branchToppingId?: string;
+  displayName: string;
+  price: number;
+  imageUrl?: string;
+  externalModifierId?: string;
+  externalReferenceId?: string;
+  sortOrder: number;
+}
+
+export interface UberMenuModifierGroup {
+  uberMenuModifierGroupId: string;
+  branchProductId: string;
+  toppingCategoryId: string;
+  displayName: string;
+  minSelections: number;
+  maxSelections: number;
+  isRequired: boolean;
+  externalModifierGroupId?: string;
+  externalReferenceId?: string;
+  sortOrder: number;
+  modifiers: UberMenuModifier[];
+}
+
+export interface UberMenuSummary {
+  uberMenuId: string;
+  platformConnectionId: string;
+  branchId: string;
+  localMenuCode: string;
+  menuName: string;
+  menuType: UberMenuType;
+  externalMenuId?: string;
+  lastSyncedAt?: string;
+  lastSyncStatus?: SyncStatus;
+  isActive: boolean;
+}
+
+export interface UberMenu extends UberMenuSummary {
+  description?: string;
+  currencyCode?: string;
+  externalReferenceId?: string;
+  serviceAvailabilities: UberMenuAvailability[];
+  categories: UberMenuCategory[];
+  items: UberMenuItem[];
+  modifierGroups: UberMenuModifierGroup[];
+}
+
+export interface CreateUberMenuRequest {
+  branchId: string;
+  platformCode: PlatformCode;
+  localMenuCode?: string;
+  menuName: string;
+  description?: string;
+  currencyCode?: string;
+  menuType: UberMenuType;
+  branchProductIds: string[];
+  itemCustomizations: UberMenuItemCustomization[];
+  serviceAvailabilities: UberMenuAvailability[];
+}
+
+export interface UpdateUberMenuRequest
+  extends Omit<CreateUberMenuRequest, "platformCode"> {
+  isActive: boolean;
+}
+
+export interface UberMenuSyncResponse {
+  uberMenuId: string;
+  platformConnectionId: string;
+  externalMenuId?: string;
+  syncStatus: SyncStatus;
+  syncedAt: string;
+  message: string;
+}
+
+export type UberWebhookProcessingStatus =
+  | "Received"
+  | "DuplicateIgnored"
+  | "Processing"
+  | "Processed"
+  | "UnresolvedBranch"
+  | "Failed";
+
+export interface UberOrderWebhookReceiveResponse {
+  received: boolean;
+  uberOrderWebhookEventId: string;
+  isDuplicate: boolean;
+  processingStatus: UberWebhookProcessingStatus;
+}
+
+// Uber Eats Order types
+export interface UberOrderStagingSummary {
+  uberOrderStagingId: string;
+  uberOrderId: string;
+  displayId: string | null;
+  branchId: string;
+  currentState: string | null;
+  orderStatus: string | null;
+  customerName: string | null;
+  fulfillmentType: string | null;
+  orderType: string | null;
+  brand: string | null;
+  currencyCode: string;
+  subtotalAmount: number;
+  discountTotal: number;
+  taxTotal: number;
+  feeTotal: number;
+  tipTotal: number;
+  totalAmount: number;
+  promotionCount: number;
+  promotionSummary: string | null;
+  acceptDeadlineAt: string | null;
+  acceptedAt: string | null;
+  deniedAt: string | null;
+  stagingStatus: number;
+  createdAt: string;
+  receivedAt: string;
+  itemCount: number;
+}
+
+export interface UberOrderStagingItemModifier {
+  uberOrderStagingItemModifierId: string;
+  modifierGroupId: string;
+  modifierGroupTitle: string | null;
+  modifierId: string;
+  toppingId: string | null;
+  branchToppingId: string | null;
+  title: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface UberOrderStagingItem {
+  uberOrderStagingItemId: string;
+  uberItemId: string;
+  branchProductId: string | null;
+  productId: string | null;
+  instanceId: string | null;
+  title: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  specialInstructions: string | null;
+  modifiers: UberOrderStagingItemModifier[];
+}
+
+export interface UberOrderStagingPromotion {
+  uberOrderStagingPromotionId: string;
+  promotionUuid: string | null;
+  externalPromotionId: string | null;
+  promoType: string;
+  discountValue: number;
+  discountPercentage: number;
+  deliveryFeeValue: number;
+  merchantFundedAmount: number;
+  uberFundedAmount: number;
+}
+
+export interface UberOrderStagingDetail {
+  uberOrderStagingId: string;
+  uberOrderId: string;
+  displayId: string | null;
+  branchId: string;
+  platformConnectionId: string;
+  externalStoreId: string;
+  currentState: string | null;
+  orderStatus: string | null;
+  customerName: string | null;
+  eaterFirstName: string | null;
+  eaterLastName: string | null;
+  eaterPhone: string | null;
+  fulfillmentType: string | null;
+  orderType: string | null;
+  brand: string | null;
+  currencyCode: string;
+  subtotalAmount: number;
+  discountTotal: number;
+  taxTotal: number;
+  feeTotal: number;
+  tipTotal: number;
+  totalAmount: number;
+  deliveryFee: number;
+  smallOrderFee: number;
+  bagFee: number;
+  promotionCount: number;
+  promotionSummary: string | null;
+  specialInstructions: string | null;
+  estimatedReadyTime: string | null;
+  estimatedPickupTime: string | null;
+  deliveryId: string | null;
+  deliveryState: string | null;
+  deliveryDriverName: string | null;
+  acceptedAt: string | null;
+  deniedAt: string | null;
+  denyReasonCode: string | null;
+  acceptDeadlineAt: string | null;
+  externalReferenceId: string | null;
+  stagingStatus: number;
+  posSyncStatus: number;
+  receivedAt: string;
+  fetchedAt: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  lastSyncError: string | null;
+  items: UberOrderStagingItem[];
+  promotions: UberOrderStagingPromotion[];
+}
+
+export interface UberOrderActionResult {
+  uberOrderStagingId: string;
+  uberOrderId: string;
+  action: string;
+  success: boolean;
+  message: string | null;
+  currentState: string | null;
+}
+
+export type OfferItemRole = "Target" | "BuyItem" | "RewardItem";
+export type OfferTargetType = "Product" | "BranchProduct" | "Order";
+
+export interface OfferBranch {
+  offerBranchId: string;
+  offerId: string;
+  branchId: string;
+}
+
+export interface OfferItem {
+  offerItemId: string;
+  offerId: string;
+  itemRole: OfferItemRole;
+  targetType: OfferTargetType;
+  productId?: string;
+  branchProductId?: string;
+  quantity?: number;
+  percentageValue?: number;
+  amountValue?: number;
+  fixedPriceValue?: number;
+}
+
+export interface OfferSummary {
+  offerId: string;
+  offerName: string;
+  description?: string;
+  offerType: OfferType;
+  startDateTime: string;
+  endDateTime: string;
+  isActive: boolean;
+  buyAmount?: number;
+  getAmount?: number;
+  offerBranches: OfferBranch[];
+  offerItems: OfferItem[];
 }
 
 // ============== FRIDGE STOCK ==============
@@ -375,6 +698,7 @@ export interface BranchProductVariant {
   variantName: string;
   price: number;
   isAvailable: boolean;
+  isActive?: boolean;
 }
 
 // ============== BACKEND-ALIGNED: USERS ==============
@@ -642,9 +966,7 @@ export interface UpdateBranchProductRequest {
 }
 
 // ============== BACKEND-ALIGNED: UBER MENUS ==============
-export type UberMenuType = "Delivery" | "PickUp" | "DineIn" | "Catering";
-export type SyncStatus = "Pending" | "Success" | "Failed" | "InProgress";
-export type PlatformCode = "UberEats" | "DoorDash";
+// UberMenuType, SyncStatus, PlatformCode declared above
 
 export interface UberMenuAvailabilityResponse {
   uberMenuAvailabilityId: string;
@@ -755,20 +1077,7 @@ export interface UberMenuItemCustomizationRequest {
   sortOrder?: number;
 }
 
-export interface CreateUberMenuRequest {
-  branchId: string;
-  platformCode: PlatformCode;
-  localMenuCode?: string;
-  menuName: string;
-  description?: string;
-  currencyCode?: string;
-  menuType: UberMenuType;
-  branchProductIds: string[];
-  itemCustomizations: UberMenuItemCustomizationRequest[];
-  serviceAvailabilities: UberMenuAvailabilityRequest[];
-}
-
-export type UpdateUberMenuRequest = Partial<CreateUberMenuRequest>;
+// CreateUberMenuRequest, UpdateUberMenuRequest declared above
 
 // ============== FIREBASE USER: REQUEST TYPES ==============
 export interface CreateFirebaseUserRequest {

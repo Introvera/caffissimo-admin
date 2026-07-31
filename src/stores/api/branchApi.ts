@@ -21,7 +21,7 @@ export const branchApi = baseApi.injectEndpoints({
         method: "POST",
         body: newBranch,
       }),
-      invalidatesTags: ["Branch"],
+      invalidatesTags: ["Branch", { type: "UberMenu" as const, id: "LIST" }],
     }),
     updateBranch: builder.mutation<Branch, { id: string; data: Partial<Branch> }>({
       query: ({ id, data }) => ({
@@ -29,7 +29,7 @@ export const branchApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "Branch", id }, "Branch"],
+      invalidatesTags: (result, error, { id }) => [{ type: "Branch", id }, "Branch", { type: "UberMenu" as const, id: "LIST" }],
     }),
     deleteBranch: builder.mutation<void, string>({
       query: (id) => ({
