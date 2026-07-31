@@ -2,13 +2,6 @@ import Cookies from "js-cookie";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-if (!BASE_URL) {
-  // Without this, `${undefined}${endpoint}` becomes a relative URL and resolves
-  // against the current page, producing 404s like /auth/undefined/api/...
-  throw new Error(
-    "NEXT_PUBLIC_API_URL is not set. It is inlined at build time, so it must be present when the app is built.",
-  );
-}
 
 async function request<T>(
   endpoint: string,
