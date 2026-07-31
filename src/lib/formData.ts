@@ -21,7 +21,9 @@ export function dataUrlToFile(dataUrl: string, fileName = "image"): File | null 
 }
 
 function appendValue(form: FormData, key: string, value: unknown): void {
-  if (value === undefined || value === null || value === "") return;
+  // null/undefined are dropped (form data has no null), but "" is kept so that
+  // clearing an optional field still reaches the server.
+  if (value === undefined || value === null) return;
 
   if (value instanceof File || value instanceof Blob) {
     form.append(key, value);
