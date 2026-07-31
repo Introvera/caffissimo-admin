@@ -34,7 +34,7 @@ import {
   useGetBranchByIdQuery,
   useUpdateBranchMutation,
 } from "@/stores/api/branchApi";
-import { canManageBranch } from "@/lib/rbac";
+import { canManageBranch, isSuperAdmin } from "@/lib/rbac";
 import { UserRole, Branch, BranchPurpose, PlatformEnvironment } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,11 +68,13 @@ const DAYS = [
 export default function BranchDetailPage({ params }: BranchDetailPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const currentRole =
-    useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const uiRole = useAppSelector((state) => state.ui.currentRole);
+  const authRole = useAppSelector((state) => state.auth.user?.role);
+  const currentRole = uiRole || authRole || UserRole.Cashier;
 
   const { data: branch, isLoading } = useGetBranchByIdQuery(resolvedParams.id);
   const canEdit = canManageBranch(currentRole);
+  const isSuper = isSuperAdmin(currentRole);
 
   const [updateBranch, { isLoading: isUpdating }] = useUpdateBranchMutation();
   const [formData, setFormData] = useState<Partial<Branch>>({});
@@ -396,7 +398,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             branchName: e.target.value,
                           })
                         }
-                        disabled={!canEdit}
+                        disabled={!isSuper}
                       />
                     </div>
                     <div className="space-y-2">
@@ -411,7 +413,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             purpose: parseInt(val) as BranchPurpose,
                           })
                         }
-                        disabled={!canEdit}
+                        disabled={!isSuper}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select purpose" />
@@ -484,7 +486,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                         <Select
                           value={locationInputType}
                           onValueChange={(val) => setLocationInputType(val as "Address" | "Coordinates")}
-                          disabled={!canEdit}
+                          disabled={!isSuper}
                         >
                           <SelectTrigger id="locationInputTypeMgr" className="w-[160px]">
                             <SelectValue />
@@ -504,7 +506,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               setFormData({ ...formData, branchAddress: val })
                             }
                             onSelect={handleLocationSelect}
-                            disabled={!canEdit}
+                            disabled={!isSuper}
                           />
                         </div>
                       )}
@@ -525,7 +527,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   latitude: e.target.value ? parseFloat(e.target.value) : undefined,
                                 })
                               }
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                             />
                           </div>
                           <div className="space-y-2 flex-1">
@@ -542,7 +544,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   longitude: e.target.value ? parseFloat(e.target.value) : undefined,
                                 })
                               }
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                             />
                           </div>
                         </div>
@@ -786,7 +788,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                     e.target.value,
                                   )
                                 }
-                                disabled={!canEdit || !isOpen}
+                                disabled={!isSuper || !isOpen}
                                 className="w-28"
                               />
                               <span className="text-muted-foreground">to</span>
@@ -800,7 +802,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                     e.target.value,
                                   )
                                 }
-                                disabled={!canEdit || !isOpen}
+                                disabled={!isSuper || !isOpen}
                                 className="w-28"
                               />
                               <div className="flex items-center gap-2 ml-4">
@@ -809,7 +811,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   onCheckedChange={(v) =>
                                     handleHoursChange(index, "isActive", v)
                                   }
-                                  disabled={!canEdit}
+                                  disabled={!isSuper}
                                 />
                                 <span className="text-sm text-muted-foreground">
                                   Open
@@ -850,7 +852,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             value={uberUrl}
                             onChange={(e) => setUberUrl(e.target.value)}
                             placeholder="https://ubereats.com/store/..."
-                            disabled={!canEdit}
+                            disabled={!isSuper}
                             className="flex-1 bg-background"
                           />
                           {uberUrl && (
@@ -893,7 +895,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               value={uberClientId}
                               onChange={(e) => setUberClientId(e.target.value)}
                               placeholder="Enter Client ID"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -908,7 +910,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   setUberClientSecret(e.target.value)
                                 }
                                 placeholder="Enter Client Secret"
-                                disabled={!canEdit}
+                                disabled={!isSuper}
                                 className="pr-10 bg-background"
                               />
                               <button
@@ -934,7 +936,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberExternalStoreId(e.target.value)
                               }
                               placeholder="e.g. uber-store-123"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -946,7 +948,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberWebhookSecret(e.target.value)
                               }
                               placeholder="Enter Webhook Secret"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -960,7 +962,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberWebhookConnectionKey(e.target.value)
                               }
                               placeholder="Auto-generated or custom key"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -971,7 +973,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               onChange={(e) =>
                                 setUberEnvironment(parseInt(e.target.value))
                               }
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                             >
                               <option value={0}>Sandbox (Testing)</option>
@@ -997,7 +999,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             value={ddUrl}
                             onChange={(e) => setDdUrl(e.target.value)}
                             placeholder="https://doordash.com/store/..."
-                            disabled={!canEdit}
+                            disabled={!isSuper}
                             className="flex-1 bg-background"
                           />
                           {ddUrl && (
@@ -1040,7 +1042,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               value={ddClientId}
                               onChange={(e) => setDdClientId(e.target.value)}
                               placeholder="Enter Client ID"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -1055,7 +1057,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   setDdClientSecret(e.target.value)
                                 }
                                 placeholder="Enter Client Secret"
-                                disabled={!canEdit}
+                                disabled={!isSuper}
                                 className="pr-10 bg-background"
                               />
                               <button
@@ -1081,7 +1083,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdExternalStoreId(e.target.value)
                               }
                               placeholder="e.g. doordash-store-456"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -1093,7 +1095,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdWebhookSecret(e.target.value)
                               }
                               placeholder="Enter Webhook Secret"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -1107,7 +1109,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdWebhookConnectionKey(e.target.value)
                               }
                               placeholder="Auto-generated or custom key"
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="bg-background"
                             />
                           </div>
@@ -1118,7 +1120,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               onChange={(e) =>
                                 setDdEnvironment(parseInt(e.target.value))
                               }
-                              disabled={!canEdit}
+                              disabled={!isSuper}
                               className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                             >
                               <option value={0}>Sandbox (Testing)</option>
@@ -1168,7 +1170,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                       onCheckedChange={(v) =>
                         setFormData({ ...formData, isActive: v })
                       }
-                      disabled={!canEdit}
+                      disabled={!isSuper}
                     />
                   </div>
                 </CardContent>
@@ -1193,11 +1195,11 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
         </TabsContent>
 
         <TabsContent value="products" className="m-0">
-          <ProductsTab branchId={branch.branchId} canEdit={canEdit} />
+          <ProductsTab branchId={branch.branchId} canEdit={isSuper} />
         </TabsContent>
 
         <TabsContent value="uber-menus" className="m-0">
-          <UberMenusTab branchId={branch.branchId} canEdit={canEdit} />
+          <UberMenusTab branchId={branch.branchId} canEdit={isSuper} />
         </TabsContent>
       </Tabs>
     </div>

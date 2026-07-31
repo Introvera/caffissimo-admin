@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   ChevronLeft,
@@ -111,7 +111,20 @@ function SortIcon({ header }: { header: Header<User, unknown> }) {
 }
 
 export default function UsersPage() {
-  const { currentRole, selectedBranchId, assignedBranchId } = useAppSelector((state) => state.ui);
+  const { currentRole: uiRole, selectedBranchId, assignedBranchId } = useAppSelector((state) => state.ui);
+  const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const currentRole = uiRole || authRole;
+  const effectiveBranchId = (selectedBranchId || assignedBranchId) ?? undefined;
+  const loggedInUser = useAppSelector((state) => state.auth.user);
+  const loggedInUserRole = loggedInUser?.role;
+  const isBranchOwnerOrAdmin =
+    loggedInUserRole === UserRole.BranchOwner ||
+    loggedInUserRole === UserRole.BranchAdmin ||
+    currentRole === UserRole.BranchOwner ||
+    currentRole === UserRole.BranchAdmin;
+
+  const loggedInUserBranchId = loggedInUser?.branchId || assignedBranchId || selectedBranchId || "";
+  const displayedBranchId = isBranchOwnerOrAdmin ? loggedInUserBranchId : effectiveBranchId;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -124,7 +137,11 @@ export default function UsersPage() {
   const { data: branchesData } = useGetBranchesQuery({ pageSize: 100 });
   const branches = branchesData?.items || [];
   
-  const { data: usersData } = useGetUsersQuery({ page: 1, pageSize: 100 });
+  const { data: usersData } = useGetUsersQuery({
+    page: 1,
+    pageSize: 100,
+    branchId: canAccessAllBranches(currentRole) ? undefined : (effectiveBranchId || undefined),
+  });
   const users: User[] = useMemo(() => {
     return (usersData?.items || []).map((u) => ({
       id: u.id,
@@ -139,7 +156,6 @@ export default function UsersPage() {
   }, [usersData]);
 
   const canManage = canManageUsers(currentRole);
-  const effectiveBranchId = selectedBranchId || assignedBranchId;
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -150,7 +166,6 @@ export default function UsersPage() {
       const matchesRole = roleFilter === "all" || user.role === (roleFilter as UserRole);
       const matchesBranch =
         canAccessAllBranches(currentRole) ||
-        !user.branchId ||
         user.branchId === effectiveBranchId;
       return matchesSearch && matchesRole && matchesBranch;
     });
@@ -170,7 +185,62 @@ export default function UsersPage() {
     branchId: "",
   });
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!canAccessAllBranches(currentRole) && displayedBranchId) {
+      setFormData((prev) => ({
+        ...prev,
+        branchId: displayedBranchId,
+      }));
+    }
+  }, [currentRole, displayedBranchId]);
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.firstName.trim())
+      errors.firstName = "First name is required.";
+    else if (formData.firstName.length > 100)
+      errors.firstName = "First name must not exceed 100 characters.";
+
+    if (!formData.lastName.trim())
+      errors.lastName = "Last name is required.";
+    else if (formData.lastName.length > 100)
+      errors.lastName = "Last name must not exceed 100 characters.";
+
+    if (!formData.email.trim())
+      errors.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      errors.email = "A valid email address is required.";
+    else if (formData.email.length > 256)
+      errors.email = "Email must not exceed 256 characters.";
+
+    if (!formData.password)
+      errors.password = "Password is required.";
+    else if (formData.password.length < 6)
+      errors.password = "Password must be at least 6 characters.";
+
+    if (!formData.role)
+      errors.role = "Role is required.";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      role: UserRole.Cashier,
+      branchId: canAccessAllBranches(currentRole) ? "" : displayedBranchId || "",
+    });
+    setFormErrors({});
+  };
+
   const handleCreateUser = async () => {
+    if (!validateForm()) return;
     try {
       await createUser({
         ...formData,
@@ -179,14 +249,7 @@ export default function UsersPage() {
       }).unwrap();
       toast.success("User created successfully");
       setCreateDialogOpen(false);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        role: UserRole.Cashier,
-        branchId: "",
-      });
+      resetForm();
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to create user");
     }
@@ -357,7 +420,7 @@ export default function UsersPage() {
         title="Users & Roles"
         description="Manage user accounts and permissions"
         actions={
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -379,8 +442,15 @@ export default function UsersPage() {
                       id="firstName" 
                       placeholder="John" 
                       value={formData.firstName}
-                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      className={formErrors.firstName ? "border-destructive focus-visible:ring-destructive" : ""}
+                      onChange={(e) => {
+                        setFormData({ ...formData, firstName: e.target.value });
+                        if (formErrors.firstName) setFormErrors((prev) => ({ ...prev, firstName: "" }));
+                      }}
                     />
+                    {formErrors.firstName && (
+                      <p className="text-xs text-destructive mt-1">{formErrors.firstName}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
@@ -388,8 +458,15 @@ export default function UsersPage() {
                       id="lastName" 
                       placeholder="Doe" 
                       value={formData.lastName}
-                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      className={formErrors.lastName ? "border-destructive focus-visible:ring-destructive" : ""}
+                      onChange={(e) => {
+                        setFormData({ ...formData, lastName: e.target.value });
+                        if (formErrors.lastName) setFormErrors((prev) => ({ ...prev, lastName: "" }));
+                      }}
                     />
+                    {formErrors.lastName && (
+                      <p className="text-xs text-destructive mt-1">{formErrors.lastName}</p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -399,8 +476,15 @@ export default function UsersPage() {
                     type="email" 
                     placeholder="john@caffissimo.com" 
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className={formErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value });
+                      if (formErrors.email) setFormErrors((prev) => ({ ...prev, email: "" }));
+                    }}
                   />
+                  {formErrors.email && (
+                    <p className="text-xs text-destructive mt-1">{formErrors.email}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Temporary Password</Label>
@@ -409,16 +493,27 @@ export default function UsersPage() {
                     type="password" 
                     placeholder="••••••••" 
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className={formErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, password: e.target.value });
+                      if (formErrors.password) setFormErrors((prev) => ({ ...prev, password: "" }));
+                    }}
                   />
+                  {formErrors.password && (
+                    <p className="text-xs text-destructive mt-1">{formErrors.password}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
                   <Select 
                     value={formData.role} 
-                    onValueChange={(v) => setFormData({ ...formData, role: v as UserRole })}
+                    onValueChange={(v) => {
+                      const isGlobalRole = v === UserRole.SuperAdmin || v === UserRole.SuperAdminDeveloper;
+                      setFormData({ ...formData, role: v as UserRole, branchId: isGlobalRole ? "" : formData.branchId });
+                      if (formErrors.role) setFormErrors((prev) => ({ ...prev, role: "" }));
+                    }}
                   >
-                    <SelectTrigger id="role">
+                    <SelectTrigger id="role" className={formErrors.role ? "border-destructive" : ""}>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -434,6 +529,7 @@ export default function UsersPage() {
                         </>
                       ) : (
                         <>
+                          <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
                           <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
                           <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
                           <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
@@ -443,24 +539,35 @@ export default function UsersPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="branch">Branch Assignment</Label>
-                  <Select 
-                    value={formData.branchId} 
-                    onValueChange={(v) => setFormData({ ...formData, branchId: v })}
-                  >
-                    <SelectTrigger id="branch">
-                      <SelectValue placeholder="Select branch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {branches.map((branch) => (
-                        <SelectItem key={branch.branchId} value={branch.branchId}>
-                          {branch.branchName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+{formData.role !== UserRole.SuperAdmin && formData.role !== UserRole.SuperAdminDeveloper && (
+                  <div className="space-y-2">
+                    <Label htmlFor="branch">Branch Assignment</Label>
+                    {canAccessAllBranches(currentRole) ? (
+                      <Select 
+                        value={formData.branchId} 
+                        onValueChange={(v) => setFormData({ ...formData, branchId: v })}
+                      >
+                        <SelectTrigger id="branch">
+                          <SelectValue placeholder="Select branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branches.map((branch) => (
+                            <SelectItem key={branch.branchId} value={branch.branchId}>
+                              {branch.branchName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input 
+                        id="branch" 
+                        value={getBranchName(displayedBranchId)} 
+                        disabled 
+                        className="bg-muted text-muted-foreground"
+                      />
+                    )}
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -484,10 +591,25 @@ export default function UsersPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
-              <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-              <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-              <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+              {canAccessAllBranches(currentRole) ? (
+                <>
+                  <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
+                  <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
+                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>

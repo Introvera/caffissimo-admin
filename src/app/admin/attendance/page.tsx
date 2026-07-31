@@ -41,8 +41,9 @@ const PAGE_TITLE = "POS Login / Logout Report";
 const PAGE_DESCRIPTION = "First login and last logout times per day. Inactive cashiers are auto-logged out after 10 minutes.";
 
 export default function POSLoginReportPage() {
-  const { currentRole, selectedBranchId, assignedBranchId, dateRange } = useAppSelector((state) => state.ui);
+  const { currentRole: uiRole, selectedBranchId, assignedBranchId, dateRange } = useAppSelector((state) => state.ui);
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const currentRole = uiRole || authRole;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<POSDayRecord | null>(null);
 

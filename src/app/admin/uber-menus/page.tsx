@@ -50,12 +50,18 @@ import {
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { UserRole } from "@/types";
 
 export default function UberMenusPage() {
+  const currentRole = useAppSelector(
+    (state) => state.ui.currentRole || state.auth.user?.role || UserRole.Cashier
+  );
   const { selectedBranchId } = useAppSelector((state) => state.ui);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [branchFilter, setBranchFilter] = useState<string>("all");
+
+  const showBranchFilter = currentRole !== UserRole.BranchOwner && currentRole !== UserRole.BranchAdmin;
 
   const PAGE_SIZE = 10;
 
@@ -99,17 +105,19 @@ export default function UberMenusPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={branchFilter} onValueChange={(v) => { setBranchFilter(v); setPage(1); }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
-              <SelectValue placeholder="Branch" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Branches</SelectItem>
-              {branchesData?.items.map((b) => (
-                <SelectItem key={b.branchId} value={b.branchId}>{b.branchName.replace("Caffissimo", "").trim()}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {showBranchFilter && (
+            <Select value={branchFilter} onValueChange={(v) => { setBranchFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+                <SelectValue placeholder="Branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                {branchesData?.items.map((b) => (
+                  <SelectItem key={b.branchId} value={b.branchId}>{b.branchName.replace("Caffissimo", "").trim()}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="relative">

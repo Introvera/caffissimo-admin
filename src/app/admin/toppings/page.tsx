@@ -7,7 +7,6 @@ import {
   Search,
   Coffee,
   Edit,
-  DollarSign,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
@@ -128,7 +127,8 @@ export default function ToppingsPage() {
           return <Badge variant="secondary">{category?.categoryName || "Unknown"}</Badge>;
         },
       }),
-      columnHelper.accessor("price", {
+      columnHelper.accessor((row) => row.toppingPrice ?? row.price, {
+        id: "price",
         header: "Base Price",
         cell: (info) => (
           <span className="font-medium text-foreground">
@@ -161,10 +161,6 @@ export default function ToppingsPage() {
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Topping
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Update Price
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

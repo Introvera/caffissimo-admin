@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutGrid,
@@ -28,9 +29,6 @@ import {
   FileText,
   GraduationCap,
   BookOpen,
-  Cable,
-  Store,
-  Truck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -106,22 +104,21 @@ const navEntries: NavEntry[] = [
   },
   {
     type: "group",
+    title: "E-commerce",
+    icon: ShoppingBag,
+    permission: canAccessAdmin,
+    children: [
+      { title: "Special Days", href: "/admin/special-days", icon: Calendar },
+    ],
+  },
+  {
+    type: "group",
     title: "Sales",
     icon: DollarSign,
     permission: canAccessAdmin,
     children: [
       { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
       { title: "Sales Reports", href: "/admin/reports", icon: BarChart3 },
-    ],
-  },
-  {
-    type: "group",
-    title: "Integrations",
-    icon: Cable,
-    permission: canAccessAdmin,
-    children: [
-      { title: "Uber Eats Menus", href: "/admin/uber-eats", icon: Store },
-      { title: "Uber Eats Orders", href: "/admin/uber-eats/orders", icon: Truck },
     ],
   },
   {
@@ -150,7 +147,15 @@ export function Sidebar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { sidebarCollapsed, mobileMenuOpen } = useAppSelector((state) => state.ui);
-  const currentRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const uiRole = useAppSelector((state) => state.ui.currentRole);
+  const authRole = useAppSelector((state) => state.auth.user?.role);
+  const currentRole = uiRole || authRole || UserRole.Cashier;
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const settingsEntry = {
     title: "Settings",
@@ -176,9 +181,19 @@ export function Sidebar() {
     setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
   };
 
-  const filteredEntries = navEntries.filter(
-    (entry) => !entry.permission || entry.permission(currentRole)
-  );
+  const isBranchUser = currentRole === UserRole.BranchAdmin || currentRole === UserRole.BranchOwner;
+
+  const filteredEntries = navEntries
+    .filter((entry) => !entry.permission || entry.permission(currentRole))
+    .map((entry) => {
+      if (entry.type === "single" && entry.href === "/admin/branches") {
+        return {
+          ...entry,
+          title: isBranchUser ? "Branch" : "Branches",
+        };
+      }
+      return entry;
+    });
 
   const isChildActive = (child: NavChild) =>
     pathname === child.href || pathname.startsWith(`${child.href}/`);
@@ -322,7 +337,7 @@ export function Sidebar() {
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className="mt-1.5 flex flex-col gap-1 border-l border-zinc-200 dark:border-zinc-800 ml-[20px] pl-2">
+              <div className="mt-1.5 flex flex-col gap-1 border-l border-border ml-[20px] pl-2">
                 {group.children.map((child) => (
                   <NavLink
                     key={child.href}
@@ -358,13 +373,17 @@ export function Sidebar() {
                     <Coffee className="h-6 w-6 text-primary-foreground" />
                   </div>
                 ) : (
-                  <div className="flex h-14 items-center rounded-lg bg-zinc-900 px-2 dark:bg-transparent dark:px-0">
-                    <img
-                      src="/logo.jpg"
-                      alt="Caffissimo"
-                      className="h-12 w-auto max-w-[160px] object-contain object-left"
-                      onError={() => setLogoError(true)}
-                    />
+                  <div className="flex h-14 items-center rounded-lg px-2 dark:px-0">
+                    {mounted ? (
+                      <img
+                        src={resolvedTheme === "dark" ? "/logo/logo-dark-theme.png" : "/logo/logo-light-theme.png"}
+                        alt="Caffissimo"
+                        className="h-12 w-36 object-contain object-left"
+                        onError={() => setLogoError(true)}
+                      />
+                    ) : (
+                      <div className="h-12 w-32" />
+                    )}
                   </div>
                 )}
               </div>

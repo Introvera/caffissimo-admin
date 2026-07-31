@@ -41,7 +41,7 @@ import { useGetBranchByIdQuery } from "@/stores/api/branchApi";
 import { useGetOrderByIdQuery, useUpdateOrderMutation, useDeleteOrderMutation } from "@/stores/api/orderApi";
 import { canCancelOrders } from "@/lib/rbac";
 import { formatCurrency } from "@/lib/utils";
-import { OrderStatus, OrderType, PaymentType } from "@/types";
+import { OrderStatus, OrderType, PaymentType, UserRole } from "@/types";
 
 // Status steps in order
 const STATUS_STEPS: OrderStatus[] = ["Pending", "Confirmed", "Preparing", "Ready", "Completed"];
@@ -65,7 +65,9 @@ interface OrderDetailPageProps {
 export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const { currentRole } = useAppSelector((state) => state.ui);
+  const { currentRole: uiRole } = useAppSelector((state) => state.ui);
+  const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const currentRole = uiRole || authRole;
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const { data: order, isLoading, isError } = useGetOrderByIdQuery(resolvedParams.id);

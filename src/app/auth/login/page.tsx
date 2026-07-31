@@ -1,20 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { Eye, EyeOff, Coffee } from "lucide-react";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { loginWithFirebase } from "@/stores/slices/authSlice";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isLoading } = useAppSelector((state) => state.auth);
+  const { resolvedTheme } = useTheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,18 +47,19 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-background text-foreground">
       {/* ── Left panel: form ── */}
       <div className="flex flex-col w-full lg:w-1/2 px-8 py-10 justify-between bg-background">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-lg bg-card border border-border flex items-center justify-center overflow-hidden">
-            <img
-              src="/logo.jpg"
-              alt="Caffissimo"
-              className="h-8 w-auto object-contain"
-            />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center overflow-hidden">
+            {mounted ? (
+              <img
+                src={resolvedTheme === "dark" ? "/logo/logo-dark-theme.png" : "/logo/logo-light-theme.png"}
+                alt="Caffissimo"
+                className="h-10 w-36 object-contain object-left"
+              />
+            ) : (
+              <div className="h-10 w-32" />
+            )}
           </div>
-          <span className="font-semibold text-base text-foreground tracking-tight">
-            Caffissimo
-          </span>
+          <ThemeToggle />
         </div>
 
         {/* Form */}
@@ -141,7 +150,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-xs text-muted-foreground text-center">
-          © 2025 Caffissimo. All rights reserved.
+          © 2026 Caffissimo. All rights reserved.
         </p>
       </div>
 
@@ -159,7 +168,7 @@ export default function LoginPage() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(160deg, hsl(181 89% 12% / 0.1) 0%, hsl(181 89% 8% / 0.2) 60%, hsl(181 89% 4% / 0.3) 100%)",
+              "linear-gradient(160deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.28) 60%, rgba(0,0,0,0.52) 100%)",
           }}
         />
 

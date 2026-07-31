@@ -17,6 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -237,22 +244,22 @@ export default function AcademyProgressPage() {
       )}
 
       {/* Filters */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          {(["all", "Passed", "InProgress", "NotStarted"] as const).map((s) => (
-            <Button
-              key={s}
-              size="sm"
-              variant={statusFilter === s ? "default" : "outline"}
-              className="h-8 text-xs"
-              onClick={() => setStatusFilter(s)}
-              id={`filter-${s}`}
-            >
-              {s === "all"
-                ? "All"
-                : statusConfig[s as TrainingQualificationStatus].label}
-            </Button>
-          ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => setStatusFilter(val as TrainingQualificationStatus | "all")}
+          >
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="Passed">Passed</SelectItem>
+              <SelectItem value="InProgress">In Progress</SelectItem>
+              <SelectItem value="NotStarted">Not Started</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

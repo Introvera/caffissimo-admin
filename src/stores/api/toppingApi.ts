@@ -108,6 +108,13 @@ export const toppingApi = baseApi.injectEndpoints({
       query: (branchId) => `/api/branch-toppings/by-branch/${branchId}`,
       providesTags: ["BranchTopping"],
     }),
+    getBranchToppingsList: builder.query<PagedResult<BranchTopping>, { toppingId?: string; branchId?: string; pageSize?: number } | void>({
+      query: (params) => ({
+        url: "/api/branch-toppings",
+        params: params || undefined,
+      }),
+      providesTags: ["BranchTopping"],
+    }),
     createBranchTopping: builder.mutation<BranchTopping, Partial<BranchTopping>>({
       query: (data) => ({
         url: "/api/branch-toppings",
@@ -132,6 +139,7 @@ export const toppingApi = baseApi.injectEndpoints({
       invalidatesTags: ["BranchTopping"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const {
@@ -149,6 +157,7 @@ export const {
   useCreateProductToppingMutation,
   useDeleteProductToppingMutation,
   useGetBranchToppingsQuery,
+  useGetBranchToppingsListQuery,
   useCreateBranchToppingMutation,
   useUpdateBranchToppingMutation,
   useDeleteBranchToppingMutation,

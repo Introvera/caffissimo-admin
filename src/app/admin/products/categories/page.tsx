@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Search,
@@ -14,6 +15,7 @@ import {
   ArrowDown,
   Layers,
   MoreVertical,
+  ArrowLeft,
 } from "lucide-react";
 import {
   useReactTable,
@@ -61,7 +63,7 @@ import {
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
 } from "@/stores/api/productApi";
-import { canManageProducts } from "@/lib/rbac";
+import { canManageProducts, isSuperAdmin } from "@/lib/rbac";
 import { Category, UserRole } from "@/types";
 import { toast } from "sonner";
 
@@ -77,8 +79,17 @@ function SortIcon({ header }: { header: Header<Category, unknown> }) {
 }
 
 export default function ProductCategoriesPage() {
+  const router = useRouter();
   const currentRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const isSuper = isSuperAdmin(currentRole);
   const canManage = canManageProducts(currentRole);
+
+  useEffect(() => {
+    if (currentRole && !isSuper) {
+      toast.error("You are not authorized to manage categories.");
+      router.push("/admin/products");
+    }
+  }, [currentRole, isSuper, router]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -244,18 +255,26 @@ export default function ProductCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Product Categories"
-        description="Manage product catalog grouping and organization"
-        actions={
-          canManage && (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Category
-            </Button>
-          )
-        }
-      />
+      <div className="flex items-center gap-4">
+        <Link href="/admin/products">
+           <Button variant="ghost" size="icon">
+             <ArrowLeft className="h-4 w-4" />
+           </Button>
+        </Link>
+        <PageHeader
+          className="flex-1"
+          title="Product Categories"
+          description="Manage product catalog grouping and organization"
+          actions={
+            canManage && (
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Category
+              </Button>
+            )
+          }
+        />
+      </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">

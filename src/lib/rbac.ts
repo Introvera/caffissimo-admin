@@ -18,7 +18,7 @@ export const canAccessAdmin = (role: UserRole | undefined): boolean => {
 };
 
 export const canManageUsers = (role: UserRole | undefined): boolean => {
-  return isSuperAdmin(role) || role === UserRole.BranchOwner;
+  return isSuperAdmin(role) || role === UserRole.BranchOwner || role === UserRole.BranchAdmin;
 };
 
 export const canManageOffers = (role: UserRole | undefined): boolean => {
@@ -60,3 +60,8 @@ export const canViewAuditLogs = (role: UserRole | undefined): boolean => {
 export const canManageSettings = (role: UserRole | undefined): boolean => {
   return isSuperAdmin(role);
 };
+
+export const canManageSpecialDays = (role: UserRole | undefined): boolean => {
+  return isSuperAdmin(role);
+};
+
