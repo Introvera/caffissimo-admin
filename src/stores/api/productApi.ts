@@ -1,5 +1,6 @@
 import { baseApi } from "./baseApi";
 import { Product, Category, BranchForSale, PagedResult, PaginationParams } from "@/types";
+import { toFormData } from "@/lib/formData";
 
 export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,7 +20,8 @@ export const productApi = baseApi.injectEndpoints({
       query: (newProduct) => ({
         url: "/api/products",
         method: "POST",
-        body: newProduct,
+        // POST/PUT /api/products are [FromForm] on the backend.
+        body: toFormData(newProduct as Record<string, unknown>),
       }),
       invalidatesTags: ["Product"],
     }),
@@ -27,7 +29,7 @@ export const productApi = baseApi.injectEndpoints({
       query: ({ id, data }) => ({
         url: `/api/products/${id}`,
         method: "PUT",
-        body: data,
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "Product", id }, "Product"],
     }),
