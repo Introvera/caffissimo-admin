@@ -82,7 +82,7 @@ export default function UberMenusPage() {
   const handleSync = async (menuId: string, branchId: string) => {
     try {
       const response = await syncMenu({ id: menuId, branchId }).unwrap();
-      if (response.success) {
+      if (response.syncStatus === "Success") {
         toast.success("Menu sync triggered successfully");
       } else {
         toast.error(response.message || "Sync failed");

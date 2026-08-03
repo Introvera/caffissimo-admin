@@ -253,9 +253,9 @@ export default function UberEatsOrdersPage() {
                           <Badge variant={stateVariant(order.currentState)}>
                             {order.orderStatus ?? order.currentState ?? "Unknown"}
                           </Badge>
-                          {order.promotionCount > 0 && (
+                          {order.promotionSummary && (
                             <Badge variant="outline" className="text-xs">
-                              {order.promotionCount} promo{order.promotionCount > 1 ? "s" : ""}
+                              Promo
                             </Badge>
                           )}
                         </div>

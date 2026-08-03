@@ -54,6 +54,7 @@ export const baseApi = createApi({
     "User",
     "UberMenu",
     "UberOrder",
+    "UberPromotion",
     "SpecialDay",
   ],
   endpoints: () => ({}),

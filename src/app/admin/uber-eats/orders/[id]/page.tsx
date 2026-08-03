@@ -28,7 +28,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { UberOrderStagingPromotion } from "@/types";
 
 function formatMoney(amount: number, currency: string = "USD"): string {
   try {
@@ -58,76 +57,7 @@ function stateVariant(state: string | null): "default" | "secondary" | "destruct
   }
 }
 
-function promoTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    FLATOFF: "Flat Discount",
-    PERCENTOFF: "Percentage Off",
-    FREEITEM_MINBASKET: "Free Item (Min Basket)",
-    CATEGORY_DISCOUNT: "Category Discount",
-    BOGO: "Buy One Get One",
-    FREEDELIVERY: "Free Delivery",
-    MENU_ITEM_DISCOUNT: "Menu Item Discount",
-  };
-  return labels[type.toUpperCase()] ?? type;
-}
 
-function promoTypeBadgeVariant(type: string): "default" | "secondary" | "outline" | "destructive" {
-  switch (type.toUpperCase()) {
-    case "PERCENTOFF": return "default";
-    case "FLATOFF": return "default";
-    case "BOGO": return "secondary";
-    case "FREEDELIVERY": return "outline";
-    case "FREEITEM_MINBASKET": return "secondary";
-    default: return "outline";
-  }
-}
-
-function PromotionCard({ promo, currency }: { promo: UberOrderStagingPromotion; currency: string }) {
-  const hasPercentage = promo.discountPercentage > 0;
-  const hasValue = promo.discountValue > 0;
-  const hasFreeDelivery = promo.deliveryFeeValue > 0;
-
-  return (
-    <Card className="border-dashed">
-      <CardContent className="py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Tag className="h-4 w-4 text-muted-foreground" />
-            <Badge variant={promoTypeBadgeVariant(promo.promoType)}>
-              {promoTypeLabel(promo.promoType)}
-            </Badge>
-            {hasPercentage && (
-              <span className="text-sm font-medium">{promo.discountPercentage}%</span>
-            )}
-          </div>
-          <div className="text-right">
-            {hasValue && (
-              <span className="font-semibold text-destructive">
-                -{formatMoney(promo.discountValue, currency)}
-              </span>
-            )}
-            {hasFreeDelivery && !hasValue && (
-              <span className="font-semibold text-destructive">
-                -{formatMoney(promo.deliveryFeeValue, currency)} delivery
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="mt-1 text-xs text-muted-foreground flex gap-4">
-          {promo.uberFundedAmount > 0 && (
-            <span>Uber funded: {formatMoney(promo.uberFundedAmount, currency)}</span>
-          )}
-          {promo.merchantFundedAmount > 0 && (
-            <span>Merchant funded: {formatMoney(promo.merchantFundedAmount, currency)}</span>
-          )}
-          {promo.uberFundedAmount === 0 && promo.merchantFundedAmount === 0 && (
-            <span>Funding details not available</span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function UberEatsOrderDetailPage({
   params,
@@ -300,46 +230,28 @@ export default function UberEatsOrderDetailPage({
         </CardContent>
       </Card>
 
-      {/* Promotions - Each type displayed separately */}
-      {(order.promotions.length > 0 || order.discountTotal > 0) && (
+      {/* Promotions - Simple summary */}
+      {(order.discountTotal > 0 || order.promotionSummary) && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Tag className="h-4 w-4" />
               Promotions Applied
-              {order.promotionCount > 0 && (
-                <Badge variant="outline">{order.promotionCount}</Badge>
-              )}
             </CardTitle>
-            {order.promotionSummary && (
-              <CardDescription>{order.promotionSummary}</CardDescription>
-            )}
           </CardHeader>
-          <CardContent className="space-y-3">
-            {order.promotions.length > 0 ? (
-              order.promotions.map((promo) => (
-                <PromotionCard key={promo.uberOrderStagingPromotionId} promo={promo} currency={currency} />
-              ))
-            ) : (
-              order.discountTotal > 0 && (
-                <Card className="border-dashed">
-                  <CardContent className="py-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                        <span className="text-sm">Promotion details not available</span>
-                      </div>
-                      <span className="font-semibold text-destructive">
-                        -{formatMoney(order.discountTotal, currency)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Aggregate discount from Uber. Detailed breakdown may require Uber API authorization.
-                    </p>
-                  </CardContent>
-                </Card>
-              )
-            )}
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                {order.promotionSummary ? (
+                  <p className="text-sm">{order.promotionSummary}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Discount applied</p>
+                )}
+              </div>
+              <span className="font-semibold text-destructive">
+                -{formatMoney(order.discountTotal, currency)}
+              </span>
+            </div>
           </CardContent>
         </Card>
       )}

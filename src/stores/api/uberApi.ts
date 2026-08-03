@@ -2,10 +2,13 @@ import { baseApi } from "./baseApi";
 import {
   BranchProductCatalogItem,
   CreateUberMenuRequest,
+  CreateUberPromotionRequest,
   PagedResult,
   PaginationParams,
   PlatformCode,
   UpdateUberMenuRequest,
+  UpdateItemAvailabilityRequest,
+  UpdateItemPriceRequest,
   UberMenu,
   UberMenuSummary,
   UberMenuSyncResponse,
@@ -13,6 +16,7 @@ import {
   UberOrderStagingSummary,
   UberOrderStagingDetail,
   UberOrderActionResult,
+  UberPromotionResponse,
 } from "@/types";
 
 interface UberMenuListParams extends PaginationParams {
@@ -221,6 +225,70 @@ export const uberApi = baseApi.injectEndpoints({
         { type: "UberOrder" as const, id: "LIST" },
       ],
     }),
+
+    // Partial item updates
+    updateItemAvailability: builder.mutation<
+      { branchProductId: string; isAvailable: boolean; message: string },
+      { branchProductId: string; branchId: string; data: UpdateItemAvailabilityRequest }
+    >({
+      query: ({ branchProductId, branchId, data }) => ({
+        url: `/api/uber-menus/items/${branchProductId}/availability`,
+        method: "PATCH",
+        params: { branchId },
+        body: data,
+      }),
+      invalidatesTags: [{ type: "UberMenu" as const, id: "LIST" }],
+    }),
+
+    updateItemPrice: builder.mutation<
+      { branchProductId: string; priceInCents: number; message: string },
+      { branchProductId: string; branchId: string; data: UpdateItemPriceRequest }
+    >({
+      query: ({ branchProductId, branchId, data }) => ({
+        url: `/api/uber-menus/items/${branchProductId}/price`,
+        method: "PATCH",
+        params: { branchId },
+        body: data,
+      }),
+      invalidatesTags: [{ type: "UberMenu" as const, id: "LIST" }],
+    }),
+
+    // Uber Promotions
+    getUberPromotions: builder.query<
+      { branchId: string; promotions: UberPromotionResponse[] },
+      { branchId: string }
+    >({
+      query: ({ branchId }) => ({
+        url: "/api/uber-promotions",
+        params: { branchId },
+      }),
+      providesTags: ["UberPromotion"],
+    }),
+
+    createUberPromotion: builder.mutation<
+      UberPromotionResponse,
+      { branchId: string; data: CreateUberPromotionRequest }
+    >({
+      query: ({ branchId, data }) => ({
+        url: "/api/uber-promotions",
+        method: "POST",
+        params: { branchId },
+        body: data,
+      }),
+      invalidatesTags: ["UberPromotion"],
+    }),
+
+    deleteUberPromotion: builder.mutation<
+      { message: string; promotionId: string },
+      { branchId: string; promotionId: string }
+    >({
+      query: ({ branchId, promotionId }) => ({
+        url: `/api/uber-promotions/${promotionId}`,
+        method: "DELETE",
+        params: { branchId },
+      }),
+      invalidatesTags: ["UberPromotion"],
+    }),
   }),
 });
 
@@ -243,4 +311,9 @@ export const {
   useAcceptUberOrderMutation,
   useDenyUberOrderMutation,
   useCancelUberOrderMutation,
+  useUpdateItemAvailabilityMutation,
+  useUpdateItemPriceMutation,
+  useGetUberPromotionsQuery,
+  useCreateUberPromotionMutation,
+  useDeleteUberPromotionMutation,
 } = uberApi;

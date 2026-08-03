@@ -29,6 +29,10 @@ import {
   FileText,
   GraduationCap,
   BookOpen,
+  Cable,
+  Store,
+  Truck,
+  Megaphone,
   Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -120,6 +124,17 @@ const navEntries: NavEntry[] = [
     children: [
       { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
       { title: "Sales Reports", href: "/admin/reports", icon: BarChart3 },
+    ],
+  },
+  {
+    type: "group",
+    title: "Integrations",
+    icon: Cable,
+    permission: canAccessAdmin,
+    children: [
+      { title: "Uber Eats Menus", href: "/admin/uber-eats", icon: Store },
+      { title: "Uber Eats Orders", href: "/admin/uber-eats/orders", icon: Truck },
+      { title: "Uber Promotions", href: "/admin/uber-eats/promotions", icon: Megaphone },
     ],
   },
   {

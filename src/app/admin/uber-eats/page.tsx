@@ -8,8 +8,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  DollarSign,
   Edit,
   Eye,
+  EyeOff,
   Loader2,
   Package,
   Plus,
@@ -20,6 +22,7 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/empty-state";
 import { KPICard } from "@/components/shared/kpi-card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -69,6 +72,8 @@ import {
   useGetUberMenusQuery,
   useSyncUberMenuMutation,
   useUpdateUberMenuMutation,
+  useUpdateItemAvailabilityMutation,
+  useUpdateItemPriceMutation,
 } from "@/stores/api/uberApi";
 import { setSelectedBranchId as setGlobalSelectedBranchId } from "@/stores/slices/uiSlice";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
@@ -93,6 +98,8 @@ type MenuFormState = {
   description: string;
   currencyCode: string;
   menuType: UberMenuType;
+  taxRatePercentage: number;
+  isTaxInclusive: boolean;
   isActive: boolean;
   branchProductIds: string[];
   serviceAvailabilities: Array<{
@@ -124,6 +131,8 @@ const EMPTY_MENU_FORM: MenuFormState = {
   description: "",
   currencyCode: "AUD",
   menuType: "Delivery",
+  taxRatePercentage: 0,
+  isTaxInclusive: false,
   isActive: true,
   branchProductIds: [],
   serviceAvailabilities: DEFAULT_AVAILABILITY,
@@ -151,6 +160,13 @@ function getApiErrorMessage(error: unknown) {
 function formatOptionalDate(value?: string) {
   if (!value) return "Never";
   return formatDateTime(value);
+}
+
+function minutesBetween(openAt: string, closeAt: string): number {
+  const [oh, om] = openAt.split(":").map(Number);
+  const [ch, cm] = closeAt.split(":").map(Number);
+  if ([oh, om, ch, cm].some((n) => Number.isNaN(n))) return 0;
+  return ch * 60 + cm - (oh * 60 + om);
 }
 
 function formatMoney(value?: number, currencyCode = "AUD") {
@@ -196,10 +212,10 @@ function mapMenuDetailToForm(menu: UberMenu): MenuFormState {
     description: menu.description ?? "",
     currencyCode: menu.currencyCode ?? "AUD",
     menuType: menu.menuType,
+    taxRatePercentage: menu.taxRatePercentage ?? 0,
+    isTaxInclusive: menu.isTaxInclusive ?? false,
     isActive: menu.isActive,
-    branchProductIds: menu.items
-      .map((item) => item.branchProductId)
-      .filter((id): id is string => Boolean(id)),
+    branchProductIds: menu.branchProductIds ?? [],
     serviceAvailabilities:
       menu.serviceAvailabilities.length > 0
         ? menu.serviceAvailabilities.map((availability) => ({
@@ -478,6 +494,14 @@ export default function UberEatsPage() {
     ) {
       return "Each service day must close after it opens.";
     }
+    // Uber rejects service intervals of 60 minutes or less.
+    if (
+      menuForm.serviceAvailabilities.some(
+        (item) => minutesBetween(item.openAt, item.closeAt) <= 60
+      )
+    ) {
+      return "Each service interval must be longer than 60 minutes (Uber Eats requirement).";
+    }
     return null;
   };
 
@@ -498,8 +522,9 @@ export default function UberEatsPage() {
       description: menuForm.description.trim() || undefined,
       currencyCode: menuForm.currencyCode.trim().toUpperCase() || "AUD",
       menuType: menuForm.menuType,
+      taxRatePercentage: menuForm.taxRatePercentage,
+      isTaxInclusive: menuForm.isTaxInclusive,
       branchProductIds: menuForm.branchProductIds,
-      itemCustomizations: [],
       serviceAvailabilities: menuForm.serviceAvailabilities,
     };
 
@@ -962,6 +987,44 @@ export default function UberEatsPage() {
                       }
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Tax Rate (%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      value={menuForm.taxRatePercentage}
+                      onChange={(event) =>
+                        setMenuForm((current) => ({
+                          ...current,
+                          taxRatePercentage: event.target.value
+                            ? Number(event.target.value)
+                            : 0,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tax Mode</Label>
+                    <Select
+                      value={menuForm.isTaxInclusive ? "inclusive" : "added"}
+                      onValueChange={(value) =>
+                        setMenuForm((current) => ({
+                          ...current,
+                          isTaxInclusive: value === "inclusive",
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="added">Added on top (tax_rate)</SelectItem>
+                        <SelectItem value="inclusive">Included in price (VAT)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   {editingMenu ? (
                     <div className="space-y-2">
                       <Label>Active</Label>
@@ -1179,24 +1242,15 @@ export default function UberEatsPage() {
                   <p className="mt-1 font-medium">{viewingMenuDetail.menuType}</p>
                 </div>
                 <div className="rounded-lg border p-3">
-                  <p className="text-xs text-muted-foreground">Items</p>
+                  <p className="text-xs text-muted-foreground">Products</p>
                   <p className="mt-1 font-medium">
-                    {viewingMenuDetail.items.length}
+                    {viewingMenuDetail.branchProductIds.length}
                   </p>
                 </div>
                 <div className="rounded-lg border p-3">
-                  <p className="text-xs text-muted-foreground">Categories</p>
-                  <p className="mt-1 font-medium">
-                    {viewingMenuDetail.categories.length}
-                  </p>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <p className="text-xs text-muted-foreground">Modifiers</p>
-                  <p className="mt-1 font-medium">
-                    {viewingMenuDetail.modifierGroups.reduce(
-                      (count, group) => count + group.modifiers.length,
-                      0,
-                    )}
+                  <p className="text-xs text-muted-foreground">Sync Hash</p>
+                  <p className="mt-1 font-mono text-xs truncate" title={viewingMenuDetail.lastSyncPayloadHash ?? "Not synced"}>
+                    {viewingMenuDetail.lastSyncPayloadHash?.slice(0, 12) ?? "—"}
                   </p>
                 </div>
               </div>
@@ -1224,103 +1278,25 @@ export default function UberEatsPage() {
                         </Badge>
                       </div>
                     </div>
-                    {viewingMenuDetail.items.length === 0 ? (
+                    {viewingMenuDetail.branchProductIds.length === 0 ? (
                       <div className="p-8">
                         <EmptyState
                           icon={Package}
-                          title="No items"
-                          description="This menu has no mapped products"
+                          title="No products"
+                          description="This menu has no assigned products"
                         />
                       </div>
                     ) : (
-                      <div className="max-h-[420px] overflow-y-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Item</TableHead>
-                              <TableHead>Price</TableHead>
-                              <TableHead>Reference</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {viewingMenuDetail.items.map((item) => (
-                              <TableRow key={item.uberMenuItemId}>
-                                <TableCell>
-                                  <div>
-                                    <p className="font-medium">
-                                      {item.displayName}
-                                    </p>
-                                    <p className="max-w-[360px] truncate text-xs text-muted-foreground">
-                                      {item.description || item.branchProductId}
-                                    </p>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  {formatMoney(
-                                    item.price,
-                                    viewingMenuDetail.currencyCode,
-                                  )}
-                                </TableCell>
-                                <TableCell className="font-mono text-xs">
-                                  {item.externalReferenceId || "-"}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="rounded-lg border">
-                    <div className="border-b p-3">
-                      <p className="font-medium">Modifier Groups</p>
-                    </div>
-                    {viewingMenuDetail.modifierGroups.length === 0 ? (
-                      <div className="p-6 text-sm text-muted-foreground">
-                        No modifiers
-                      </div>
-                    ) : (
-                      <div className="grid gap-3 p-3 md:grid-cols-2">
-                        {viewingMenuDetail.modifierGroups.map((group) => (
-                          <div
-                            key={group.uberMenuModifierGroupId}
-                            className="rounded-lg border p-3"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="font-medium">{group.displayName}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {group.minSelections}-{group.maxSelections}{" "}
-                                  selections
-                                </p>
-                              </div>
-                              <Badge
-                                variant={group.isRequired ? "warning" : "secondary"}
-                              >
-                                {group.isRequired ? "Required" : "Optional"}
-                              </Badge>
-                            </div>
-                            <div className="mt-3 space-y-2">
-                              {group.modifiers.map((modifier) => (
-                                <div
-                                  key={modifier.uberMenuModifierId}
-                                  className="flex items-center justify-between gap-3 text-sm"
-                                >
-                                  <span className="truncate">
-                                    {modifier.displayName}
-                                  </span>
-                                  <span className="font-medium">
-                                    {formatMoney(
-                                      modifier.price,
-                                      viewingMenuDetail.currencyCode,
-                                    )}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+                      <div className="max-h-[420px] overflow-y-auto p-3">
+                        <p className="mb-2 text-xs text-muted-foreground">
+                          {viewingMenuDetail.branchProductIds.length} products assigned.
+                          Toppings and size variants are included automatically when synced to Uber.
+                        </p>
+                        <MenuProductsList
+                          branchProductIds={viewingMenuDetail.branchProductIds}
+                          branchProducts={branchProducts}
+                          branchId={viewingMenuDetail.branchId}
+                        />
                       </div>
                     )}
                   </div>
@@ -1348,33 +1324,138 @@ export default function UberEatsPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-lg border">
-                    <div className="border-b p-3">
-                      <p className="font-medium">Categories</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2 p-3">
-                      {viewingMenuDetail.categories.length === 0 ? (
-                        <span className="text-sm text-muted-foreground">
-                          No categories
-                        </span>
-                      ) : (
-                        viewingMenuDetail.categories.map((category) => (
-                          <Badge
-                            key={category.uberMenuCategoryId}
-                            variant="secondary"
-                          >
-                            {category.displayName}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function MenuProductsList({
+  branchProductIds,
+  branchProducts,
+  branchId,
+}: {
+  branchProductIds: string[];
+  branchProducts: BranchProductCatalogItem[];
+  branchId: string;
+}) {
+  const [updateAvailability, { isLoading: isToggling }] = useUpdateItemAvailabilityMutation();
+  const [updatePrice, { isLoading: isPricing }] = useUpdateItemPriceMutation();
+  const [editingPrice, setEditingPrice] = useState<{ bpId: string; cents: string } | null>(null);
+
+  const productMap = useMemo(() => {
+    const map = new Map<string, BranchProductCatalogItem>();
+    for (const bp of branchProducts) map.set(bp.branchProductId, bp);
+    return map;
+  }, [branchProducts]);
+
+  const handleToggleStock = async (bpId: string, currentlyAvailable: boolean) => {
+    try {
+      await updateAvailability({
+        branchProductId: bpId,
+        branchId,
+        data: { isAvailable: !currentlyAvailable },
+      }).unwrap();
+      toast.success(!currentlyAvailable ? "Item marked available on Uber" : "Item suspended on Uber");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update availability");
+    }
+  };
+
+  const handleUpdatePrice = async (bpId: string) => {
+    if (!editingPrice || editingPrice.bpId !== bpId) return;
+    const cents = parseInt(editingPrice.cents, 10);
+    if (isNaN(cents) || cents < 0) {
+      toast.error("Enter a valid price in cents");
+      return;
+    }
+    try {
+      await updatePrice({
+        branchProductId: bpId,
+        branchId,
+        data: { priceInCents: cents },
+      }).unwrap();
+      toast.success(`Price updated to ${(cents / 100).toFixed(2)} on Uber`);
+      setEditingPrice(null);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update price");
+    }
+  };
+
+  return (
+    <div className="space-y-1">
+      {branchProductIds.map((bpId) => {
+        const product = productMap.get(bpId);
+        const name = product?.productName ?? "Unknown Product";
+        const price = product?.variants?.[0]?.price;
+        const isAvailable = product?.isAvailable ?? true;
+
+        return (
+          <div
+            key={bpId}
+            className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0">
+                <p className="font-medium truncate">{name}</p>
+                <p className="text-xs text-muted-foreground font-mono truncate">{bpId}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {price != null && (
+                <span className="text-xs text-muted-foreground mr-1">
+                  ${price.toFixed(2)}
+                </span>
+              )}
+
+              {editingPrice?.bpId === bpId ? (
+                <div className="flex items-center gap-1">
+                  <Input
+                    className="w-20 h-7 text-xs"
+                    placeholder="cents"
+                    value={editingPrice.cents}
+                    onChange={(e) => setEditingPrice({ bpId, cents: e.target.value })}
+                    onKeyDown={(e) => e.key === "Enter" && handleUpdatePrice(bpId)}
+                    autoFocus
+                  />
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => handleUpdatePrice(bpId)} disabled={isPricing}>
+                    OK
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingPrice(null)}>
+                    <XCircle className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2"
+                  title="Update price on Uber"
+                  onClick={() => setEditingPrice({ bpId, cents: price != null ? String(Math.round(price * 100)) : "" })}
+                >
+                  <DollarSign className="h-3 w-3" />
+                </Button>
+              )}
+
+              <Button
+                size="sm"
+                variant="ghost"
+                className={cn("h-7 px-2", !isAvailable && "text-destructive")}
+                title={isAvailable ? "Suspend on Uber" : "Unsuspend on Uber"}
+                onClick={() => handleToggleStock(bpId, isAvailable)}
+                disabled={isToggling}
+              >
+                {isAvailable ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              </Button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
