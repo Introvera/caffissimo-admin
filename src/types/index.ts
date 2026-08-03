@@ -13,6 +13,8 @@ export type Role = UserRole;
 export interface User {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   role: Role;
   branchId?: string;
@@ -531,11 +533,6 @@ export interface UpdateItemPriceRequest {
   priceInCents: number;
 }
 
-export type OfferType =
-  | "FlatDiscount"
-  | "PercentageDiscount"
-  | "BuyXGetY"
-  | "FreeItem";
 export type OfferItemRole = "Target" | "BuyItem" | "RewardItem";
 export type OfferTargetType = "Product" | "BranchProduct" | "Order";
 
@@ -686,6 +683,7 @@ export interface Topping {
   toppingCategoryId: string;
   toppingName: string;
   price: number;
+  toppingPrice?: number;
   isActive: boolean;
 }
 
@@ -700,9 +698,14 @@ export interface BranchTopping {
   branchToppingId: string;
   branchId: string;
   toppingId: string;
+  toppingName?: string;
+  baseToppingPrice?: number;
   price: number;
+  overrideToppingPrice: number | null;
   isAvailable: boolean;
   isVisible: boolean;
+  overrideImage?: string[] | null;
+  isActive?: boolean;
 }
 
 export interface BranchProductVariant {
@@ -866,7 +869,11 @@ export interface CreateOrderItemRequest {
 export type UpdateOrderItemRequest = CreateOrderItemRequest;
 
 // ============== BACKEND-ALIGNED: OFFERS ==============
-// OfferType declared above
+export type OfferType =
+  | "PercentageOff"
+  | "AmountOff"
+  | "FixedPrice"
+  | "BuyXGetY";
 
 export interface OfferBranchResponse {
   offerBranchId: string;
@@ -924,7 +931,7 @@ export interface CreateOfferRequest {
   buyAmount?: number;
   getAmount?: number;
   branchIds: string[];
-  items: CreateOfferItemRequest[] | string[] | any[];
+  items: CreateOfferItemRequest[];
 }
 
 // ============== BACKEND-ALIGNED: BRANCH PRODUCTS ==============
@@ -1147,5 +1154,39 @@ export interface TrainingAttemptSubmitResponse {
   qualifiedAt?: string;
   questionResults: TrainingAttemptQuestionResultResponse[];
 }
+
+// ============== BACKEND-ALIGNED: SPECIAL DAYS ==============
+export type SpecialDayCategory = "newyear" | "valentines" | "easter" | "halloween" | "christmas" | "other";
+
+export interface SpecialDayResponse {
+  specialDayId: string;
+  category: SpecialDayCategory;
+  startDate: string;
+  endDate: string;
+  backgroundImage: string;
+  isActive: boolean;
+}
+
+export interface SpecialDayCategoryOption {
+  value: SpecialDayCategory;
+  label: string;
+}
+
+export interface CreateSpecialDayRequest {
+  category: SpecialDayCategory;
+  startDate: string;
+  endDate: string;
+  backgroundImage: string;
+  isActive: boolean;
+}
+
+export interface UpdateSpecialDayRequest {
+  category: SpecialDayCategory;
+  startDate: string;
+  endDate: string;
+  backgroundImage: string;
+  isActive: boolean;
+}
+
 
 

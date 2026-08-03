@@ -8,7 +8,7 @@ interface UiState {
   selectedBranchId: string | null;
   dateRange: DateRange;
   dateRangePreset: DateRangePreset;
-  currentRole: Role;
+  currentRole: Role | null;
   assignedBranchId: string | null;
   devMode: boolean;
 }
@@ -35,7 +35,7 @@ const initialState: UiState = {
   selectedBranchId: null,
   dateRange: getDefaultDateRange("7d"),
   dateRangePreset: "7d",
-  currentRole: UserRole.SuperAdmin,
+  currentRole: null,
   assignedBranchId: null,
   devMode: true,
 };
@@ -63,7 +63,7 @@ export const uiSlice = createSlice({
         state.dateRange = getDefaultDateRange(action.payload);
       }
     },
-    setRole(state, action: PayloadAction<Role>) {
+    setRole(state, action: PayloadAction<Role | null>) {
       state.currentRole = action.payload;
     },
     setAssignedBranchId(state, action: PayloadAction<string | null>) {
@@ -72,6 +72,15 @@ export const uiSlice = createSlice({
     setDevMode(state, action: PayloadAction<boolean>) {
       state.devMode = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase("auth/setAuthSuccess", (state, action: any) => {
+        state.currentRole = action.payload.user.role;
+      })
+      .addCase("auth/logout", (state) => {
+        state.currentRole = null;
+      });
   },
 });
 

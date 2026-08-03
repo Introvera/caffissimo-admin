@@ -1,5 +1,13 @@
 import { baseApi } from "./baseApi";
 import { Branch, BranchForSale, PagedResult, PaginationParams } from "@/types";
+import { toFormData } from "@/lib/formData";
+
+// POST/PUT /api/branches are [FromForm] on the backend (they accept BranchImageFile),
+// so the payload must be multipart/form-data, not JSON.
+// The image stays in branchImageUrl rather than being posted as BranchImageFile:
+// uploading requires working CloudflareR2 credentials, which dev config lacks.
+const branchFormData = (payload: Partial<Branch>) =>
+  toFormData(payload as Record<string, unknown>);
 
 export const branchApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,7 +27,7 @@ export const branchApi = baseApi.injectEndpoints({
       query: (newBranch) => ({
         url: "/api/branches",
         method: "POST",
-        body: newBranch,
+        body: branchFormData(newBranch),
       }),
       invalidatesTags: ["Branch", { type: "UberMenu" as const, id: "LIST" }],
     }),
@@ -27,7 +35,7 @@ export const branchApi = baseApi.injectEndpoints({
       query: ({ id, data }) => ({
         url: `/api/branches/${id}`,
         method: "PUT",
-        body: data,
+        body: branchFormData(data),
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "Branch", id }, "Branch", { type: "UberMenu" as const, id: "LIST" }],
     }),

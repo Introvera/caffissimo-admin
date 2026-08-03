@@ -2,6 +2,7 @@ import Cookies from "js-cookie";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -23,6 +24,12 @@ async function request<T>(
   const response = await fetch(`${BASE_URL}${endpoint}`, config);
 
   if (!response.ok) {
+    if (response.status === 401) {
+      Cookies.remove("auth_token");
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth/login";
+      }
+    }
     let errorMessage = "An error occurred";
     try {
       const errorData = await response.json();

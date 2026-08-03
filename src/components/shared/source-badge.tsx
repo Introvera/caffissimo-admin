@@ -10,10 +10,10 @@ const sourceConfig: Record<
   OrderSource,
   { label: string; colors: string }
 > = {
-  pos: { label: "In Store", colors: "bg-teal-50 text-teal-600 dark:bg-teal-600/10" },
-  ecommerce: { label: "E-Commerce", colors: "bg-blue-50 text-blue-500 dark:bg-blue-500/10" },
-  uber_eats: { label: "Uber Eats", colors: "bg-slate-50 text-slate-500 dark:bg-slate-500/10" },
-  doordash: { label: "DoorDash", colors: "bg-orange-50 text-orange-500 dark:bg-orange-500/10" },
+  pos: { label: "In Store", colors: "status-success" },
+  ecommerce: { label: "E-Commerce", colors: "status-info" },
+  uber_eats: { label: "Uber Eats", colors: "bg-muted text-muted-foreground" },
+  doordash: { label: "DoorDash", colors: "status-warning" },
 };
 
 export function SourceBadge({ source, className }: SourceBadgeProps) {

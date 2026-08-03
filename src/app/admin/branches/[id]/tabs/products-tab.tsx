@@ -66,6 +66,7 @@ interface ProductsTabProps {
 
 export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
   const [search, setSearch] = useState("");
+  const [globalSearch, setGlobalSearch] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
@@ -80,6 +81,7 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
 
   const { data: globalProducts, isLoading: productsLoading } = useGetProductsQuery({
     pageSize: 100,
+    search: globalSearch || undefined,
   });
 
   const [updateBranchProduct, { isLoading: isUpdating }] = useUpdateBranchProductMutation();
@@ -194,9 +196,18 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
                   Select a global product to make it available in this branch.
                 </DialogDescription>
               </DialogHeader>
-              <div className="py-4">
+              <div className="py-4 space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search global products..."
+                    value={globalSearch}
+                    onChange={(e) => setGlobalSearch(e.target.value)}
+                    className="pl-9 h-9 bg-background rounded-lg"
+                  />
+                </div>
                 {productsLoading ? (
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                  <div className="py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
                 ) : (
                   <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                     {globalProducts?.items

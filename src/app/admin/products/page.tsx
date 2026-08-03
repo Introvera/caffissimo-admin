@@ -16,6 +16,7 @@ import {
   ArrowUp,
   ArrowDown,
   MoreVertical,
+  Trash2,
 } from "lucide-react";
 import {
   useReactTable,
@@ -56,7 +57,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/stores/store";
 import { useGetProductsQuery, useGetCategoriesQuery, useUpdateProductMutation } from "@/stores/api/productApi";
-import { useGetBranchProductsQuery } from "@/stores/api/branchProductApi";
+import { useGetBranchProductsQuery, useCreateBranchProductMutation, useDeleteBranchProductMutation } from "@/stores/api/branchProductApi";
 import { canManageProducts, isSuperAdmin } from "@/lib/rbac";
 import { formatCurrency } from "@/lib/utils";
 import { Product, UserRole } from "@/types";
@@ -77,6 +78,8 @@ export default function ProductsPage() {
   const currentRole = useAppSelector((state) => state.auth.user?.role);
   const assignedBranchId = useAppSelector((state) => state.auth.user?.branchId);
   const [updateProduct] = useUpdateProductMutation();
+  const [createBranchProduct] = useCreateBranchProductMutation();
+  const [deleteBranchProduct] = useDeleteBranchProductMutation();
   
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -90,6 +93,11 @@ export default function ProductsPage() {
   const categories = categoriesData?.items || [];
 
   const isSuper = isSuperAdmin(currentRole as UserRole);
+  const isBranchManager = !isSuper && canManageProducts(currentRole);
+
+  const [branchFilter, setBranchFilter] = useState<"all" | "branch">("all");
+
+  const shouldShowAll = isSuper || (isBranchManager && branchFilter === "all");
 
   const { data: globalProductsData, isLoading: globalProductsLoading } = useGetProductsQuery({
     page: pagination.pageIndex + 1,
@@ -97,7 +105,7 @@ export default function ProductsPage() {
     search: globalFilter || undefined,
     productCategoryId: categoryFilter === "all" ? undefined : categoryFilter,
   }, {
-    skip: !isSuper
+    skip: !shouldShowAll
   });
 
   const { data: branchProductsData, isLoading: branchProductsLoading } = useGetBranchProductsQuery({
@@ -106,57 +114,110 @@ export default function ProductsPage() {
     search: globalFilter || undefined,
     branchId: assignedBranchId || undefined,
   }, {
-    skip: isSuper
+    skip: shouldShowAll || !assignedBranchId
   });
 
-  const productsLoading = isSuper ? globalProductsLoading : branchProductsLoading;
-  const productsData = isSuper ? globalProductsData : branchProductsData;
+  // Client-side branch products lookup for "All Products" view for branch managers
+  const { data: branchProductsLookupData } = useGetBranchProductsQuery({
+    branchId: assignedBranchId || undefined,
+    pageSize: 100,
+    search: globalFilter || undefined,
+  }, {
+    skip: !isBranchManager || !assignedBranchId
+  });
+
+  const branchProductsLookup = useMemo(() => {
+    const items = branchProductsLookupData?.items || [];
+    return new Map(items.map(bp => [bp.productId?.toLowerCase() || "", bp]));
+  }, [branchProductsLookupData]);
+
+  const handleAddProduct = async (globalProduct: Product) => {
+    try {
+      const mappedVariants =
+        globalProduct.variants && globalProduct.variants.length > 0
+          ? globalProduct.variants.map((v: any) => ({
+              sizeName: v.sizeName || v.variantName || "Standard",
+              price: v.productPrice ?? v.price ?? globalProduct.productPrice ?? 0,
+              isAvailable: true,
+            }))
+          : [
+              {
+                sizeName: "Standard",
+                price: globalProduct.productPrice ?? 0,
+                isAvailable: true,
+              },
+            ];
+
+      await createBranchProduct({
+        branchId: assignedBranchId!,
+        productId: globalProduct.productId || (globalProduct as any).id,
+        isAvailable: true,
+        variants: mappedVariants,
+      }).unwrap();
+      toast.success("Product added to branch successfully");
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to add product to branch");
+    }
+  };
+
+  const handleRemoveProductFromBranch = async (branchProductId: string) => {
+    if (!confirm("Are you sure you want to remove this product from your branch?")) return;
+
+    try {
+      await deleteBranchProduct(branchProductId).unwrap();
+      toast.success("Product removed from branch successfully");
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to remove product from branch");
+    }
+  };
+
+  const productsLoading = shouldShowAll ? globalProductsLoading : branchProductsLoading;
+  const productsData = shouldShowAll ? globalProductsData : branchProductsData;
   const products = (productsData?.items as unknown as Product[]) || [];
   const totalCount = productsData?.totalCount || 0;
 
-  const handleToggleVisibility = async (productId: string, currentVisibility: boolean) => {
-    try {
-      await updateProduct({
-        id: productId,
-        data: { isVisible: !currentVisibility }
-      }).unwrap();
-      toast.success(`Product ${!currentVisibility ? "visible" : "hidden"} successfully`);
-    } catch (error) {
-      toast.error("Failed to update product visibility");
-    }
-  };
+
 
   const columns = useMemo(
     () => {
       const baseColumns: any[] = [
         columnHelper.accessor("productName", {
           header: "Product",
-          cell: (info) => (
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center overflow-hidden">
-                {info.row.original.posImage ? (
-                  <img 
-                    src={info.row.original.posImage} 
-                    alt={info.getValue()} 
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <Package className="h-5 w-5 text-muted-foreground" />
-                )}
+          cell: (info) => {
+            const original = info.row.original as any;
+            const imageSrc = Array.isArray(original.posImage) 
+              ? original.posImage[0] 
+              : original.posImage;
+            
+            const targetId = original.productId || original.id;
+            
+            return (
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                  {imageSrc ? (
+                    <img 
+                      src={imageSrc} 
+                      alt={info.getValue()} 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Package className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div>
+                  <Link
+                    href={`/admin/products/${targetId}`}
+                    className="font-medium text-foreground hover:underline"
+                  >
+                    {info.getValue()}
+                  </Link>
+                  <p className="text-xs text-muted-foreground line-clamp-1">
+                    {original.productDescription || ""}
+                  </p>
+                </div>
               </div>
-              <div>
-                <Link
-                  href={`/admin/products/${info.row.original.productId}`}
-                  className="font-medium text-foreground hover:underline"
-                >
-                  {info.getValue()}
-                </Link>
-                <p className="text-xs text-muted-foreground line-clamp-1">
-                  {info.row.original.productDescription || ""}
-                </p>
-              </div>
-            </div>
-          ),
+            );
+          },
         }),
         columnHelper.accessor("productCategoryName", {
           header: "Category",
@@ -178,63 +239,126 @@ export default function ProductsPage() {
         );
       }
 
-      // Status column is common, but data source is based on the fetched data (Product vs BranchProduct)
-      baseColumns.push(
-        columnHelper.accessor("isActive", {
-          header: "Status",
-          cell: (info) => (
-            <Badge variant={info.getValue() ? "success" : "secondary"}>
-              {info.getValue() ? "Active" : "Archived"}
-            </Badge>
-          ),
-        })
-      );
-
-      // Only show Visibility toggle to Super Admins
-      if (isSuperAdmin(currentRole as UserRole)) {
+      // If branch manager, show Branch Status in all products list view
+      if (isBranchManager && branchFilter === "all") {
         baseColumns.push(
-          columnHelper.accessor("isVisible", {
-            header: "Visible",
-            cell: (info) => (
-              <Switch
-                checked={info.getValue()}
-                onCheckedChange={() => handleToggleVisibility(info.row.original.productId, info.getValue())}
-                disabled={!canManageProducts(currentRole as UserRole)}
-              />
-            ),
+          columnHelper.display({
+            id: "branchStatus",
+            header: "Branch Status",
+            cell: (info) => {
+              const row = info.row.original as any;
+              const prodId = (row.productId || row.id || "").toLowerCase();
+              const isAssigned = branchProductsLookup.has(prodId);
+              return (
+                <Badge variant={isAssigned ? "success" : "secondary"}>
+                  {isAssigned ? "In Branch" : "Not in Branch"}
+                </Badge>
+              );
+            }
           })
         );
       }
+
+      // Status column
+      baseColumns.push(
+        columnHelper.accessor("isActive", {
+          header: "Status",
+          cell: (info) => {
+            const original = info.row.original as any;
+            const isAvail = original.isAvailable !== undefined ? original.isAvailable : original.isActive;
+            return (
+              <Badge variant={isAvail ? "success" : "secondary"}>
+                {isAvail ? "Active" : "Archived"}
+              </Badge>
+            );
+          },
+        })
+      );
 
       baseColumns.push(
         columnHelper.display({
           id: "actions",
           cell: (info) => {
-            const row = info.row.original;
-            return (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href={`/admin/products/${row.productId}`}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Product
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            );
+            const row = info.row.original as any;
+            const targetId = row.productId || row.id;
+            
+            if (isSuper) {
+              return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/products/${targetId}`}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Product
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            }
+
+            if (isBranchManager) {
+              const prodId = (row.productId || row.id || "").toLowerCase();
+              const bp = branchProductsLookup.get(prodId);
+              const isAssigned = !!bp || branchFilter === "branch";
+              const actualBpId = bp?.branchProductId || row.branchProductId;
+
+              return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/products/${targetId}`}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </Link>
+                    </DropdownMenuItem>
+                    {isAssigned ? (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/products/${targetId}`}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Branch Pricing
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleRemoveProductFromBranch(actualBpId)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove from Branch
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuItem 
+                        onClick={() => handleAddProduct(row)}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add to Branch
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            }
+
+            return null;
           },
         })
       );
 
       return baseColumns;
     },
-    [currentRole, updateProduct]
+    [currentRole, branchFilter, branchProductsLookup, isSuper, isBranchManager]
   );
 
   const table = useReactTable({
@@ -254,7 +378,7 @@ export default function ProductsPage() {
         title="Products"
         description="Manage your product catalog and pricing"
         actions={
-          canManageProducts(currentRole as UserRole) && (
+          isSuper && (
             <div className="flex gap-2">
               <Link href="/admin/products/categories">
                 <Button variant="outline">
@@ -291,6 +415,21 @@ export default function ProductsPage() {
               ))}
             </SelectContent>
           </Select>
+
+          {isBranchManager && (
+            <Select value={branchFilter} onValueChange={(val: "all" | "branch") => {
+              setBranchFilter(val);
+              setPagination(prev => ({ ...prev, pageIndex: 0 }));
+            }}>
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+                <SelectValue placeholder="Availability" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Products</SelectItem>
+                <SelectItem value="branch">My Branch Products</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="relative">

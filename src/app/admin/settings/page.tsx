@@ -12,9 +12,12 @@ import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/shared/page-header";
 import { useAppSelector } from "@/stores/store";
 import { canManageSettings } from "@/lib/rbac";
+import { UserRole } from "@/types";
 
 export default function SettingsPage() {
-  const { currentRole } = useAppSelector((state) => state.ui);
+  const { currentRole: uiRole } = useAppSelector((state) => state.ui);
+  const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const currentRole = uiRole || authRole;
   const [taxRate, setTaxRate] = useState("8.75");
   const [serviceFeeRate, setServiceFeeRate] = useState("0");
 

@@ -35,10 +35,10 @@ import { formatCurrency } from "@/lib/utils";
 import { OrderSummaryResponse, OrderType } from "@/types";
 
 const TYPE_COLORS: Record<string, string> = {
-  DineIn: "#099699",
-  TakeAway: "#06B6D4",
-  Delivery: "#64748B",
-  Online: "#94A3B8",
+  DineIn: "#D97706",
+  TakeAway: "#8C8C8C",
+  Delivery: "#ADADAD",
+  Online: "#C7C7C7",
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -131,15 +131,15 @@ export default function DashboardPage() {
 
   const tooltipStyle = {
     contentStyle: {
-      backgroundColor: "hsl(0 0% 9%)",
-      color: "hsl(0 0% 98%)",
-      border: "1px solid hsl(0 0% 20%)",
-      borderRadius: "var(--radius)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+      backgroundColor: "hsl(var(--popover))",
+      color: "hsl(var(--popover-foreground))",
+      border: "1px solid hsl(var(--border))",
+      borderRadius: "var(--radius-lg)",
+      boxShadow: "var(--shadow-lg)",
       padding: "8px 12px",
     },
-    labelStyle: { color: "hsl(0 0% 65%)" },
-    itemStyle: { color: "hsl(0 0% 98%)" },
+    labelStyle: { color: "hsl(var(--muted-foreground))" },
+    itemStyle: { color: "hsl(var(--popover-foreground))" },
     wrapperStyle: { zIndex: 9999 },
   };
 
@@ -250,8 +250,8 @@ export default function DashboardPage() {
                     <AreaChart data={salesTrendData}>
                       <defs>
                         <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#099699" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="#099699" stopOpacity={0.02} />
+                          <stop offset="0%" stopColor="#D97706" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#D97706" stopOpacity={0.02} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                       <Area
                         type="monotone"
                         dataKey="total"
-                        stroke="#099699"
+                        stroke="#D97706"
                         strokeWidth={2}
                         fill="url(#salesGradient)"
                         dot={false}

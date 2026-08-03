@@ -17,3 +17,5 @@ export * from "./userApi";
 export * from "./branchProductApi";
 export * from "./uberMenuApi";
 export * from "./orderItemApi";
+export * from "./specialDayApi";
+

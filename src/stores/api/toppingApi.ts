@@ -7,6 +7,7 @@ import {
   PagedResult, 
   PaginationParams 
 } from "@/types";
+import { toFormData } from "@/lib/formData";
 
 export const toppingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -62,7 +63,8 @@ export const toppingApi = baseApi.injectEndpoints({
       query: (data) => ({
         url: "/api/toppings",
         method: "POST",
-        body: data,
+        // POST/PUT /api/toppings are [FromForm] on the backend.
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["Topping"],
     }),
@@ -70,7 +72,7 @@ export const toppingApi = baseApi.injectEndpoints({
       query: ({ id, data }) => ({
         url: `/api/toppings/${id}`,
         method: "PUT",
-        body: data,
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["Topping"],
     }),
@@ -108,11 +110,19 @@ export const toppingApi = baseApi.injectEndpoints({
       query: (branchId) => `/api/branch-toppings/by-branch/${branchId}`,
       providesTags: ["BranchTopping"],
     }),
+    getBranchToppingsList: builder.query<PagedResult<BranchTopping>, { toppingId?: string; branchId?: string; pageSize?: number } | void>({
+      query: (params) => ({
+        url: "/api/branch-toppings",
+        params: params || undefined,
+      }),
+      providesTags: ["BranchTopping"],
+    }),
     createBranchTopping: builder.mutation<BranchTopping, Partial<BranchTopping>>({
       query: (data) => ({
         url: "/api/branch-toppings",
         method: "POST",
-        body: data,
+        // POST/PUT /api/branch-toppings are [FromForm] on the backend.
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["BranchTopping"],
     }),
@@ -120,7 +130,7 @@ export const toppingApi = baseApi.injectEndpoints({
       query: ({ id, data }) => ({
         url: `/api/branch-toppings/${id}`,
         method: "PUT",
-        body: data,
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["BranchTopping"],
     }),
@@ -132,6 +142,7 @@ export const toppingApi = baseApi.injectEndpoints({
       invalidatesTags: ["BranchTopping"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const {
@@ -149,6 +160,7 @@ export const {
   useCreateProductToppingMutation,
   useDeleteProductToppingMutation,
   useGetBranchToppingsQuery,
+  useGetBranchToppingsListQuery,
   useCreateBranchToppingMutation,
   useUpdateBranchToppingMutation,
   useDeleteBranchToppingMutation,

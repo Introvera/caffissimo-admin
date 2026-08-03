@@ -40,9 +40,9 @@ import { toast } from "sonner";
 // We remove tags and tastingNotes
 const productSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters").or(z.literal("")),
   categoryId: z.string().min(1, "Please select a category"),
-  price: z.number().min(0, "Price must be greater than or equal to 0"),
+  price: z.number().positive("Price must be greater than 0"),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -168,6 +168,13 @@ export default function NewProductPage() {
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   useEffect(() => {
+    if (currentRole && !isSuper) {
+      toast.error("You are not authorized to create products.");
+      router.push("/admin/products");
+    }
+  }, [currentRole, isSuper, router]);
+
+  useEffect(() => {
     if (!isSuper && assignedBranchId && branchConfigs.length === 0) {
       const variantId = generateId();
       setBranchConfigs([{
@@ -264,7 +271,6 @@ export default function NewProductPage() {
         productDescription: data.description,
         productCategoryId: data.categoryId,
         productPrice: Number(data.price),
-        isVisible: true,
         isActive: true,
         branchConfigs: branchConfigsPayload,
       } as any).unwrap();
@@ -293,6 +299,18 @@ export default function NewProductPage() {
     }
   };
 
+  const onInvalid = (errors: any) => {
+    console.warn("Form validation errors:", errors);
+    const errorMessages = Object.entries(errors)
+      .map(([field, err]: [string, any]) => {
+        const message = err?.message || "Invalid value";
+        const fieldName = field.charAt(0).toUpperCase() + field.slice(1);
+        return `${fieldName}: ${message}`;
+      })
+      .join(", ");
+    toast.error(`Please fix validation errors: ${errorMessages || "Check all fields"}`);
+  };
+
   const unconfiguredBranches = branches.filter(b => !branchConfigs.find(c => c.branchId === b.branchId));
 
   return (
@@ -307,7 +325,7 @@ export default function NewProductPage() {
         />
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex items-center border-b border-border">
             <TabsList className="bg-transparent h-auto p-0 gap-0 justify-start flex-1">

@@ -49,7 +49,7 @@ import { useAppSelector } from "@/stores/store";
 import { canViewAuditLogs } from "@/lib/rbac";
 import { auditLogs, branches } from "@/data/seed";
 import { formatDateTime } from "@/lib/utils";
-import { AuditLog, AuditAction } from "@/types";
+import { AuditLog, AuditAction, UserRole } from "@/types";
 
 const actionLabels: Record<AuditAction, string> = {
   price_change: "Price Changed",
@@ -96,7 +96,9 @@ function formatDetails(details: Record<string, unknown>) {
 }
 
 export default function AuditLogsPage() {
-  const { currentRole, selectedBranchId, dateRange } = useAppSelector((state) => state.ui);
+  const { currentRole: uiRole, selectedBranchId, dateRange } = useAppSelector((state) => state.ui);
+  const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const currentRole = uiRole || authRole;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [actionFilter, setActionFilter] = useState<string>("all");

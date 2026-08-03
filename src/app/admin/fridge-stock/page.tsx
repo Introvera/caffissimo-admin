@@ -31,6 +31,7 @@ import { useAppSelector } from "@/stores/store";
 import { canSubmitFridgeReport, canAccessAllBranches } from "@/lib/rbac";
 import { fridgeStockReports, branches } from "@/data/seed";
 import { formatDate } from "@/lib/utils";
+import { UserRole } from "@/types";
 
 const FRIDGE_UNITS = [
   "Main Fridge",
@@ -40,7 +41,9 @@ const FRIDGE_UNITS = [
 ];
 
 export default function FridgeStockPage() {
-  const { currentRole, selectedBranchId, assignedBranchId, dateRange } = useAppSelector((state) => state.ui);
+  const { currentRole: uiRole, selectedBranchId, assignedBranchId, dateRange } = useAppSelector((state) => state.ui);
+  const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
+  const currentRole = uiRole || authRole;
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [temperatureValues, setTemperatureValues] = useState<Record<string, number>>({});
 
