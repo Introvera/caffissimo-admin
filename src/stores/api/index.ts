@@ -18,4 +18,8 @@ export * from "./branchProductApi";
 export * from "./uberMenuApi";
 export * from "./orderItemApi";
 export * from "./specialDayApi";
+export * from "./analyticsApi";
+export * from "./attendanceApi";
+export * from "./fridgeApi";
+
 

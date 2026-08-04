@@ -120,6 +120,12 @@ export interface Product {
   variants?: any[];
   createdAt: string;
   updatedAt: string;
+  branchAssignment?: {
+    isAssigned: boolean;
+    branchProductId?: string | null;
+    isAvailable?: boolean | null;
+  };
+  branchProducts?: BranchProductResponse[];
 }
 
 export interface BranchProduct {
@@ -387,6 +393,7 @@ export interface AppUser {
   email: string;
   role: UserRole;
   branchId?: string;
+  branchName?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -593,6 +600,8 @@ export interface CreateOfferRequest {
   branchIds: string[];
   items: CreateOfferItemRequest[];
 }
+
+export type UpdateOfferRequest = CreateOfferRequest;
 
 // ============== BACKEND-ALIGNED: BRANCH PRODUCTS ==============
 export interface BranchProductVariantResponse {
@@ -1039,6 +1048,129 @@ export interface UpdateSpecialDayRequest {
   backgroundImage: string;
   isActive: boolean;
 }
+
+// ============== BACKEND-ALIGNED: DASHBOARD & SALES REPORT ==============
+export interface DashboardStatsParams {
+  startDate: string;
+  endDate: string;
+  branchId?: string;
+}
+
+export interface DashboardSalesByType {
+  pos: number;
+  dineIn: number;
+  takeaway: number;
+  delivery: number;
+}
+
+export interface DashboardSalesTrendItem {
+  date: string;
+  total: number;
+  pos: number;
+  dineIn: number;
+  takeaway: number;
+  delivery: number;
+}
+
+export interface DashboardStatsResponse {
+  totalSales: number;
+  orderCount: number;
+  cancelledCount: number;
+  averageOrderValue: number;
+  salesByType: DashboardSalesByType;
+  salesTrend: DashboardSalesTrendItem[];
+}
+
+export interface SalesReportParams {
+  orderDateFrom: string;
+  orderDateTo: string;
+  branchId?: string;
+}
+
+export interface DailySummaryItem {
+  date: string;
+  pos: number;
+  dineIn: number;
+  takeaway: number;
+  delivery: number;
+  total: number;
+  orders: number;
+}
+
+export interface BranchComparisonItem {
+  branchId: string;
+  branchName: string;
+  totalSales: number;
+  orders: number;
+  avgOrder: number;
+}
+
+export interface SalesReportResponse {
+  totalSales: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  dailySummary: DailySummaryItem[];
+  branchComparison: BranchComparisonItem[];
+}
+
+// ============== BACKEND-ALIGNED: ATTENDANCE ==============
+export interface PosSessionResponse {
+  posSessionId: string;
+  attendanceId: string;
+  loginAt: string;
+  logoutAt: string | null;
+  endReason: string | null;
+}
+
+export interface AttendanceRecordResponse {
+  attendanceId: string;
+  userId: string;
+  userDisplayName: string;
+  branchId: string;
+  branchName: string;
+  date: string;
+  firstLogin: string;
+  lastLogout: string | null;
+  sessions: PosSessionResponse[];
+}
+
+export interface AttendanceQueryParams {
+  branchId?: string;
+  userId?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+// ============== BACKEND-ALIGNED: FRIDGE TEMPERATURE REPORTS ==============
+export interface FridgeTemperatureReportResponse {
+  reportId: string;
+  branchId: string;
+  branchName: string;
+  date: string;
+  submittedByUserId: string;
+  submittedByName: string;
+  temperatures: Record<string, number>;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface FridgeTemperatureQueryParams {
+  branchId?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface CreateFridgeTemperatureReportRequest {
+  branchId: string;
+  date: string;
+  temperatures: Record<string, number>;
+  notes?: string;
+}
+
 
 
 

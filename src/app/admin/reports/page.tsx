@@ -8,6 +8,7 @@ import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
 } from "lucide-react";
 import {
   BarChart,
@@ -19,7 +20,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { parseISO, isWithinInterval, startOfDay, format, eachDayOfInterval } from "date-fns";
+import { parseISO, format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,10 +43,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { useAppSelector } from "@/stores/store";
 import { canAccessAdmin } from "@/lib/rbac";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
-import { useLazyGetOrdersQuery } from "@/stores/api/orderApi";
-import { OrderSummaryResponse, UserRole } from "@/types";
+import { useGetSalesReportQuery } from "@/stores/api/analyticsApi";
+import { UserRole } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function ReportsPage() {
@@ -54,7 +54,6 @@ export default function ReportsPage() {
   const currentRole = uiRole || authRole;
   const showBranchComparison = canAccessAdmin(currentRole) && currentRole !== UserRole.BranchOwner && currentRole !== UserRole.BranchAdmin;
   const [sourceFilter, setSourceFilter] = useState<string>("all");
-  const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [dailyPage, setDailyPage] = useState(0);
   const DAILY_PAGE_SIZE = 10;
 
@@ -62,192 +61,75 @@ export default function ReportsPage() {
   const { data: branchesData, isLoading: isLoadingBranches, refetch: refetchBranches } = useGetBranchesQuery({ pageSize: 100 });
   const branches = branchesData?.items ?? [];
 
-  // Dynamic orders from API
-  const [triggerGetOrders] = useLazyGetOrdersQuery();
-  const [rawOrders, setRawOrders] = useState<OrderSummaryResponse[]>([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-
-  const loadAllOrders = async (isMounted: boolean) => {
-    setIsLoadingOrders(true);
-    try {
-      const allOrders: OrderSummaryResponse[] = [];
-      let page = 1;
-      let hasMore = true;
-
-      while (hasMore && isMounted) {
-        const queryParams = {
-          page,
-          pageSize: 100,
-          branchId: selectedBranchId || undefined,
-          orderDateFrom: dateRange.from ? format(dateRange.from, "yyyy-MM-dd'T'00:00:00.000'Z'") : undefined,
-          orderDateTo: dateRange.to ? format(dateRange.to, "yyyy-MM-dd'T'23:59:59.999'Z'") : undefined,
-        };
-
-        const result = await triggerGetOrders(queryParams).unwrap();
-        if (!isMounted) break;
-
-        if (result.items && result.items.length > 0) {
-          allOrders.push(...result.items);
-        }
-
-        hasMore = page < result.totalPages;
-        page++;
-      }
-
-      if (isMounted) {
-        setRawOrders(allOrders);
-      }
-    } catch (error) {
-      console.error("Error loading orders for sales reports:", error);
-    } finally {
-      if (isMounted) {
-        setIsLoadingOrders(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    loadAllOrders(isMounted);
-    return () => {
-      isMounted = false;
-    };
-  }, [dateRange, selectedBranchId, triggerGetOrders]);
-
-  // Map backend-aligned orders to local report structures
-  const orders = useMemo(() => {
-    return rawOrders.map((o, index) => {
-      let source = "pos";
-      // Map paymentType / orderType to channel source
-      if (o.paymentType === "Online" || o.orderType === "Online") {
-        source = "ecommerce";
-      } else if (o.paymentType === "External") {
-        // Heuristic to split external platform orders between Uber Eats and DoorDash
-        source = (o.orderNumber.toUpperCase().includes("UBER") || index % 2 === 0) ? "uber_eats" : "doordash";
-      }
-
-      let paymentMethod = "online";
-      if (o.paymentType === "Cash") {
-        paymentMethod = "cash";
-      } else if (o.paymentType === "Card") {
-        paymentMethod = "card";
-      } else if (o.paymentType === "External") {
-        paymentMethod = "external";
-      }
-
-      return {
-        id: o.orderId,
-        orderNumber: o.orderNumber,
-        branchId: o.branchId,
-        source,
-        status: o.orderStatus.toLowerCase(),
-        createdAt: o.orderDate,
-        total: o.grandTotal,
-        paymentMethod,
-      };
-    });
-  }, [rawOrders]);
-
-  // External sales entries are empty since all external platform sales sync to main orders table
-  const externalSalesEntries: any[] = [];
-
-  // Filter orders
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const orderDate = parseISO(order.createdAt);
-      const inDateRange = isWithinInterval(orderDate, {
-        start: startOfDay(dateRange.from),
-        end: dateRange.to,
-      });
-      const inBranch = !selectedBranchId || order.branchId === selectedBranchId;
-      const matchesSource = sourceFilter === "all" || order.source === sourceFilter;
-      const matchesPayment = paymentFilter === "all" || order.paymentMethod === paymentFilter;
-
-      return inDateRange && inBranch && matchesSource && matchesPayment && order.status !== "cancelled";
-    });
-  }, [orders, dateRange, selectedBranchId, sourceFilter, paymentFilter]);
-
-  // Filter external sales
-  const filteredExternalSales = useMemo(() => {
-    return externalSalesEntries.filter((entry) => {
-      const entryDate = parseISO(entry.date);
-      const inDateRange = isWithinInterval(entryDate, {
-        start: startOfDay(dateRange.from),
-        end: dateRange.to,
-      });
-      const inBranch = !selectedBranchId || entry.branchId === selectedBranchId;
-      return inDateRange && inBranch;
-    });
-  }, [dateRange, selectedBranchId]);
+  // Fetch sales report from API
+  const { data: reportData, isLoading: isLoadingReport, refetch: refetchSalesReport } = useGetSalesReportQuery({
+    orderDateFrom: dateRange.from ? format(dateRange.from, "yyyy-MM-dd'T'00:00:00.000'Z'") : "",
+    orderDateTo: dateRange.to ? format(dateRange.to, "yyyy-MM-dd'T'23:59:59.999'Z'") : "",
+    branchId: selectedBranchId || undefined,
+  }, {
+    skip: !dateRange.from || !dateRange.to
+  });
 
   // Reset daily pagination when filters change
   useEffect(() => {
     setDailyPage(0);
-  }, [dateRange, selectedBranchId, sourceFilter, paymentFilter]);
+  }, [dateRange, selectedBranchId, sourceFilter]);
 
   // Daily summary data
   const dailySummary = useMemo(() => {
-    const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
+    if (!reportData?.dailySummary) return [];
+    return reportData.dailySummary.map((item) => {
+      const parsedDate = parseISO(item.date);
+      const isPos = sourceFilter === "all" || sourceFilter === "pos";
+      const isDineIn = sourceFilter === "all" || sourceFilter === "dineIn";
+      const isTakeaway = sourceFilter === "all" || sourceFilter === "takeaway";
+      const isDelivery = sourceFilter === "all" || sourceFilter === "delivery";
 
-    return days.map((day) => {
-      const dayStr = format(day, "yyyy-MM-dd");
-      const dayOrders = filteredOrders.filter(
-        (o) => format(parseISO(o.createdAt), "yyyy-MM-dd") === dayStr
-      );
-      const dayExternal = filteredExternalSales.filter((e) => e.date === dayStr);
-
-      const pos = dayOrders.filter((o) => o.source === "pos").reduce((s, o) => s + o.total, 0);
-      const ecom = dayOrders.filter((o) => o.source === "ecommerce").reduce((s, o) => s + o.total, 0);
-      const uber = dayOrders.filter((o) => o.source === "uber_eats").reduce((s, o) => s + o.total, 0) +
-        dayExternal.filter((e) => e.platform === "uber_eats").reduce((s, e) => s + e.totalSales, 0);
-      const doordash = dayOrders.filter((o) => o.source === "doordash").reduce((s, o) => s + o.total, 0) +
-        dayExternal.filter((e) => e.platform === "doordash").reduce((s, e) => s + e.totalSales, 0);
+      const posVal = isPos ? (item.pos || 0) : 0;
+      const dineInVal = isDineIn ? (item.dineIn || 0) : 0;
+      const takeawayVal = isTakeaway ? (item.takeaway || 0) : 0;
+      const deliveryVal = isDelivery ? (item.delivery || 0) : 0;
 
       return {
-        date: format(day, "MMM d"),
-        fullDate: dayStr,
-        POS: pos,
-        "E-Commerce": ecom,
-        "Uber Eats": uber,
-        DoorDash: doordash,
-        total: pos + ecom + uber + doordash,
-        orders: dayOrders.length,
+        date: format(parsedDate, "MMM d"),
+        fullDate: item.date,
+        POS: posVal,
+        "Dine In": dineInVal,
+        "Take Away": takeawayVal,
+        "Delivery": deliveryVal,
+        total: posVal + dineInVal + takeawayVal + deliveryVal,
+        orders: item.orders || 0,
       };
     });
-  }, [dateRange, filteredOrders, filteredExternalSales]);
+  }, [reportData, sourceFilter]);
 
   // Branch comparison data
   const branchComparison = useMemo(() => {
-    return branches.map((branch) => {
-      const branchOrders = filteredOrders.filter((o) => o.branchId === branch.branchId);
-      const branchExternal = filteredExternalSales.filter((e) => e.branchId === branch.branchId);
-
-      const totalSales = 
-        branchOrders.reduce((s, o) => s + o.total, 0) +
-        branchExternal.reduce((s, e) => s + e.totalSales, 0);
-
+    if (!reportData?.branchComparison) return [];
+    return reportData.branchComparison.map((item) => {
       return {
-        name: branch.branchName.replace("Caffissimo", "").trim(),
-        branchId: branch.branchId,
-        totalSales,
-        orders: branchOrders.length,
-        avgOrder: branchOrders.length > 0 ? totalSales / branchOrders.length : 0,
+        name: item.branchName.replace("Caffissimo", "").trim(),
+        branchId: item.branchId,
+        totalSales: item.totalSales || 0,
+        orders: item.orders || 0,
+        avgOrder: item.avgOrder || 0,
       };
-    }).sort((a, b) => b.totalSales - a.totalSales);
-  }, [branches, filteredOrders, filteredExternalSales]);
+    });
+  }, [reportData]);
 
   // Totals
   const totals = useMemo(() => {
-    const orderTotal = filteredOrders.reduce((sum, o) => sum + o.total, 0);
-    const externalTotal = filteredExternalSales.reduce((sum, e) => sum + e.totalSales, 0);
+    if (!reportData) {
+      return { total: 0, orders: 0, avg: 0 };
+    }
     return {
-      total: orderTotal + externalTotal,
-      orders: filteredOrders.length,
-      avg: filteredOrders.length > 0 ? (orderTotal + externalTotal) / filteredOrders.length : 0,
+      total: reportData.totalSales || 0,
+      orders: reportData.totalOrders || 0,
+      avg: reportData.averageOrderValue || 0,
     };
-  }, [filteredOrders, filteredExternalSales]);
+  }, [reportData]);
 
-  const showSkeleton = isLoadingBranches || (isLoadingOrders && rawOrders.length === 0);
+  const showSkeleton = isLoadingBranches || isLoadingReport;
 
   if (showSkeleton) {
     return (
@@ -302,20 +184,9 @@ export default function ReportsPage() {
               <SelectContent>
                 <SelectItem value="all">All Sources</SelectItem>
                 <SelectItem value="pos">POS</SelectItem>
-                <SelectItem value="ecommerce">E-Commerce</SelectItem>
-                <SelectItem value="uber_eats">Uber Eats</SelectItem>
-                <SelectItem value="doordash">DoorDash</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Payment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Payments</SelectItem>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="card">Card</SelectItem>
-                <SelectItem value="online">Online</SelectItem>
+                <SelectItem value="dineIn">Dine In</SelectItem>
+                <SelectItem value="takeaway">Take Away</SelectItem>
+                <SelectItem value="delivery">Delivery</SelectItem>
               </SelectContent>
             </Select>
             <div className="h-6 w-px bg-border hidden sm:block" />
@@ -323,11 +194,11 @@ export default function ReportsPage() {
               variant="ghost"
               size="icon"
               className="h-9 w-9 text-muted-foreground hover:text-foreground shrink-0"
-              onClick={() => { refetchBranches(); loadAllOrders(true); }}
+              onClick={() => { refetchBranches(); refetchSalesReport(); }}
               title="Refresh report data"
-              disabled={isLoadingBranches || isLoadingOrders}
+              disabled={isLoadingBranches || isLoadingReport}
             >
-              <RefreshCw className={`h-4 w-4 ${(isLoadingBranches || isLoadingOrders) ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-4 w-4 ${(isLoadingBranches || isLoadingReport) ? "animate-spin" : ""}`} />
             </Button>
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
@@ -418,9 +289,9 @@ export default function ReportsPage() {
                     />
                     <Legend />
                     <Bar dataKey="POS" fill="#D97706" stackId="a" />
-                    <Bar dataKey="E-Commerce" fill="#8C8C8C" stackId="a" />
-                    <Bar dataKey="Uber Eats" fill="#ADADAD" stackId="a" />
-                    <Bar dataKey="DoorDash" fill="#C7C7C7" stackId="a" />
+                    <Bar dataKey="Dine In" fill="#8C8C8C" stackId="a" />
+                    <Bar dataKey="Take Away" fill="#ADADAD" stackId="a" />
+                    <Bar dataKey="Delivery" fill="#C7C7C7" stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -438,9 +309,9 @@ export default function ReportsPage() {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">POS</TableHead>
-                    <TableHead className="text-right">E-Commerce</TableHead>
-                    <TableHead className="text-right">Uber Eats</TableHead>
-                    <TableHead className="text-right">DoorDash</TableHead>
+                    <TableHead className="text-right">Dine In</TableHead>
+                    <TableHead className="text-right">Take Away</TableHead>
+                    <TableHead className="text-right">Delivery</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="text-right">Orders</TableHead>
                   </TableRow>
@@ -452,9 +323,9 @@ export default function ReportsPage() {
                       <TableRow key={day.fullDate}>
                         <TableCell className="font-medium">{day.date}</TableCell>
                         <TableCell className="text-right">{formatCurrency(day.POS)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(day["E-Commerce"])}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(day["Uber Eats"])}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(day.DoorDash)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(day["Dine In"])}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(day["Take Away"])}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(day.Delivery)}</TableCell>
                         <TableCell className="text-right font-medium">{formatCurrency(day.total)}</TableCell>
                         <TableCell className="text-right">{day.orders}</TableCell>
                       </TableRow>
@@ -564,3 +435,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+

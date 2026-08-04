@@ -104,6 +104,7 @@ export default function ProductsPage() {
     pageSize: pagination.pageSize,
     search: globalFilter || undefined,
     productCategoryId: categoryFilter === "all" ? undefined : categoryFilter,
+    branchId: isBranchManager ? assignedBranchId : undefined,
   }, {
     skip: !shouldShowAll
   });
@@ -116,20 +117,6 @@ export default function ProductsPage() {
   }, {
     skip: shouldShowAll || !assignedBranchId
   });
-
-  // Client-side branch products lookup for "All Products" view for branch managers
-  const { data: branchProductsLookupData } = useGetBranchProductsQuery({
-    branchId: assignedBranchId || undefined,
-    pageSize: 100,
-    search: globalFilter || undefined,
-  }, {
-    skip: !isBranchManager || !assignedBranchId
-  });
-
-  const branchProductsLookup = useMemo(() => {
-    const items = branchProductsLookupData?.items || [];
-    return new Map(items.map(bp => [bp.productId?.toLowerCase() || "", bp]));
-  }, [branchProductsLookupData]);
 
   const handleAddProduct = async (globalProduct: Product) => {
     try {
@@ -246,9 +233,8 @@ export default function ProductsPage() {
             id: "branchStatus",
             header: "Branch Status",
             cell: (info) => {
-              const row = info.row.original as any;
-              const prodId = (row.productId || row.id || "").toLowerCase();
-              const isAssigned = branchProductsLookup.has(prodId);
+              const row = info.row.original;
+              const isAssigned = !!row.branchAssignment?.isAssigned;
               return (
                 <Badge variant={isAssigned ? "success" : "secondary"}>
                   {isAssigned ? "In Branch" : "Not in Branch"}
@@ -303,10 +289,8 @@ export default function ProductsPage() {
             }
 
             if (isBranchManager) {
-              const prodId = (row.productId || row.id || "").toLowerCase();
-              const bp = branchProductsLookup.get(prodId);
-              const isAssigned = !!bp || branchFilter === "branch";
-              const actualBpId = bp?.branchProductId || row.branchProductId;
+              const isAssigned = branchFilter === "branch" ? true : !!row.branchAssignment?.isAssigned;
+              const actualBpId = (branchFilter === "branch" ? row.branchProductId : row.branchAssignment?.branchProductId) || "";
 
               return (
                 <DropdownMenu>
@@ -358,7 +342,7 @@ export default function ProductsPage() {
 
       return baseColumns;
     },
-    [currentRole, branchFilter, branchProductsLookup, isSuper, isBranchManager]
+    [currentRole, branchFilter, isSuper, isBranchManager]
   );
 
   const table = useReactTable({

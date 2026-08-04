@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Thermometer, Calendar, FileText } from "lucide-react";
 import { parseISO, format, isWithinInterval, startOfDay } from "date-fns";
@@ -29,9 +29,12 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAppSelector } from "@/stores/store";
 import { canSubmitFridgeReport, canAccessAllBranches } from "@/lib/rbac";
-import { fridgeStockReports, branches } from "@/data/seed";
+import { useGetBranchesQuery } from "@/stores/api/branchApi";
+import { useGetFridgeReportsQuery, useCreateFridgeReportMutation } from "@/stores/api/fridgeApi";
 import { formatDate } from "@/lib/utils";
 import { UserRole } from "@/types";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const FRIDGE_UNITS = [
   "Main Fridge",
@@ -46,21 +49,33 @@ export default function FridgeStockPage() {
   const currentRole = uiRole || authRole;
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [temperatureValues, setTemperatureValues] = useState<Record<string, number>>({});
+  const [reportDate, setReportDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [reportBranchId, setReportBranchId] = useState("");
+  const [notes, setNotes] = useState("");
 
   const effectiveBranchId = selectedBranchId || assignedBranchId;
   const canSubmit = canSubmitFridgeReport(currentRole);
 
-  const filteredReports = useMemo(() => {
-    return fridgeStockReports.filter((report) => {
-      const reportDate = parseISO(report.date);
-      const inDateRange = isWithinInterval(reportDate, {
-        start: startOfDay(dateRange.from),
-        end: dateRange.to,
-      });
-      const inBranch = !effectiveBranchId || report.branchId === effectiveBranchId;
-      return inDateRange && inBranch;
-    });
-  }, [dateRange, effectiveBranchId]);
+  const { data: branchesData, isLoading: branchesLoading } = useGetBranchesQuery({ pageSize: 100 });
+  const branches = branchesData?.items || [];
+
+  const { data: reportsData, isLoading: reportsLoading, refetch } = useGetFridgeReportsQuery({
+    branchId: effectiveBranchId || undefined,
+    startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+    endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined,
+    page: 1,
+    pageSize: 100,
+  });
+
+  const reports = reportsData?.items || [];
+  const [createFridgeReport, { isLoading: isSubmitting }] = useCreateFridgeReportMutation();
+
+  // Set default branch when branches load
+  useEffect(() => {
+    if (branches.length > 0 && !reportBranchId) {
+      setReportBranchId(effectiveBranchId || branches[0].branchId);
+    }
+  }, [branches, effectiveBranchId, reportBranchId]);
 
   const getBranchName = (branchId: string) => {
     return branches.find((b) => b.branchId === branchId)?.branchName.replace("Caffissimo", "").trim() || "Unknown";
@@ -72,11 +87,42 @@ export default function FridgeStockPage() {
     return "text-primary bg-primary/10";
   };
 
-  const handleSubmit = () => {
-    console.log("Submitting temperature report:", temperatureValues);
-    setSubmitDialogOpen(false);
-    setTemperatureValues({});
+  const handleSubmit = async () => {
+    const targetBranch = reportBranchId || effectiveBranchId || (branches.length > 0 ? branches[0].branchId : "");
+    if (!targetBranch) {
+      toast.error("Please select a branch");
+      return;
+    }
+
+    const temps: Record<string, number> = {};
+    Object.entries(temperatureValues).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && !isNaN(val)) {
+        temps[key] = val;
+      }
+    });
+
+    if (Object.keys(temps).length === 0) {
+      toast.error("Please enter temperature for at least one fridge unit");
+      return;
+    }
+
+    try {
+      await createFridgeReport({
+        branchId: targetBranch,
+        date: reportDate,
+        temperatures: temps,
+        notes: notes.trim() || undefined,
+      }).unwrap();
+      toast.success("Fridge temperature report submitted successfully");
+      setSubmitDialogOpen(false);
+      setTemperatureValues({});
+      setNotes("");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to submit temperature report");
+    }
   };
+
+  const isLoading = branchesLoading || reportsLoading;
 
   return (
     <div className="space-y-6">
@@ -85,7 +131,15 @@ export default function FridgeStockPage() {
         description="Track daily fridge temperatures"
         actions={
           canSubmit && (
-            <Dialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
+            <Dialog open={submitDialogOpen} onOpenChange={(open) => {
+              setSubmitDialogOpen(open);
+              if (open) {
+                setReportDate(format(new Date(), "yyyy-MM-dd"));
+                setReportBranchId(effectiveBranchId || (branches.length > 0 ? branches[0].branchId : ""));
+                setTemperatureValues({});
+                setNotes("");
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
@@ -103,12 +157,12 @@ export default function FridgeStockPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Date</Label>
-                      <Input type="date" defaultValue={format(new Date(), "yyyy-MM-dd")} />
+                      <Input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
                     </div>
                     {canAccessAllBranches(currentRole) && (
                       <div className="space-y-2">
                         <Label>Branch</Label>
-                        <Select defaultValue={effectiveBranchId || branches[0].branchId}>
+                        <Select value={reportBranchId} onValueChange={setReportBranchId}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -151,15 +205,15 @@ export default function FridgeStockPage() {
 
                   <div className="space-y-2">
                     <Label>Notes (optional)</Label>
-                    <Textarea placeholder="Any additional notes..." />
+                    <Textarea placeholder="Any additional notes..." value={notes} onChange={(e) => setNotes(e.target.value)} />
                   </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setSubmitDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleSubmit}>
-                    Submit Report
+                  <Button onClick={handleSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? "Submitting..." : "Submit Report"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -168,7 +222,13 @@ export default function FridgeStockPage() {
         }
       />
 
-      {filteredReports.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+      ) : reports.length === 0 ? (
         <Card>
           <CardContent>
             <EmptyState
@@ -188,59 +248,67 @@ export default function FridgeStockPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredReports.map((report, index) => (
-            <motion.div
-              key={report.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Calendar className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">
-                          {formatDate(report.date)}
-                        </CardTitle>
-                        <CardDescription>
-                          {getBranchName(report.branchId)} &bull; Submitted by {report.submittedBy}
-                        </CardDescription>
+          {reports.map((report, index) => {
+            const tempArray = Object.entries(report.temperatures || {}).map(([name, temp]) => ({
+              name,
+              temperature: Number(temp),
+            }));
+
+            return (
+              <motion.div
+                key={report.reportId}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Calendar className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">
+                            {formatDate(report.date)}
+                          </CardTitle>
+                          <CardDescription>
+                            {getBranchName(report.branchId)} &bull; Submitted by {report.submittedByName}
+                          </CardDescription>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {report.temperatures.map((entry) => (
-                      <div
-                        key={entry.name}
-                        className={`text-center p-3 rounded-lg ${getTemperatureColor(entry.temperature)}`}
-                      >
-                        <p className="text-2xl font-bold">{entry.temperature}°F</p>
-                        <p className="text-xs line-clamp-2 mt-1">
-                          {entry.name}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {tempArray.map((entry) => (
+                        <div
+                          key={entry.name}
+                          className={`text-center p-3 rounded-lg ${getTemperatureColor(entry.temperature)}`}
+                        >
+                          <p className="text-2xl font-bold">{entry.temperature}°F</p>
+                          <p className="text-xs line-clamp-2 mt-1">
+                            {entry.name}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    {report.notes && (
+                      <div className="mt-4 p-3 rounded-lg bg-muted/50">
+                        <p className="text-sm text-muted-foreground">
+                          <FileText className="h-4 w-4 inline mr-1" />
+                          {report.notes}
                         </p>
                       </div>
-                    ))}
-                  </div>
-                  {report.notes && (
-                    <div className="mt-4 p-3 rounded-lg bg-muted/50">
-                      <p className="text-sm text-muted-foreground">
-                        <FileText className="h-4 w-4 inline mr-1" />
-                        {report.notes}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
+

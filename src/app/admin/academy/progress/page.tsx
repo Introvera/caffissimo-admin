@@ -116,6 +116,7 @@ export default function AcademyProgressPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TrainingQualificationStatus | "all">("all");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Certificates Dialog states
   const [certsDialogOpen, setCertsDialogOpen] = useState(false);
@@ -125,6 +126,14 @@ export default function AcademyProgressPage() {
   const [viewingModuleTitle, setViewingModuleTitle] = useState("");
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // Debounce search text
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleViewCertificates = async (
     employeeId: string,
@@ -146,10 +155,11 @@ export default function AcademyProgressPage() {
     }
   };
 
-  const loadProgress = async (branchId: string, pg: number) => {
+  const loadProgress = async (branchId: string, pg: number, q: string, status: string) => {
     setIsLoading(true);
     try {
-      const result = await trainingApi.getBranchStatuses(branchId, pg, PAGE_SIZE);
+      const statusParam = status === "all" ? undefined : status;
+      const result = await trainingApi.getBranchStatuses(branchId, pg, PAGE_SIZE, q || undefined, statusParam);
       setRows(result.items);
       setTotalCount(result.totalCount);
     } catch (e: any) {
@@ -161,38 +171,24 @@ export default function AcademyProgressPage() {
     }
   };
 
-  // Reload whenever the effective branch or page changes
+  // Reload whenever the effective branch, page, or filters change
   useEffect(() => {
     if (!effectiveBranchId) {
       setRows([]);
       setTotalCount(0);
       return;
     }
-    loadProgress(effectiveBranchId, page);
+    loadProgress(effectiveBranchId, page, debouncedSearch, statusFilter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveBranchId, page]);
+  }, [effectiveBranchId, page, debouncedSearch, statusFilter]);
 
-  // Reset page when branch changes
+  // Reset page when branch or filters change
   useEffect(() => {
     setPage(1);
-  }, [effectiveBranchId]);
+  }, [effectiveBranchId, debouncedSearch, statusFilter]);
 
-  // Client-side filter (search + status) on the current page
-  const filtered = useMemo(() => {
-    let data = rows;
-    if (statusFilter !== "all") {
-      data = data.filter((r) => r.status === statusFilter);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      data = data.filter(
-        (r) =>
-          r.trainingModuleTitle.toLowerCase().includes(q) ||
-          r.employeeId.toLowerCase().includes(q)
-      );
-    }
-    return data;
-  }, [rows, statusFilter, search]);
+  const filtered = rows;
+
 
   // ── No branch selected (super admin only scenario) ─────────────────────
 

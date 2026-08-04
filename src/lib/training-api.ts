@@ -141,8 +141,21 @@ export const trainingApi = {
       `/api/training/employees/${employeeId}/status?moduleId=${moduleId}`
     ),
 
-  getBranchStatuses: (branchId: string, page = 1, pageSize = 20) =>
-    apiClient.get<PagedResult<EmployeeTrainingStatusResponse>>(
-      `/api/training/branches/${branchId}/status?page=${page}&pageSize=${pageSize}`
-    ),
+  getBranchStatuses: (
+    branchId: string,
+    page = 1,
+    pageSize = 20,
+    search?: string,
+    status?: string
+  ) => {
+    let url = `/api/training/branches/${branchId}/status?page=${page}&pageSize=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    if (status) {
+      url += `&status=${encodeURIComponent(status)}`;
+    }
+    return apiClient.get<PagedResult<EmployeeTrainingStatusResponse>>(url);
+  },
 };
+

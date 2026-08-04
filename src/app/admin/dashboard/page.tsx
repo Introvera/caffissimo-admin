@@ -31,6 +31,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { useAppSelector } from "@/stores/store";
 import { useGetOrdersQuery } from "@/stores/api/orderApi";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
+import { useGetDashboardStatsQuery } from "@/stores/api/analyticsApi";
 import { formatCurrency } from "@/lib/utils";
 import { OrderSummaryResponse, OrderType } from "@/types";
 
@@ -39,6 +40,7 @@ const TYPE_COLORS: Record<string, string> = {
   TakeAway: "#8C8C8C",
   Delivery: "#ADADAD",
   Online: "#C7C7C7",
+  POS: "#3B82F6",
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -46,19 +48,19 @@ const TYPE_LABELS: Record<string, string> = {
   TakeAway: "Take Away",
   Delivery: "Delivery",
   Online: "Online",
+  POS: "POS",
 };
 
 export default function DashboardPage() {
   const { dateRange, selectedBranchId } = useAppSelector((state) => state.ui);
 
-  // Fetch a large page of orders for the selected date range + branch
-  const { data: ordersData, isLoading: ordersLoading } = useGetOrdersQuery({
-    page: 1,
-    pageSize: 10,
+  // Fetch dashboard stats from real analytics API
+  const { data: statsData, isLoading: statsLoading } = useGetDashboardStatsQuery({
+    startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd'T'00:00:00.000'Z'") : "",
+    endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd'T'23:59:59.999'Z'") : "",
     branchId: selectedBranchId || undefined,
-    orderDateFrom: dateRange.from ? format(dateRange.from, "yyyy-MM-dd'T'00:00:00.000'Z'") : undefined,
-    orderDateTo: dateRange.to ? format(dateRange.to, "yyyy-MM-dd'T'23:59:59.999'Z'") : undefined,
-    sortDescending: true,
+  }, {
+    skip: !dateRange.from || !dateRange.to
   });
 
   // Also fetch recent orders (no date filter) for the activity feed
@@ -71,50 +73,44 @@ export default function DashboardPage() {
 
   const { data: branchesData } = useGetBranchesQuery();
 
-  const orders = ordersData?.items ?? [];
   const recentOrders = recentData?.items ?? [];
-  const loading = ordersLoading || recentLoading;
+  const loading = statsLoading || recentLoading;
 
   // ── KPIs ────────────────────────────────────────────────────────────────
   const kpis = useMemo(() => {
-    const active = orders.filter((o) => o.orderStatus !== "Cancelled");
-    const cancelled = orders.filter((o) => o.orderStatus === "Cancelled");
-    const totalSales = active.reduce((s, o) => s + (o.grandTotal || 0), 0);
-    const orderCount = active.length;
-    const avgOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
-
-    const byType: Record<string, number> = {};
-    active.forEach((o) => {
-      if (o.orderType) {
-        byType[o.orderType] = (byType[o.orderType] ?? 0) + (o.grandTotal || 0);
-      }
-    });
-
-    return { totalSales, orderCount, cancelledCount: cancelled.length, avgOrderValue, byType };
-  }, [orders]);
+    if (!statsData) {
+      return { totalSales: 0, orderCount: 0, cancelledCount: 0, avgOrderValue: 0, byType: {} };
+    }
+    const byType: Record<string, number> = {
+      DineIn: statsData.salesByType?.dineIn || 0,
+      TakeAway: statsData.salesByType?.takeaway || 0,
+      Delivery: statsData.salesByType?.delivery || 0,
+      POS: statsData.salesByType?.pos || 0,
+    };
+    return {
+      totalSales: statsData.totalSales || 0,
+      orderCount: statsData.orderCount || 0,
+      cancelledCount: statsData.cancelledCount || 0,
+      avgOrderValue: statsData.averageOrderValue || 0,
+      byType,
+    };
+  }, [statsData]);
 
   // ── Sales Trend ──────────────────────────────────────────────────────────
   const salesTrendData = useMemo(() => {
-    if (!dateRange.from || !dateRange.to) return [];
-    const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
-    return days.map((day) => {
-      const dayStr = format(day, "yyyy-MM-dd");
-      const dayOrders = orders.filter(
-        (o) => o.orderDate && format(parseISO(o.orderDate), "yyyy-MM-dd") === dayStr && o.orderStatus !== "Cancelled"
-      );
-      const byType: Record<string, number> = {};
-        dayOrders.forEach((o) => {
-          if (o.orderType) {
-            byType[o.orderType] = (byType[o.orderType] ?? 0) + (o.grandTotal || 0);
-          }
-        });
-        return {
-          date: format(day, "MMM d"),
-          total: dayOrders.reduce((s, o) => s + (o.grandTotal || 0), 0),
-          ...byType,
-        };
+    if (!statsData?.salesTrend) return [];
+    return statsData.salesTrend.map((item) => {
+      const parsedDate = parseISO(item.date);
+      return {
+        date: format(parsedDate, "MMM d"),
+        total: item.total || 0,
+        DineIn: item.dineIn || 0,
+        TakeAway: item.takeaway || 0,
+        Delivery: item.delivery || 0,
+        POS: item.pos || 0,
+      };
     });
-  }, [dateRange, orders]);
+  }, [statsData]);
 
   // ── Sales by Type (pie) ──────────────────────────────────────────────────
   const salesByType = useMemo(() =>
@@ -191,7 +187,7 @@ export default function DashboardPage() {
               />
               <KPICard
                 title="Total Count"
-                value={ordersData?.totalCount ?? 0}
+                value={recentData?.totalCount ?? 0}
                 icon={Package}
               />
             </div>

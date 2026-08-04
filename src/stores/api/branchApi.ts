@@ -52,6 +52,12 @@ export const branchApi = baseApi.injectEndpoints({
       query: (id) => `/api/branches/for-sale/${id}`,
       providesTags: (result, error, id) => [{ type: "Branch", id }],
     }),
+
+    // ─── Lookups ───────────────────────────────────────────────────────────
+    getBranchesLookup: builder.query<{ branchId: string; branchName: string }[], void>({
+      query: () => "/api/branches/lookup",
+      providesTags: ["Branch"],
+    }),
   }),
 });
 
@@ -63,4 +69,6 @@ export const {
   useDeleteBranchMutation,
   useGetBranchesForSaleQuery,
   useGetBranchForSaleByIdQuery,
+  useGetBranchesLookupQuery,
 } = branchApi;
+

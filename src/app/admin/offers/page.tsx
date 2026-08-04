@@ -9,6 +9,8 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,10 +19,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAppSelector } from "@/stores/store";
-import { useGetOffersQuery } from "@/stores/api/offerApi";
+import { useGetOffersQuery, useDeleteOfferMutation } from "@/stores/api/offerApi";
 import { canManageOffers } from "@/lib/rbac";
 import { OfferType } from "@/types";
 import { formatCurrency, cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const OFFER_TYPE_LABELS: Record<OfferType, string> = {
   AmountOff: "Flat Discount",
@@ -43,10 +46,23 @@ export default function OffersPage() {
 
   const PAGE_SIZE = 10;
   const { data, isLoading } = useGetOffersQuery({ page, pageSize: PAGE_SIZE });
+  const [deleteOffer] = useDeleteOfferMutation();
 
   const canManage = canManageOffers(currentRole);
   const offers = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete the offer "${name}"?`)) {
+      return;
+    }
+    try {
+      await deleteOffer(id).unwrap();
+      toast.success("Offer deleted successfully");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete offer");
+    }
+  };
 
   const getOfferDiscountLabel = (offer: any) => {
     if (offer.offerType === "BuyXGetY") {
@@ -167,6 +183,30 @@ export default function OffersPage() {
                         Applied to <span className="font-medium text-foreground">{offer.offerBranches.length} branch{offer.offerBranches.length !== 1 ? "es" : ""}</span>
                       </p>
                     )}
+
+                    {/* Admin Actions */}
+                    {canManage && (
+                      <div className="flex items-center justify-end gap-2 border-t pt-3 mt-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                          onClick={() => router.push(`/admin/offers/edit/${offer.offerId}`)}
+                        >
+                          <Edit className="h-4 w-4 mr-1.5" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDelete(offer.offerId, offer.offerName)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1.5" />
+                          Delete
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -200,3 +240,4 @@ export default function OffersPage() {
     </div>
   );
 }
+

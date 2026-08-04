@@ -11,7 +11,7 @@ import {
   LogOut,
   Monitor,
 } from "lucide-react";
-import { parseISO, isWithinInterval, startOfDay } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfDay } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,9 +33,11 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAppSelector } from "@/stores/store";
 import { canViewAttendance, canAccessAllBranches } from "@/lib/rbac";
-import { posDayRecords, branches } from "@/data/seed";
+import { useGetBranchesQuery } from "@/stores/api/branchApi";
+import { useGetAttendanceRecordsQuery } from "@/stores/api/attendanceApi";
 import { formatDate } from "@/lib/utils";
-import { POSDayRecord, UserRole } from "@/types";
+import { UserRole, AttendanceRecordResponse } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PAGE_TITLE = "POS Login / Logout Report";
 const PAGE_DESCRIPTION = "First login and last logout times per day. Inactive cashiers are auto-logged out after 10 minutes.";
@@ -45,28 +47,37 @@ export default function POSLoginReportPage() {
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const currentRole = uiRole || authRole;
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRecord, setSelectedRecord] = useState<POSDayRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecordResponse | null>(null);
 
   const effectiveBranchId = selectedBranchId || assignedBranchId;
   const canView = canViewAttendance(authRole);
 
+  const { data: branchesData, isLoading: branchesLoading } = useGetBranchesQuery({ pageSize: 100 });
+  const branches = branchesData?.items || [];
+
+  const { data: attendanceData, isLoading: attendanceLoading } = useGetAttendanceRecordsQuery({
+    branchId: effectiveBranchId || undefined,
+    startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+    endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined,
+    page: 1,
+    pageSize: 100,
+  }, {
+    skip: !canView
+  });
+
+  const records = attendanceData?.items || [];
+
   const filteredRecords = useMemo(() => {
-    return posDayRecords.filter((record) => {
-      const recordDate = parseISO(record.date);
-      const inDateRange = isWithinInterval(recordDate, {
-        start: startOfDay(dateRange.from),
-        end: dateRange.to,
-      });
-      const inBranch = !effectiveBranchId || record.branchId === effectiveBranchId;
+    return records.filter((record) => {
       const matchesSearch =
         !searchQuery ||
-        record.userName.toLowerCase().includes(searchQuery.toLowerCase());
-      return inDateRange && inBranch && matchesSearch;
+        record.userDisplayName.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
     });
-  }, [dateRange, effectiveBranchId, searchQuery]);
+  }, [records, searchQuery]);
 
   const groupedByDate = useMemo(() => {
-    const groups: Record<string, POSDayRecord[]> = {};
+    const groups: Record<string, AttendanceRecordResponse[]> = {};
     filteredRecords.forEach((record) => {
       if (!groups[record.date]) groups[record.date] = [];
       groups[record.date].push(record);
@@ -76,6 +87,15 @@ export default function POSLoginReportPage() {
 
   const getBranchName = (branchId: string) => {
     return branches.find((b) => b.branchId === branchId)?.branchName.replace("Caffissimo", "").trim() || "Unknown";
+  };
+
+  const formatTime = (isoString?: string | null) => {
+    if (!isoString) return "—";
+    try {
+      return format(parseISO(isoString), "hh:mm a");
+    } catch {
+      return isoString;
+    }
   };
 
   if (!canView) {
@@ -94,6 +114,8 @@ export default function POSLoginReportPage() {
       </div>
     );
   }
+
+  const isLoading = branchesLoading || attendanceLoading;
 
   return (
     <div className="space-y-6">
@@ -119,7 +141,13 @@ export default function POSLoginReportPage() {
         }
       />
 
-      {groupedByDate.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ) : groupedByDate.length === 0 ? (
         <Card>
           <CardContent>
             <EmptyState
@@ -131,7 +159,7 @@ export default function POSLoginReportPage() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {groupedByDate.map(([date, records]) => (
+          {groupedByDate.map(([date, dateRecords]) => (
             <div key={date}>
               <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -147,14 +175,14 @@ export default function POSLoginReportPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {records.map((record) => (
+                  {dateRecords.map((record) => (
                     <TableRow
-                      key={record.id}
+                      key={record.attendanceId}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => setSelectedRecord(record)}
                     >
                       <TableCell className="font-medium">
-                        {record.userName}
+                        {record.userDisplayName}
                       </TableCell>
                       {canAccessAllBranches(currentRole) && (
                         <TableCell>{getBranchName(record.branchId)}</TableCell>
@@ -162,13 +190,13 @@ export default function POSLoginReportPage() {
                       <TableCell className="whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5">
                           <DoorOpen className="h-4 w-4 text-muted-foreground shrink-0" />
-                          {record.firstLogin}
+                          {formatTime(record.firstLogin)}
                         </span>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5">
                           <DoorClosed className="h-4 w-4 text-muted-foreground shrink-0" />
-                          {record.lastLogout}
+                          {formatTime(record.lastLogout)}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -188,7 +216,7 @@ export default function POSLoginReportPage() {
             <p className="text-sm text-muted-foreground">
               {selectedRecord && (
                 <>
-                  {selectedRecord.userName} — {formatDate(selectedRecord.date)}
+                  {selectedRecord.userDisplayName} — {formatDate(selectedRecord.date)}
                 </>
               )}
             </p>
@@ -206,18 +234,18 @@ export default function POSLoginReportPage() {
                   const LogoutIcon = isLast ? DoorClosed : LogOut;
                   return (
                     <div
-                      key={i}
+                      key={session.posSessionId}
                       className="flex items-center justify-between px-4 py-3 text-sm"
                     >
                       <span className="inline-flex items-center gap-2">
                         <LoginIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                        {session.loginAt}
+                        {formatTime(session.loginAt)}
                       </span>
                       <span className="text-muted-foreground">→</span>
                       <span className="inline-flex items-center gap-2">
                         <LogoutIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                        {session.logoutAt}
-                        {session.autoLogout && (
+                        {formatTime(session.logoutAt)}
+                        {session.endReason === "Idle" && (
                           <span className="text-xs text-amber-600 dark:text-amber-400">
                             (auto)
                           </span>
@@ -234,3 +262,4 @@ export default function POSLoginReportPage() {
     </div>
   );
 }
+

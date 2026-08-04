@@ -74,6 +74,15 @@ export const productApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Category"],
     }),
+
+    // ─── Lookups ───────────────────────────────────────────────────────────
+    getProductsLookup: builder.query<{ productId: string; productName: string }[], { productCategoryId?: string; isActive?: boolean } | void>({
+      query: (params) => ({
+        url: "/api/products/lookup",
+        params: params || undefined,
+      }),
+      providesTags: ["Product"],
+    }),
   }),
 });
 
@@ -88,4 +97,6 @@ export const {
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
+  useGetProductsLookupQuery,
 } = productApi;
+

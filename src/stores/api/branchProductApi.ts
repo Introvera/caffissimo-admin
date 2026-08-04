@@ -31,7 +31,7 @@ export const branchProductApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["BranchProduct"],
+      invalidatesTags: ["BranchProduct", "Product"],
     }),
 
     // PUT /api/branch-products/{id}  — update availability / image overrides
@@ -50,7 +50,7 @@ export const branchProductApi = baseApi.injectEndpoints({
         url: `/api/branch-products/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["BranchProduct"],
+      invalidatesTags: ["BranchProduct", "Product"],
     }),
   }),
 });
