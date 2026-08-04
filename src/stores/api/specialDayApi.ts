@@ -6,6 +6,7 @@ import {
   UpdateSpecialDayRequest,
   PagedResult,
 } from "@/types";
+import { toFormData } from "@/lib/formData";
 
 export interface SpecialDayListParams {
   page?: number;
@@ -43,7 +44,8 @@ export const specialDayApi = baseApi.injectEndpoints({
       query: (data) => ({
         url: "/api/special-days",
         method: "POST",
-        body: data,
+        // POST/PUT /api/special-days are [FromForm] on the backend.
+        body: toFormData(data as unknown as Record<string, unknown>),
       }),
       invalidatesTags: [{ type: "SpecialDay", id: "LIST" }],
     }),
@@ -52,7 +54,7 @@ export const specialDayApi = baseApi.injectEndpoints({
       query: ({ id, data }) => ({
         url: `/api/special-days/${id}`,
         method: "PUT",
-        body: data,
+        body: toFormData(data as unknown as Record<string, unknown>),
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: "SpecialDay", id },

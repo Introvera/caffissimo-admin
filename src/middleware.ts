@@ -1,5 +1,4 @@
-import { NextResponse } from "next/dist/server/web/spec-extension/response";
-import type { NextRequest } from "next/dist/server/web/spec-extension/request";
+import { NextResponse, type NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;

@@ -1,7 +1,7 @@
 import { baseApi } from "./baseApi";
 import {
-  UberMenuResponse,
-  UberMenuSummaryResponse,
+  UberMenu,
+  UberMenuSummary,
   UberMenuSyncResponse,
   CreateUberMenuRequest,
   UpdateUberMenuRequest,
@@ -12,7 +12,7 @@ import {
 export const uberMenuApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /api/uber-menus  (paged)
-    getUberMenus: builder.query<PagedResult<UberMenuSummaryResponse>, PaginationParams | void>({
+    getUberMenus: builder.query<PagedResult<UberMenuSummary>, PaginationParams | void>({
       query: (params) => ({
         url: "/api/uber-menus",
         params: params || undefined,
@@ -21,7 +21,7 @@ export const uberMenuApi = baseApi.injectEndpoints({
     }),
 
     // GET /api/uber-menus/{id}?branchId={branchId}
-    getUberMenuById: builder.query<UberMenuResponse, { id: string; branchId: string }>({
+    getUberMenuById: builder.query<UberMenu, { id: string; branchId: string }>({
       query: ({ id, branchId }) => ({
         url: `/api/uber-menus/${id}`,
         params: { branchId },
@@ -30,7 +30,7 @@ export const uberMenuApi = baseApi.injectEndpoints({
     }),
 
     // POST /api/uber-menus
-    createUberMenu: builder.mutation<UberMenuResponse, CreateUberMenuRequest>({
+    createUberMenu: builder.mutation<UberMenu, CreateUberMenuRequest>({
       query: (data) => ({
         url: "/api/uber-menus",
         method: "POST",
@@ -40,7 +40,7 @@ export const uberMenuApi = baseApi.injectEndpoints({
     }),
 
     // PUT /api/uber-menus/{id}
-    updateUberMenu: builder.mutation<UberMenuResponse, { id: string; data: UpdateUberMenuRequest }>({
+    updateUberMenu: builder.mutation<UberMenu, { id: string; data: UpdateUberMenuRequest }>({
       query: ({ id, data }) => ({
         url: `/api/uber-menus/${id}`,
         method: "PUT",

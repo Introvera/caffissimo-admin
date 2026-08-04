@@ -7,6 +7,7 @@ import {
   PagedResult, 
   PaginationParams 
 } from "@/types";
+import { toFormData } from "@/lib/formData";
 
 export const toppingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -62,7 +63,8 @@ export const toppingApi = baseApi.injectEndpoints({
       query: (data) => ({
         url: "/api/toppings",
         method: "POST",
-        body: data,
+        // POST/PUT /api/toppings are [FromForm] on the backend.
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["Topping"],
     }),
@@ -70,7 +72,7 @@ export const toppingApi = baseApi.injectEndpoints({
       query: ({ id, data }) => ({
         url: `/api/toppings/${id}`,
         method: "PUT",
-        body: data,
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["Topping"],
     }),
@@ -119,7 +121,8 @@ export const toppingApi = baseApi.injectEndpoints({
       query: (data) => ({
         url: "/api/branch-toppings",
         method: "POST",
-        body: data,
+        // POST/PUT /api/branch-toppings are [FromForm] on the backend.
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["BranchTopping"],
     }),
@@ -127,7 +130,7 @@ export const toppingApi = baseApi.injectEndpoints({
       query: ({ id, data }) => ({
         url: `/api/branch-toppings/${id}`,
         method: "PUT",
-        body: data,
+        body: toFormData(data as Record<string, unknown>),
       }),
       invalidatesTags: ["BranchTopping"],
     }),

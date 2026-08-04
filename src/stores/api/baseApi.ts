@@ -2,8 +2,16 @@ import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError 
 import Cookies from "js-cookie";
 import { logout } from "../slices/authSlice";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error(
+    "NEXT_PUBLIC_API_URL is not set. It is inlined at build time, so it must be present when the app is built.",
+  );
+}
+
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL,
+  baseUrl: API_URL,
   prepareHeaders: (headers) => {
     const token = Cookies.get("auth_token");
     if (token) {
@@ -31,13 +39,22 @@ export const baseApi = createApi({
   reducerPath: "api",
   baseQuery,
   tagTypes: [
-    "Product", "Category",
-    "Branch", "BranchProduct",
-    "Order", "OrderItem",
-    "Topping", "ToppingCategory", "ProductTopping", "BranchTopping", "BranchProductVariant",
+    "Product",
+    "Category",
+    "Branch",
+    "BranchProduct",
+    "BranchProductVariant",
+    "Order",
+    "OrderItem",
+    "Topping",
+    "ToppingCategory",
+    "ProductTopping",
+    "BranchTopping",
     "Offer",
     "User",
     "UberMenu",
+    "UberOrder",
+    "UberPromotion",
     "SpecialDay",
     "Attendance",
     "FridgeReport",

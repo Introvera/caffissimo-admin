@@ -61,7 +61,7 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
   const handleSync = async (menuId: string) => {
     try {
       const response = await syncMenu({ id: menuId, branchId }).unwrap();
-      if (response.success) {
+      if (response.syncStatus === "Success") {
         toast.success("Menu sync triggered successfully");
       } else {
         toast.error(response.message || "Sync failed");

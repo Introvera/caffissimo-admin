@@ -22,6 +22,8 @@ const badgeVariants = cva(
           "border-transparent status-info",
         error:
           "border-transparent status-error",
+        uber:
+          "border-transparent bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
       },
     },
     defaultVariants: {

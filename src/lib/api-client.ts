@@ -2,6 +2,7 @@ import Cookies from "js-cookie";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {},
