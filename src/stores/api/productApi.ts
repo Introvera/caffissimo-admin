@@ -1,5 +1,13 @@
 import { baseApi } from "./baseApi";
-import { Product, Category, BranchForSale, PagedResult, PaginationParams } from "@/types";
+import {
+  Product,
+  Category,
+  BranchForSale,
+  PagedResult,
+  PaginationParams,
+  CreateProductRequest,
+  UpdateProductRequest,
+} from "@/types";
 import { toFormData } from "@/lib/formData";
 
 export const productApi = baseApi.injectEndpoints({
@@ -16,20 +24,20 @@ export const productApi = baseApi.injectEndpoints({
       query: (id) => `/api/products/${id}`,
       providesTags: (result, error, id) => [{ type: "Product", id }],
     }),
-    createProduct: builder.mutation<Product, Partial<Product>>({
+    createProduct: builder.mutation<Product, CreateProductRequest>({
       query: (newProduct) => ({
         url: "/api/products",
         method: "POST",
         // POST/PUT /api/products are [FromForm] on the backend.
-        body: toFormData(newProduct as Record<string, unknown>),
+        body: toFormData(newProduct as unknown as Record<string, unknown>),
       }),
       invalidatesTags: ["Product"],
     }),
-    updateProduct: builder.mutation<Product, { id: string; data: Partial<Product> }>({
+    updateProduct: builder.mutation<Product, { id: string; data: UpdateProductRequest }>({
       query: ({ id, data }) => ({
         url: `/api/products/${id}`,
         method: "PUT",
-        body: toFormData(data as Record<string, unknown>),
+        body: toFormData(data as unknown as Record<string, unknown>),
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "Product", id }, "Product"],
     }),

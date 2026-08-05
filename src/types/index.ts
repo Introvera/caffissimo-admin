@@ -115,8 +115,9 @@ export interface Product {
   productName: string;
   productPrice: number;
   productDescription?: string;
-  posImage?: string;
-  ecomImages?: string;
+  // Backend stores these as jsonb string arrays (ProductResponse.PosImage/EcomImages).
+  posImage?: string[];
+  ecomImages?: string[];
   isVisible: boolean;
   isActive: boolean;
   variants?: any[];
@@ -975,19 +976,69 @@ export interface CreateBranchProductVariantInput {
   isAvailable: boolean;
 }
 
+export interface CreateProductBranchConfigRequest {
+  branchId: string;
+  isAvailable: boolean;
+  /** Already-uploaded URLs to keep. */
+  overridePosImage?: string[];
+  overrideEcomImages?: string[];
+  /** New files to upload; the API turns these into URLs and merges them above. */
+  overridePosImageFiles?: File[];
+  overrideEcomImageFiles?: File[];
+  variants: CreateBranchProductVariantInput[];
+}
+
+export interface CreateProductRequest {
+  productCategoryId: string;
+  productName: string;
+  productPrice: number;
+  productDescription?: string;
+  /** Already-uploaded URLs to keep. */
+  posImage?: string[];
+  ecomImages?: string[];
+  /** New files to upload; the API turns these into URLs and merges them above. */
+  posImageFiles?: File[];
+  ecomImageFiles?: File[];
+  branchConfigs?: CreateProductBranchConfigRequest[];
+}
+
+export interface UpdateProductRequest {
+  productCategoryId: string;
+  productName: string;
+  productPrice: number;
+  productDescription?: string;
+  /** Already-uploaded URLs to keep. */
+  posImage?: string[];
+  ecomImages?: string[];
+  /** New files to upload; the API turns these into URLs and merges them above. */
+  posImageFiles?: File[];
+  ecomImageFiles?: File[];
+  isActive: boolean;
+}
+
 export interface CreateBranchProductRequest {
   branchId: string;
   productId: string;
   isAvailable: boolean;
+  /** Already-uploaded URLs to keep. */
   overridePosImage?: string[];
   overrideEcomImages?: string[];
+  /** New files to upload; the API turns these into URLs and merges them above. */
+  overridePosImageFiles?: File[];
+  overrideEcomImageFiles?: File[];
   variants: CreateBranchProductVariantInput[];
 }
 
 export interface UpdateBranchProductRequest {
   isAvailable: boolean;
+  /** Omitting this binds as false on the API and soft-deactivates the row. */
+  isActive: boolean;
+  /** Already-uploaded URLs to keep. */
   overridePosImage?: string[];
   overrideEcomImages?: string[];
+  /** New files to upload; the API turns these into URLs and merges them above. */
+  overridePosImageFiles?: File[];
+  overrideEcomImageFiles?: File[];
 }
 
 
