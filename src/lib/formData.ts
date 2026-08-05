@@ -36,7 +36,14 @@ function appendValue(form: FormData, key: string, value: unknown): void {
   }
 
   if (Array.isArray(value)) {
-    value.forEach((item, index) => appendValue(form, `${key}[${index}]`, item));
+    value.forEach((item, index) => {
+      // ASP.NET's FormFileModelBinder matches file fields by exact name equality,
+      // so a List<IFormFile> has to arrive as the same key repeated -- an indexed
+      // `key[0]` binds to nothing and the property comes back null. Every other
+      // collection still needs the indexed form.
+      const isFile = item instanceof File || item instanceof Blob;
+      appendValue(form, isFile ? key : `${key}[${index}]`, item);
+    });
     return;
   }
 
@@ -48,6 +55,25 @@ function appendValue(form: FormData, key: string, value: unknown): void {
   }
 
   form.append(key, String(value));
+}
+
+/**
+ * Prints the wire representation of a form. The field *names* are what decide
+ * whether ASP.NET binds a file, so this is the view that matters when an upload
+ * silently arrives as null on the server. Dev builds only.
+ */
+export function logFormData(label: string, form: FormData): void {
+  if (process.env.NODE_ENV === "production") return;
+
+  const rows = Array.from(form.entries()).map(([key, value]) =>
+    value instanceof File
+      ? { field: key, kind: "file", value: `${value.name} (${value.size} bytes, ${value.type})` }
+      : { field: key, kind: "text", value: String(value) }
+  );
+
+  console.groupCollapsed(`[formData] ${label} — ${rows.length} fields, ${rows.filter(r => r.kind === "file").length} file(s)`);
+  console.table(rows);
+  console.groupEnd();
 }
 
 export function toFormData(payload: Record<string, unknown>): FormData {

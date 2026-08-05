@@ -84,6 +84,7 @@ function ImageUploader({
   };
 
   const handleFiles = (files: File[]) => {
+    console.debug("[ImageUploader] picked", files.map(f => `${f.name} (${f.size} bytes, ${f.type})`));
     if (files.length === 0) return;
     if (multiple) {
       onChange([...(Array.isArray(value) ? value : []), ...files]);
@@ -266,6 +267,16 @@ export default function NewProductPage() {
         })),
       }));
 
+      console.debug("[products/new] submitting images", {
+        basePosImage: basePosImage ? `${basePosImage.name} (${basePosImage.size} bytes)` : null,
+        baseEcomImages: baseEcomImages.map(f => `${f.name} (${f.size} bytes)`),
+        branchOverrides: branchConfigs.map(bc => ({
+          branchId: bc.branchId,
+          pos: bc.overridePosImage?.name ?? null,
+          ecom: bc.overrideEcomImages.map(f => f.name),
+        })),
+      });
+
       // 1. Create Product with Branch Configurations and Variants atomically
       const newProduct = await createProduct({
         productName: data.name,
@@ -276,6 +287,12 @@ export default function NewProductPage() {
         ecomImageFiles: baseEcomImages.length > 0 ? baseEcomImages : undefined,
         branchConfigs: branchConfigsPayload,
       }).unwrap();
+
+      console.debug("[products/new] created", {
+        productId: newProduct.productId,
+        posImage: newProduct.posImage,
+        ecomImages: newProduct.ecomImages,
+      });
 
       const productId = newProduct.productId;
 

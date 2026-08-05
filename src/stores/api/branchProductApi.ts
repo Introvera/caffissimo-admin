@@ -6,7 +6,7 @@ import {
   PagedResult,
   PaginationParams,
 } from "@/types";
-import { toFormData } from "@/lib/formData";
+import { toFormData, logFormData } from "@/lib/formData";
 
 export const branchProductApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -27,22 +27,22 @@ export const branchProductApi = baseApi.injectEndpoints({
 
     // POST /api/branch-products  — assign product to branch with variants
     createBranchProduct: builder.mutation<BranchProductResponse, CreateBranchProductRequest>({
-      query: (data) => ({
-        url: "/api/branch-products",
-        method: "POST",
+      query: (data) => {
         // POST/PUT /api/branch-products are [FromForm] on the backend.
-        body: toFormData(data as unknown as Record<string, unknown>),
-      }),
+        const body = toFormData(data as unknown as Record<string, unknown>);
+        logFormData("POST /api/branch-products", body);
+        return { url: "/api/branch-products", method: "POST", body };
+      },
       invalidatesTags: ["BranchProduct", "Product"],
     }),
 
     // PUT /api/branch-products/{id}  — update availability / image overrides
     updateBranchProduct: builder.mutation<BranchProductResponse, { id: string; data: UpdateBranchProductRequest }>({
-      query: ({ id, data }) => ({
-        url: `/api/branch-products/${id}`,
-        method: "PUT",
-        body: toFormData(data as unknown as Record<string, unknown>),
-      }),
+      query: ({ id, data }) => {
+        const body = toFormData(data as unknown as Record<string, unknown>);
+        logFormData(`PUT /api/branch-products/${id}`, body);
+        return { url: `/api/branch-products/${id}`, method: "PUT", body };
+      },
       invalidatesTags: (result, error, { id }) => [{ type: "BranchProduct", id }, "BranchProduct"],
     }),
 
