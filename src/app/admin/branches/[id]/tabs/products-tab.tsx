@@ -101,8 +101,13 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
     try {
       await updateBranchProduct({
         id: productId,
+        // The API replaces every field it is sent, so the untouched ones have to
+        // be echoed back or they get cleared.
         data: {
           isAvailable: !currentStatus,
+          isActive: product.isActive,
+          overridePosImage: product.overridePosImage,
+          overrideEcomImages: product.overrideEcomImages,
         },
       }).unwrap();
       toast.success(`Product ${!currentStatus ? "enabled" : "disabled"}`);

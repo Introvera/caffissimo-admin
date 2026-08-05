@@ -88,12 +88,28 @@ function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-function ImageUploader({ 
-  multiple = false, 
-  value, 
+/**
+ * An image slot holds already-saved URLs (strings) mixed with newly picked files.
+ * The API keeps the URLs it is given and appends uploads for the files, so both
+ * halves have to be sent: strings on the URL field, files on the *Files field.
+ */
+function keptUrls(value: File | string | (File | string)[] | null): string[] {
+  const items = Array.isArray(value) ? value : value ? [value] : [];
+  return items.filter((i): i is string => typeof i === "string");
+}
+
+function newFiles(value: File | string | (File | string)[] | null): File[] | undefined {
+  const items = Array.isArray(value) ? value : value ? [value] : [];
+  const files = items.filter((i): i is File => i instanceof File);
+  return files.length > 0 ? files : undefined;
+}
+
+function ImageUploader({
+  multiple = false,
+  value,
   onChange,
   disabled = false
-}: { 
+}: {
   multiple?: boolean, 
   value: File | string | (File | string)[] | null, 
   onChange: (files: File | File[] | null) => void,
@@ -243,10 +259,8 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         price: product.productPrice ?? 0,
         isActive: !!product.isActive,
       });
-      setBasePosImage(product.posImage || null);
-      if (product.ecomImages) {
-        setBaseEcomImages(product.ecomImages.split(',').filter(Boolean));
-      }
+      setBasePosImage(product.posImage?.[0] || null);
+      setBaseEcomImages(product.ecomImages || []);
 
       const initialConfigs: BranchConfig[] = branchProducts.map(bp => {
         const bpVariants = bp.variants?.map(v => ({
@@ -354,8 +368,11 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             productCategoryId: data.categoryId,
             productPrice: Number(data.price),
             isActive: data.isActive,
-            // Handle images uploads and URLs...
-          } as never
+            posImage: keptUrls(basePosImage),
+            ecomImages: keptUrls(baseEcomImages),
+            posImageFiles: newFiles(basePosImage),
+            ecomImageFiles: newFiles(baseEcomImages),
+          }
         }).unwrap();
       }
 
@@ -381,6 +398,10 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             branchId: branchConf.branchId,
             productId: resolvedParams.id,
             isAvailable: branchConf.isActive,
+            overridePosImage: keptUrls(branchConf.overridePosImage),
+            overrideEcomImages: keptUrls(branchConf.overrideEcomImages),
+            overridePosImageFiles: newFiles(branchConf.overridePosImage),
+            overrideEcomImageFiles: newFiles(branchConf.overrideEcomImages),
             variants: branchConf.variants.map(v => ({
               variantName: v.variantName,
               price: Number(v.price),
@@ -389,17 +410,21 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           }).unwrap();
         } else {
           // UPDATE Branch Product
+          const originalBranchProduct = branchProducts.find(b => b.branchProductId === branchConf.originalId);
           await updateBranchProduct({
             id: branchConf.originalId,
             data: {
               isAvailable: branchConf.isActive,
-              // handle image updates
+              isActive: originalBranchProduct?.isActive ?? true,
+              overridePosImage: keptUrls(branchConf.overridePosImage),
+              overrideEcomImages: keptUrls(branchConf.overrideEcomImages),
+              overridePosImageFiles: newFiles(branchConf.overridePosImage),
+              overrideEcomImageFiles: newFiles(branchConf.overrideEcomImages),
             }
           }).unwrap();
 
           // Compare Variants
-          const originalBranch = branchProducts.find(b => b.branchProductId === branchConf.originalId);
-          const originalVariants = originalBranch?.variants || [];
+          const originalVariants = originalBranchProduct?.variants || [];
           const currentVariantIds = new Set(branchConf.variants.map(v => v.originalId).filter(Boolean));
           
           // Delete removed variants

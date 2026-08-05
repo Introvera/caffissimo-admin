@@ -252,12 +252,13 @@ export default function NewProductPage() {
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmittingForm(true);
     try {
-      // Map branchConfigs to the backend structure
+      // Map branchConfigs to the backend structure. Picked images travel as real
+      // files on the *ImageFiles fields — the API uploads them and stores the URLs.
       const branchConfigsPayload = branchConfigs.map((bc) => ({
         branchId: bc.branchId,
         isAvailable: bc.isActive,
-        overridePosImage: bc.overridePosImage ? [bc.overridePosImage.name] : [],
-        overrideEcomImages: bc.overrideEcomImages.map((f) => f.name),
+        overridePosImageFiles: bc.overridePosImage ? [bc.overridePosImage] : undefined,
+        overrideEcomImageFiles: bc.overrideEcomImages.length > 0 ? bc.overrideEcomImages : undefined,
         variants: bc.variants.map((v) => ({
           sizeName: v.variantName,
           price: Number(v.price),
@@ -271,9 +272,10 @@ export default function NewProductPage() {
         productDescription: data.description,
         productCategoryId: data.categoryId,
         productPrice: Number(data.price),
-        isActive: true,
+        posImageFiles: basePosImage ? [basePosImage] : undefined,
+        ecomImageFiles: baseEcomImages.length > 0 ? baseEcomImages : undefined,
         branchConfigs: branchConfigsPayload,
-      } as any).unwrap();
+      }).unwrap();
 
       const productId = newProduct.productId;
 
