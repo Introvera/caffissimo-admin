@@ -74,10 +74,28 @@ export default function BranchesPage() {
     
     // DayOfWeek enum: Sunday = 0, Monday = 1, ...
     const todayNum = new Date().getDay();
-    const hours = branch.openingHours.find(h => h.dayOfWeek === todayNum);
+    const dayLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const todayLabel = dayLabels[todayNum];
+    
+    const hours = branch.openingHours.find(h => {
+      const hDay = h.dayOfWeek as any;
+      if (typeof hDay === "string") {
+        if (!isNaN(Number(hDay))) {
+          return Number(hDay) === todayNum;
+        }
+        return hDay.toLowerCase() === todayLabel.toLowerCase();
+      }
+      return hDay === todayNum;
+    });
     
     if (!hours || hours.isClosed || !hours.isActive) return "Closed";
-    return `${hours.openAt} - ${hours.closeAt}`;
+    
+    const formatTime = (t?: string) => {
+      if (!t) return "";
+      return t.split(":").slice(0, 2).join(":");
+    };
+    
+    return `${formatTime(hours.openAt)} - ${formatTime(hours.closeAt)}`;
   };
 
   const isBranchUser = currentRole === UserRole.BranchAdmin || currentRole === UserRole.BranchOwner;
@@ -162,22 +180,43 @@ export default function BranchesPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col space-y-4">
-                    <div className="space-y-2 text-sm flex-1">
-                      <div className="flex items-start gap-2 min-h-10">
-                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                        <span className="text-muted-foreground">{branch.branchAddress}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{branch.branchPhoneNumber}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{branch.branchEmail}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Today: {getTodayHours(branch)}</span>
+                    <div className="flex-1 pt-2">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-3.5">
+                        {/* Address */}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
+                            <MapPin className="h-4 w-4 shrink-0" />
+                            <span>Address</span>
+                          </div>
+                          <p className="text-sm text-foreground break-words leading-normal">{branch.branchAddress}</p>
+                        </div>
+
+                        {/* Phone */}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
+                            <Phone className="h-4 w-4 shrink-0" />
+                            <span>Phone</span>
+                          </div>
+                          <p className="text-sm text-foreground break-words leading-normal">{branch.branchPhoneNumber}</p>
+                        </div>
+
+                        {/* Email */}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
+                            <Mail className="h-4 w-4 shrink-0" />
+                            <span>Email</span>
+                          </div>
+                          <p className="text-sm text-foreground break-words leading-normal">{branch.branchEmail}</p>
+                        </div>
+
+                        {/* Hours */}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
+                            <Clock className="h-4 w-4 shrink-0" />
+                            <span>Hours</span>
+                          </div>
+                          <p className="text-sm text-foreground break-words leading-normal">Today: {getTodayHours(branch)}</p>
+                        </div>
                       </div>
                     </div>
 

@@ -75,7 +75,6 @@ const THEME_CONFIG: Record<
     accent: string;
     badge: string;
     icon: React.ElementType;
-    presetImage: string;
     label: string;
   }
 > = {
@@ -86,7 +85,6 @@ const THEME_CONFIG: Record<
     accent: "bg-amber-500/10 text-amber-500 dark:bg-amber-500/20",
     badge: "bg-blue-500 text-white",
     icon: PartyPopper,
-    presetImage: "https://images.unsplash.com/photo-1546738960-2def506670b5?auto=format&fit=crop&w=800&q=80",
     label: "New Year",
   },
   valentines: {
@@ -96,7 +94,6 @@ const THEME_CONFIG: Record<
     accent: "bg-rose-500/10 text-rose-500 dark:bg-rose-500/20",
     badge: "bg-rose-500 text-white",
     icon: Heart,
-    presetImage: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80",
     label: "Valentine's Day",
   },
   easter: {
@@ -106,7 +103,6 @@ const THEME_CONFIG: Record<
     accent: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20",
     badge: "bg-emerald-500 text-white",
     icon: Egg,
-    presetImage: "https://images.unsplash.com/photo-1522336572468-97b06eca219b?auto=format&fit=crop&w=800&q=80",
     label: "Easter",
   },
   halloween: {
@@ -116,7 +112,6 @@ const THEME_CONFIG: Record<
     accent: "bg-orange-500/10 text-orange-500 dark:bg-orange-500/20",
     badge: "bg-orange-600 text-white",
     icon: Skull,
-    presetImage: "https://images.unsplash.com/photo-1508349682734-1828d2751580?auto=format&fit=crop&w=800&q=80",
     label: "Halloween",
   },
   christmas: {
@@ -126,7 +121,6 @@ const THEME_CONFIG: Record<
     accent: "bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20",
     badge: "bg-emerald-600 text-white",
     icon: Gift,
-    presetImage: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
     label: "Christmas",
   },
   other: {
@@ -136,7 +130,6 @@ const THEME_CONFIG: Record<
     accent: "bg-zinc-500/10 text-zinc-500 dark:bg-zinc-500/20",
     badge: "bg-zinc-500 text-white",
     icon: HelpCircle,
-    presetImage: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
     label: "Other",
   },
 };
@@ -193,7 +186,7 @@ export default function SpecialDaysPage() {
     setCategory("newyear");
     setStartDate("");
     setEndDate("");
-    setBackgroundImage(THEME_CONFIG.newyear.presetImage);
+    setBackgroundImage("");
     setBackgroundImageFile(null);
     setMobileBackgroundImage("");
     setMobileBackgroundImageFile(null);
@@ -213,13 +206,6 @@ export default function SpecialDaysPage() {
     setMobileBackgroundImageFile(null);
     setIsActive(day.isActive);
     setDialogOpen(true);
-  };
-
-  // Preset background picker
-  const handleApplyPreset = () => {
-    setBackgroundImage(THEME_CONFIG[category].presetImage);
-    setBackgroundImageFile(null);
-    toast.success("Theme-specific preset background image applied!");
   };
 
   // Save changes
@@ -549,7 +535,7 @@ export default function SpecialDaysPage() {
 
       {/* Creation / Editing Modal Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -560,19 +546,14 @@ export default function SpecialDaysPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="space-y-4 py-2">
+          <form onSubmit={handleSave} className="space-y-6 py-2">
             
-            {/* Category Select */}
+            {/* Category Select (Full Width) */}
             <div className="space-y-1.5">
               <Label htmlFor="modalCategory">Branding Theme Category *</Label>
               <Select
                 value={category}
-                onValueChange={(val: SpecialDayCategory) => {
-                  setCategory(val);
-                  if (!editingSpecialDayId) {
-                    setBackgroundImage(THEME_CONFIG[val].presetImage);
-                  }
-                }}
+                onValueChange={(val: SpecialDayCategory) => setCategory(val)}
               >
                 <SelectTrigger id="modalCategory">
                   <SelectValue placeholder="Select themed category" />
@@ -593,8 +574,8 @@ export default function SpecialDaysPage() {
               </Select>
             </div>
 
-            {/* Date Range Inputs */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Date Range Inputs (Side-by-Side) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="modalStartDate">Start Date & Time *</Label>
                 <Input
@@ -617,69 +598,64 @@ export default function SpecialDaysPage() {
               </div>
             </div>
 
-            {/* Background Image Upload */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
+            {/* Middle Section: Symmetrical Image Uploaders side-by-side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Desktop Background Image Upload */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-1">
+                    <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                    Desktop Background Image *
+                  </Label>
+                </div>
+                <ImageUploader
+                  value={backgroundImageFile || backgroundImage || null}
+                  onChange={(val) => {
+                    if (val instanceof File) {
+                      setBackgroundImageFile(val);
+                      setBackgroundImage("https://temporary-placeholder.com/uploaded-image.png");
+                    } else if (typeof val === "string") {
+                      setBackgroundImage(val);
+                      setBackgroundImageFile(null);
+                    } else {
+                      setBackgroundImageFile(null);
+                      setBackgroundImage("");
+                    }
+                  }}
+                  accept="image/*"
+                  maxSizeMB={5}
+                  helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                />
+              </div>
+
+              {/* Mobile Background Image Upload */}
+              <div className="space-y-1.5">
                 <Label className="flex items-center gap-1">
                   <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                  Desktop Background Image *
+                  Mobile Background Image (Optional)
                 </Label>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="h-auto p-0 text-xs font-semibold text-primary hover:text-primary/80"
-                  onClick={handleApplyPreset}
-                >
-                  Apply Preset Background
-                </Button>
+                <ImageUploader
+                  value={mobileBackgroundImageFile || mobileBackgroundImage || null}
+                  onChange={(val) => {
+                    if (val instanceof File) {
+                      setMobileBackgroundImageFile(val);
+                      setMobileBackgroundImage("https://temporary-placeholder.com/uploaded-mobile-image.png");
+                    } else if (typeof val === "string") {
+                      setMobileBackgroundImage(val);
+                      setMobileBackgroundImageFile(null);
+                    } else {
+                      setMobileBackgroundImageFile(null);
+                      setMobileBackgroundImage("");
+                    }
+                  }}
+                  accept="image/*"
+                  maxSizeMB={5}
+                  helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                />
               </div>
-              <ImageUploader
-                value={backgroundImageFile || backgroundImage || null}
-                onChange={(val) => {
-                  if (val instanceof File) {
-                    setBackgroundImageFile(val);
-                    setBackgroundImage("https://temporary-placeholder.com/uploaded-image.png");
-                  } else if (typeof val === "string") {
-                    setBackgroundImage(val);
-                    setBackgroundImageFile(null);
-                  } else {
-                    setBackgroundImageFile(null);
-                    setBackgroundImage("");
-                  }
-                }}
-                accept="image/*"
-                maxSizeMB={5}
-                helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
-              />
             </div>
 
-            {/* Mobile Background Image Upload */}
-            <div className="space-y-1.5">
-              <Label className="flex items-center gap-1">
-                <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                Mobile Background Image (Optional)
-              </Label>
-              <ImageUploader
-                value={mobileBackgroundImageFile || mobileBackgroundImage || null}
-                onChange={(val) => {
-                  if (val instanceof File) {
-                    setMobileBackgroundImageFile(val);
-                    setMobileBackgroundImage("https://temporary-placeholder.com/uploaded-mobile-image.png");
-                  } else if (typeof val === "string") {
-                    setMobileBackgroundImage(val);
-                    setMobileBackgroundImageFile(null);
-                  } else {
-                    setMobileBackgroundImageFile(null);
-                    setMobileBackgroundImage("");
-                  }
-                }}
-                accept="image/*"
-                maxSizeMB={5}
-                helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
-              />
-            </div>
-
-            {/* Active Status Switch */}
+            {/* Bottom Section: Active Status Switch */}
             <div className="flex items-center justify-between border-t dark:border-zinc-800 pt-4">
               <div className="space-y-0.5">
                 <Label htmlFor="modalActive">Active Immediately</Label>
