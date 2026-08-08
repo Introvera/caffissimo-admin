@@ -26,6 +26,7 @@ import { useAppSelector } from "@/stores/store";
 import { useCreateBranchMutation } from "@/stores/api/branchApi";
 import { UserRole, BranchPurpose } from "@/types";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 const DAYS = [
   { key: "monday", label: "Monday", index: 1 },
@@ -332,73 +333,13 @@ export default function NewBranchPage() {
 
               <div className="space-y-2">
                 <Label>Branch Cover Image</Label>
-                {imagePreview ? (
-                  <div className="relative rounded-md border border-border overflow-hidden group h-48 w-full max-w-md bg-muted/30">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={imagePreview}
-                      alt="Branch Preview"
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          setImageFile(null);
-                          setImagePreview("");
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" /> Remove
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => document.getElementById("branch-image-upload")?.click()}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const file = e.dataTransfer.files?.[0];
-                      if (file) {
-                        if (file.size > 5 * 1024 * 1024) {
-                          toast.error("Image file is too large. Maximum size is 5MB.");
-                          return;
-                        }
-                        setImageFile(file);
-                        setImagePreview(URL.createObjectURL(file));
-                      }
-                    }}
-                    className="border-2 border-dashed border-border hover:border-primary/50 rounded-md p-6 flex flex-col items-center justify-center gap-2 cursor-pointer bg-background hover:bg-muted/10 transition-colors w-full max-w-md"
-                  >
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                      <Upload className="h-5 w-5" />
-                    </div>
-                    <div className="text-sm font-semibold text-foreground">Upload Branch Image</div>
-                    <div className="text-xs text-muted-foreground text-center">
-                      Drag & drop or click to choose a file<br />
-                      Supports PNG, JPG, JPEG, GIF up to 5MB
-                    </div>
-                    <input
-                      id="branch-image-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.size > 5 * 1024 * 1024) {
-                            toast.error("Image file is too large. Maximum size is 5MB.");
-                            return;
-                          }
-                          setImageFile(file);
-                          setImagePreview(URL.createObjectURL(file));
-                        }
-                      }}
-                    />
-                  </div>
-                )}
+                <ImageUploader
+                  value={imageFile}
+                  onChange={(val) => setImageFile(val as File | null)}
+                  accept="image/*"
+                  maxSizeMB={5}
+                  helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                />
               </div>
             </CardContent>
           </Card>

@@ -56,6 +56,7 @@ import {
 } from "@/stores/api/toppingApi";
 import { Category, Branch, UserRole, BranchProductResponse } from "@/types";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 const productSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -104,108 +105,7 @@ function newFiles(value: File | string | (File | string)[] | null): File[] | und
   return files.length > 0 ? files : undefined;
 }
 
-function ImageUploader({
-  multiple = false,
-  value,
-  onChange,
-  disabled = false
-}: {
-  multiple?: boolean, 
-  value: File | string | (File | string)[] | null, 
-  onChange: (files: File | File[] | null) => void,
-  disabled?: boolean
-}) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (disabled) return;
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
-    handleFiles(files);
-  };
-
-  const handleFiles = (files: File[]) => {
-    if (files.length === 0) return;
-    if (multiple) {
-      onChange([...(Array.isArray(value) ? value : []), ...files] as File[]);
-    } else {
-      onChange(files[0]);
-    }
-  };
-
-  const removeFile = (e: React.MouseEvent, index?: number) => {
-    e.stopPropagation();
-    if (disabled) return;
-    if (multiple && Array.isArray(value)) {
-      const newValue = [...value];
-      newValue.splice(index!, 1);
-      onChange(newValue as any);
-    } else {
-      onChange(null);
-    }
-  };
-
-  const renderItem = (f: File | string, i?: number) => {
-    const isString = typeof f === "string";
-    const name = isString ? f.split("/").pop() || "Image" : (f as File).name;
-    
-    let src = "";
-    if (isString) {
-      src = f as string;
-    } else {
-      try {
-        src = URL.createObjectURL(f as File);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    return (
-      <div key={i ?? 'single'} className="relative group w-24 h-24 rounded-lg overflow-hidden border border-border bg-muted flex flex-col items-center justify-center">
-        {src ? (
-          <img src={src} alt={name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-[10px] text-muted-foreground truncate px-1 w-full text-center">{name}</span>
-        )}
-        {!disabled && (
-          <button
-            type="button"
-            className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={(e) => removeFile(e, i)}
-          >
-            <X className="h-3 w-3" />
-          </button>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div 
-      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${disabled ? 'opacity-60 cursor-not-allowed bg-muted/10' : 'cursor-pointer hover:bg-muted/50'}`}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={handleDrop}
-      onClick={() => !disabled && fileInputRef.current?.click()}
-    >
-      <input 
-        type="file" 
-        hidden 
-        ref={fileInputRef} 
-        multiple={multiple} 
-        accept="image/*"
-        onChange={(e) => handleFiles(Array.from(e.target.files || []))}
-        disabled={disabled}
-      />
-      <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-      <p className="text-sm text-muted-foreground">
-        Drag and drop {multiple ? "images" : "an image"} here, or click to browse
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2 justify-center" onClick={e => e.stopPropagation()}>
-        {Array.isArray(value) ? value.map((f, i) => renderItem(f, i)) : value ? renderItem(value) : null}
-      </div>
-    </div>
-  );
-}
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;

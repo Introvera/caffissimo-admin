@@ -693,6 +693,8 @@ export interface Topping {
   price: number;
   toppingPrice?: number;
   isActive: boolean;
+  image?: string[] | null;
+  imageFiles?: File[] | null;
 }
 
 export interface ProductTopping {
@@ -713,6 +715,7 @@ export interface BranchTopping {
   isAvailable: boolean;
   isVisible: boolean;
   overrideImage?: string[] | null;
+  overrideImageFiles?: File[] | null;
   isActive?: boolean;
 }
 
@@ -1289,6 +1292,7 @@ export interface SpecialDayResponse {
   startDate: string;
   endDate: string;
   backgroundImage: string;
+  mobileBackgroundImage?: string;
   isActive: boolean;
 }
 
@@ -1302,6 +1306,9 @@ export interface CreateSpecialDayRequest {
   startDate: string;
   endDate: string;
   backgroundImage: string;
+  backgroundImageFile?: File | null;
+  mobileBackgroundImage?: string;
+  mobileBackgroundImageFile?: File | null;
   isActive: boolean;
 }
 
@@ -1310,6 +1317,9 @@ export interface UpdateSpecialDayRequest {
   startDate: string;
   endDate: string;
   backgroundImage: string;
+  backgroundImageFile?: File | null;
+  mobileBackgroundImage?: string;
+  mobileBackgroundImageFile?: File | null;
   isActive: boolean;
 }
 

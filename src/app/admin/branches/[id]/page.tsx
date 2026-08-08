@@ -54,6 +54,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 interface BranchDetailPageProps {
   params: Promise<{ id: string }>;
@@ -721,88 +722,41 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
                   <div className="space-y-2">
                     <Label>Branch Cover Image</Label>
-                    {activeImagePreview ? (
-                      <div className="relative rounded-md border border-border overflow-hidden group h-48 w-full max-w-md bg-muted/30">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={activeImagePreview}
-                          alt="Branch Cover"
-                          className="h-full w-full object-cover"
-                        />
-                        {(canEdit && isEditingMode) && (
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setNewImageFile(null);
-                                setNewImagePreview("");
-                                setImageDeleted(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" /> Remove
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+                    {!isEditingMode ? (
+                      activeImagePreview ? (
+                        <div className="relative rounded-md border border-border overflow-hidden h-48 w-full max-w-md bg-muted/30">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={activeImagePreview}
+                            alt="Branch Cover"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="border border-dashed border-border rounded-md p-6 flex flex-col items-center justify-center gap-2 w-full max-w-md bg-muted/50 opacity-60">
+                          <span className="text-xs text-muted-foreground font-semibold">No Image Uploaded</span>
+                        </div>
+                      )
                     ) : (
-                      <div
-                        onClick={() => canEdit && isEditingMode && document.getElementById("branch-image-upload")?.click()}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (!canEdit || !isEditingMode) return;
-                          const file = e.dataTransfer.files?.[0];
-                          if (file) {
-                            if (file.size > 5 * 1024 * 1024) {
-                              toast.error("Image file is too large. Maximum size is 5MB.");
-                              return;
-                            }
-                            setNewImageFile(file);
-                            setNewImagePreview(URL.createObjectURL(file));
+                      <ImageUploader
+                        value={newImageFile || (!imageDeleted ? currentBranch.branchImageUrl : null)}
+                        onChange={(val) => {
+                          if (val instanceof File) {
+                            setNewImageFile(val);
+                            setNewImagePreview(URL.createObjectURL(val));
                             setImageDeleted(false);
+                          } else {
+                            setNewImageFile(null);
+                            setNewImagePreview("");
+                            setImageDeleted(true);
                           }
                         }}
-                        className={`border-2 border-dashed border-border rounded-md p-6 flex flex-col items-center justify-center gap-2 w-full max-w-md ${
-                          canEdit && isEditingMode
-                            ? "hover:border-primary/50 cursor-pointer bg-background hover:bg-muted/10 transition-colors"
-                            : "bg-muted/50 cursor-not-allowed opacity-60"
-                        }`}
-                      >
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                          <Upload className="h-5 w-5" />
-                        </div>
-                        <div className="text-sm font-semibold text-foreground">
-                          {canEdit && isEditingMode ? "Upload Branch Image" : "No Image Uploaded"}
-                        </div>
-                        {(canEdit && isEditingMode) && (
-                          <div className="text-xs text-muted-foreground text-center">
-                            Drag & drop or click to choose a file<br />
-                            Supports PNG, JPG, JPEG, GIF up to 5MB
-                          </div>
-                        )}
-                        {(canEdit && isEditingMode) && (
-                          <input
-                            id="branch-image-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                if (file.size > 5 * 1024 * 1024) {
-                                  toast.error("Image file is too large. Maximum size is 5MB.");
-                                  return;
-                                }
-                                setNewImageFile(file);
-                                setNewImagePreview(URL.createObjectURL(file));
-                                setImageDeleted(false);
-                              }
-                            }}
-                          />
-                        )}
-                      </div>
+                        disabled={!canEdit}
+                        accept="image/*"
+                        maxSizeMB={5}
+                        helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                        className="max-w-md"
+                      />
                     )}
                   </div>
 

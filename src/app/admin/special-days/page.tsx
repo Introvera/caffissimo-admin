@@ -58,6 +58,7 @@ import {
   useUpdateSpecialDayMutation,
   useDeleteSpecialDayMutation,
 } from "@/stores/api/specialDayApi";
+import { ImageUploader } from "@/components/ui/image-uploader";
 import { useAppSelector } from "@/stores/store";
 import { canManageSpecialDays } from "@/lib/rbac";
 import { SpecialDayCategory, CreateSpecialDayRequest, UpdateSpecialDayRequest } from "@/types";
@@ -160,6 +161,9 @@ export default function SpecialDaysPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [backgroundImage, setBackgroundImage] = useState("");
+  const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null);
+  const [mobileBackgroundImage, setMobileBackgroundImage] = useState("");
+  const [mobileBackgroundImageFile, setMobileBackgroundImageFile] = useState<File | null>(null);
   const [isActive, setIsActive] = useState(true);
 
   const PAGE_SIZE = 9;
@@ -190,6 +194,9 @@ export default function SpecialDaysPage() {
     setStartDate("");
     setEndDate("");
     setBackgroundImage(THEME_CONFIG.newyear.presetImage);
+    setBackgroundImageFile(null);
+    setMobileBackgroundImage("");
+    setMobileBackgroundImageFile(null);
     setIsActive(true);
     setDialogOpen(true);
   };
@@ -201,6 +208,9 @@ export default function SpecialDaysPage() {
     setStartDate(format(parseISO(day.startDate), "yyyy-MM-dd'T'HH:mm"));
     setEndDate(format(parseISO(day.endDate), "yyyy-MM-dd'T'HH:mm"));
     setBackgroundImage(day.backgroundImage);
+    setBackgroundImageFile(null);
+    setMobileBackgroundImage(day.mobileBackgroundImage || "");
+    setMobileBackgroundImageFile(null);
     setIsActive(day.isActive);
     setDialogOpen(true);
   };
@@ -208,6 +218,7 @@ export default function SpecialDaysPage() {
   // Preset background picker
   const handleApplyPreset = () => {
     setBackgroundImage(THEME_CONFIG[category].presetImage);
+    setBackgroundImageFile(null);
     toast.success("Theme-specific preset background image applied!");
   };
 
@@ -225,15 +236,17 @@ export default function SpecialDaysPage() {
       return;
     }
 
-    if (!backgroundImage.trim()) {
-      toast.error("Background image URL is required.");
+    if (!backgroundImage.trim() && !backgroundImageFile) {
+      toast.error("Background image is required.");
       return;
     }
 
     try {
-      const url = new URL(backgroundImage);
-      if (url.protocol !== "http:" && url.protocol !== "https:") {
-        throw new Error();
+      if (backgroundImage.trim()) {
+        const url = new URL(backgroundImage);
+        if (url.protocol !== "http:" && url.protocol !== "https:") {
+          throw new Error();
+        }
       }
     } catch {
       toast.error("Please enter a valid HTTP/HTTPS background image URL.");
@@ -247,6 +260,9 @@ export default function SpecialDaysPage() {
           startDate: new Date(startDate).toISOString(),
           endDate: new Date(endDate).toISOString(),
           backgroundImage,
+          backgroundImageFile,
+          mobileBackgroundImage,
+          mobileBackgroundImageFile,
           isActive,
         };
         await updateSpecialDay({ id: editingSpecialDayId, data: payload }).unwrap();
@@ -259,6 +275,9 @@ export default function SpecialDaysPage() {
           startDate: new Date(startDate).toISOString(),
           endDate: new Date(endDate).toISOString(),
           backgroundImage,
+          backgroundImageFile,
+          mobileBackgroundImage,
+          mobileBackgroundImageFile,
           isActive,
         };
         await createSpecialDay(payload).unwrap();
@@ -598,12 +617,12 @@ export default function SpecialDaysPage() {
               </div>
             </div>
 
-            {/* Background Image Input */}
+            {/* Background Image Upload */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="modalImage" className="flex items-center gap-1">
+                <Label className="flex items-center gap-1">
                   <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                  Background Image URL *
+                  Desktop Background Image *
                 </Label>
                 <Button
                   type="button"
@@ -614,17 +633,50 @@ export default function SpecialDaysPage() {
                   Apply Preset Background
                 </Button>
               </div>
-              <Input
-                id="modalImage"
-                type="url"
-                placeholder="https://example.com/holiday-bg.jpg"
-                value={backgroundImage}
-                onChange={(e) => setBackgroundImage(e.target.value)}
-                required
+              <ImageUploader
+                value={backgroundImageFile || backgroundImage || null}
+                onChange={(val) => {
+                  if (val instanceof File) {
+                    setBackgroundImageFile(val);
+                    setBackgroundImage("https://temporary-placeholder.com/uploaded-image.png");
+                  } else if (typeof val === "string") {
+                    setBackgroundImage(val);
+                    setBackgroundImageFile(null);
+                  } else {
+                    setBackgroundImageFile(null);
+                    setBackgroundImage("");
+                  }
+                }}
+                accept="image/*"
+                maxSizeMB={5}
+                helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
               />
-              <p className="text-[10px] text-muted-foreground leading-normal">
-                Image must be a valid absolute HTTP or HTTPS URL. Recommended size is 800x400.
-              </p>
+            </div>
+
+            {/* Mobile Background Image Upload */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1">
+                <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                Mobile Background Image (Optional)
+              </Label>
+              <ImageUploader
+                value={mobileBackgroundImageFile || mobileBackgroundImage || null}
+                onChange={(val) => {
+                  if (val instanceof File) {
+                    setMobileBackgroundImageFile(val);
+                    setMobileBackgroundImage("https://temporary-placeholder.com/uploaded-mobile-image.png");
+                  } else if (typeof val === "string") {
+                    setMobileBackgroundImage(val);
+                    setMobileBackgroundImageFile(null);
+                  } else {
+                    setMobileBackgroundImageFile(null);
+                    setMobileBackgroundImage("");
+                  }
+                }}
+                accept="image/*"
+                maxSizeMB={5}
+                helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+              />
             </div>
 
             {/* Active Status Switch */}

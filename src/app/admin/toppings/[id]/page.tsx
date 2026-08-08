@@ -39,8 +39,9 @@ import {
   useDeleteBranchToppingMutation,
 } from "@/stores/api/toppingApi";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
-import { UserRole, ToppingCategory, BranchTopping } from "@/types";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
+import { UserRole, ToppingCategory, BranchTopping } from "@/types";
 
 interface ToppingFormData {
   toppingName: string;
@@ -61,6 +62,7 @@ type BranchToppingConfig = {
   originalId?: string;
   isAvailable: boolean;
   overrideToppingPrice: number | null;
+  overrideImageFiles?: (File | string)[];
 };
 
 interface ToppingDetailPageProps {
@@ -97,6 +99,7 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [branchConfigs, setBranchConfigs] = useState<BranchToppingConfig[]>([]);
+  const [toppingImages, setToppingImages] = useState<(File | string)[]>([]);
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   const {
@@ -126,11 +129,16 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
         isActive: topping.isActive,
       });
 
+      if (topping.image) {
+        setToppingImages(topping.image);
+      }
+
       const initialConfigs: BranchToppingConfig[] = branchToppings.map(bt => ({
         branchId: bt.branchId,
         originalId: bt.branchToppingId,
         isAvailable: bt.isAvailable,
         overrideToppingPrice: bt.overrideToppingPrice,
+        overrideImageFiles: bt.overrideImage || [],
       }));
 
       if (!isSuper && assignedBranchId && !initialConfigs.find(c => c.branchId === assignedBranchId)) {
@@ -138,6 +146,7 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
           branchId: assignedBranchId,
           isAvailable: true,
           overrideToppingPrice: null,
+          overrideImageFiles: [],
         });
       }
 
@@ -170,6 +179,35 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
     setBranchConfigs(prev => prev.map(b => b.branchId === branchId ? { ...b, ...updates } : b));
   };
 
+  useEffect(() => {
+    if (!isEditing && topping && branchToppingsData) {
+      if (topping.image) {
+        setToppingImages(topping.image);
+      } else {
+        setToppingImages([]);
+      }
+      
+      const initialConfigs: BranchToppingConfig[] = branchToppings.map(bt => ({
+        branchId: bt.branchId,
+        originalId: bt.branchToppingId,
+        isAvailable: bt.isAvailable,
+        overrideToppingPrice: bt.overrideToppingPrice,
+        overrideImageFiles: bt.overrideImage || [],
+      }));
+
+      if (!isSuper && assignedBranchId && !initialConfigs.find(c => c.branchId === assignedBranchId)) {
+        initialConfigs.push({
+          branchId: assignedBranchId,
+          isAvailable: true,
+          overrideToppingPrice: null,
+          overrideImageFiles: [],
+        });
+      }
+
+      setBranchConfigs(initialConfigs);
+    }
+  }, [isEditing, topping, branchToppingsData, branchToppings, isSuper, assignedBranchId]);
+
   const onSubmit = async (data: ToppingFormData) => {
     setIsSubmittingForm(true);
     try {
@@ -182,7 +220,9 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
             toppingCategoryId: data.toppingCategoryId,
             toppingPrice: Number(data.price),
             isActive: data.isActive,
-          } as never,
+            imageFiles: toppingImages.filter((f): f is File => f instanceof File),
+            image: toppingImages.filter((f): f is string => typeof f === "string"),
+          } as any,
         }).unwrap();
       }
 
@@ -203,7 +243,8 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
               toppingId: resolvedParams.id,
               isAvailable: branchConf.isAvailable,
               overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-            }).unwrap();
+              overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
+            } as any).unwrap();
           } else {
             // UPDATE Branch Topping
             await updateBranchTopping({
@@ -211,7 +252,9 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
               data: {
                 isAvailable: branchConf.isAvailable,
                 overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-              }
+                overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
+                overrideImage: branchConf.overrideImageFiles?.filter((f): f is string => typeof f === "string") || [],
+              } as any
             }).unwrap();
           }
         }
@@ -225,14 +268,17 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
               toppingId: resolvedParams.id,
               isAvailable: branchConf.isAvailable,
               overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-            }).unwrap();
+              overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
+            } as any).unwrap();
           } else {
             await updateBranchTopping({
               id: branchConf.originalId,
               data: {
                 isAvailable: branchConf.isAvailable,
                 overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-              }
+                overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
+                overrideImage: branchConf.overrideImageFiles?.filter((f): f is string => typeof f === "string") || [],
+              } as any
             }).unwrap();
           }
         }
@@ -428,6 +474,24 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                     </div>
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Topping Images</CardTitle>
+                    <CardDescription>Upload image files for this topping</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ImageUploader
+                      multiple={true}
+                      value={toppingImages}
+                      onChange={(val) => setToppingImages(val as (File | string)[])}
+                      disabled={isBaseDisabled}
+                      accept="image/*"
+                      maxSizeMB={5}
+                      helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                    />
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Sidebar */}
@@ -504,6 +568,19 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                               Leave empty to use base price: ${(topping.toppingPrice ?? topping.price ?? 0).toFixed(2)}
                             </p>
                           </div>
+                        </div>
+
+                        <div className="space-y-2 border-t pt-4">
+                          <Label>Branch Topping Image Override (Optional)</Label>
+                          <ImageUploader
+                            multiple={true}
+                            value={branchConf.overrideImageFiles || []}
+                            onChange={(val) => updateBranchConfig(branchConf.branchId, { overrideImageFiles: val as (File | string)[] })}
+                            disabled={isFormDisabled}
+                            accept="image/*"
+                            maxSizeMB={5}
+                            helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                          />
                         </div>
                       </CardContent>
                     </Card>
