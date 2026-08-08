@@ -391,3 +391,75 @@ body {
   font-weight: 500 !important;
 }
 
+/* ==========================================================================
+   Global Interactive Styles (Cursor & Hover effects)
+   ========================================================================== */
+
+/* Ensure all links, buttons, and custom clickable elements have cursor: pointer */
+a,
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: pointer !important;
+}
+
+/* Ensure smooth hover transitions for interactive elements */
+a,
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+th.cursor-pointer {
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              filter 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fallback hover effect for elements that lack specific tailwind hover rules */
+a:hover {
+  opacity: 0.8;
+}
+
+button:not(:disabled):hover,
+[role="button"]:not(:disabled):hover,
+input[type="button"]:not(:disabled):hover,
+input[type="submit"]:not(:disabled):hover,
+input[type="reset"]:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+/* Active press states for micro-interaction */
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active,
+input[type="button"]:not(:disabled):active,
+input[type="submit"]:not(:disabled):active,
+input[type="reset"]:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Table sorting headers hover states */
+th.cursor-pointer:hover {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Ensure disabled buttons show correct cursor and opacity */
+button:disabled,
+[role="button"]:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled,
+[aria-disabled="true"],
+.disabled {
+  cursor: not-allowed !important;
+  opacity: 0.5 !important;
+  transform: none !important;
+}
+
+
