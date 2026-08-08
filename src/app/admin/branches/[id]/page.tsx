@@ -15,6 +15,10 @@ import {
   FileText,
   Plus,
   X,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
+  Edit,
 } from "lucide-react";
 import {
   Card,
@@ -78,6 +82,10 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
   const [updateBranch, { isLoading: isUpdating }] = useUpdateBranchMutation();
   const [formData, setFormData] = useState<Partial<Branch>>({});
+  const [isEditingMode, setIsEditingMode] = useState(false);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [newImagePreview, setNewImagePreview] = useState<string>("");
+  const [imageDeleted, setImageDeleted] = useState(false);
   const [showUberApiKey, setShowUberApiKey] = useState(false);
   const [showDoorApiKey, setShowDoorApiKey] = useState(false);
   const [newHighlight, setNewHighlight] = useState("");
@@ -109,6 +117,10 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
   useEffect(() => {
     if (branch) {
       setFormData(branch);
+      setNewImageFile(null);
+      setNewImagePreview("");
+      setImageDeleted(false);
+      setIsEditingMode(false);
 
       const uberConn = branch.platformConnections?.find(
         (pc) => pc.platformCode === "UberEats" || (pc.platformCode as any) === 0,
@@ -159,18 +171,33 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
   const handleSave = async () => {
     try {
       const isListed = currentBranch.purpose === BranchPurpose.ListedForSale || (currentBranch.purpose as any) === "ListedForSale";
-      const cleanOpeningHours = currentBranch.openingHours?.map((oh) => ({
-        dayOfWeek: oh.dayOfWeek,
-        openAt: oh.isClosed ? "09:00" : (oh.openAt ? oh.openAt.substring(0, 5) : "09:00"),
-        closeAt: oh.isClosed ? "17:00" : (oh.closeAt ? oh.closeAt.substring(0, 5) : "17:00"),
-        isClosed: oh.isClosed ?? false,
-      }));
+      const cleanOpeningHours = currentBranch.openingHours?.map((oh) => {
+        let dayOfWeekVal = oh.dayOfWeek;
+        if (typeof dayOfWeekVal === "string") {
+          const match = DAYS.find(
+            (d) => d.label.toLowerCase() === (dayOfWeekVal as any).toLowerCase()
+          );
+          if (match !== undefined) {
+            dayOfWeekVal = match.index;
+          }
+        }
+        return {
+          dayOfWeek: dayOfWeekVal,
+          openAt: oh.isClosed ? "09:00" : (oh.openAt ? oh.openAt.substring(0, 5) : "09:00"),
+          closeAt: oh.isClosed ? "17:00" : (oh.closeAt ? oh.closeAt.substring(0, 5) : "17:00"),
+          isClosed: oh.isClosed ?? false,
+        };
+      });
 
       const payload: any = {
         purpose: isListed ? BranchPurpose.ListedForSale : BranchPurpose.Operational,
         branchName: currentBranch.branchName,
         branchDescription: currentBranch.branchDescription || undefined,
-        branchImageUrl: currentBranch.branchImageUrl || undefined,
+        ...(imageDeleted && !newImageFile
+          ? { branchImageUrl: "" }
+          : newImageFile
+          ? { branchImageFile: newImageFile }
+          : { branchImageUrl: currentBranch.branchImageUrl || undefined }),
         branchFacebookUrl: undefined,
         branchInstagramUrl: undefined,
         branchAddress: currentBranch.branchAddress,
@@ -237,16 +264,232 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
       }
 
       await updateBranch({ id: resolvedParams.id, data: payload }).unwrap();
-      toast.success("Branch updated successfully");
+      toast.custom((t) => (
+        <div className="flex gap-3 bg-transparent text-zinc-900 dark:text-zinc-50 w-full relative font-sans">
+          <div className="flex-shrink-0 text-emerald-500 pt-0.5">
+            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l5-5z" clipRule="evenodd" />
+            </svg>
+          </div>
+          
+          <div className="flex-grow pr-6">
+            <h4 className="font-semibold text-sm leading-tight text-zinc-950 dark:text-zinc-50">
+              &ldquo;{currentBranch.branchName}&rdquo; details updated
+            </h4>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+              Details have been successfully updated.
+            </p>
+            
+            <div className="flex gap-3 mt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditingMode(false);
+                  toast.dismiss(t);
+                }}
+                className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0"
+              >
+                View branch
+              </button>
+            </div>
+          </div>
+          
+          <button
+            type="button"
+            onClick={() => toast.dismiss(t)}
+            className="absolute right-3 top-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors border-none bg-transparent cursor-pointer p-0"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ));
+      setIsEditingMode(false);
     } catch (error: any) {
       console.error("Update failed:", error);
       toast.error(error?.data?.message || "Failed to update branch");
     }
   };
 
+  const handleDiscard = () => {
+    if (branch) {
+      setFormData(branch);
+      setNewImageFile(null);
+      setNewImagePreview("");
+      setImageDeleted(false);
+
+      const uberConn = branch.platformConnections?.find(
+        (pc) => pc.platformCode === "UberEats" || (pc.platformCode as any) === 0,
+      );
+      if (uberConn) {
+        setUberUrl(uberConn.storeUrl || "");
+        setUberExternalStoreId(uberConn.externalStoreId || "");
+        setUberClientId(uberConn.clientId || "");
+        setUberClientSecret(uberConn.isConfigured ? "••••••••" : "");
+        setUberWebhookSecret(uberConn.webhookSecret || "");
+        setUberWebhookConnectionKey(uberConn.webhookConnectionKey || "");
+        setUberEnvironment(
+          uberConn.environment === PlatformEnvironment.Production ||
+            (uberConn.environment as any) === "Production" ||
+            (uberConn.environment as any) === 1
+            ? 1
+            : 0,
+        );
+        setUberAutoAccept(uberConn.autoAcceptOrders ?? true);
+      } else {
+        setUberUrl(branch.uberEatsUrl || "");
+        setUberExternalStoreId("");
+        setUberClientId("");
+        setUberClientSecret("");
+        setUberWebhookSecret("");
+        setUberWebhookConnectionKey("");
+        setUberEnvironment(0);
+        setUberAutoAccept(true);
+      }
+
+      const ddConn = branch.platformConnections?.find(
+        (pc) => pc.platformCode === "DoorDash" || (pc.platformCode as any) === 1,
+      );
+      if (ddConn) {
+        setDdUrl(ddConn.storeUrl || "");
+        setDdExternalStoreId(ddConn.externalStoreId || "");
+        setDdClientId(ddConn.clientId || "");
+        setDdClientSecret(ddConn.isConfigured ? "••••••••" : "");
+        setDdWebhookSecret(ddConn.webhookSecret || "");
+        setDdWebhookConnectionKey(ddConn.webhookConnectionKey || "");
+        setDdEnvironment(
+          ddConn.environment === PlatformEnvironment.Production ||
+            (ddConn.environment as any) === "Production" ||
+            (ddConn.environment as any) === 1
+            ? 1
+            : 0,
+        );
+        setDdAutoAccept(ddConn.autoAcceptOrders ?? true);
+      } else {
+        setDdUrl(branch.doorDashUrl || "");
+        setDdExternalStoreId("");
+        setDdClientId("");
+        setDdClientSecret("");
+        setDdWebhookSecret("");
+        setDdWebhookConnectionKey("");
+        setDdEnvironment(0);
+        setDdAutoAccept(true);
+      }
+    }
+    setIsEditingMode(false);
+    toast.info("Changes discarded.");
+  };
+
+  const getChangesCount = () => {
+    let count = 0;
+    if (!branch) return 0;
+
+    if (formData.branchName !== undefined && formData.branchName !== branch.branchName) count++;
+    if (formData.purpose !== undefined && formData.purpose !== branch.purpose) count++;
+
+    const hasStringChanged = (val1: string | null | undefined, val2: string | null | undefined) => {
+      return (val1 || "") !== (val2 || "");
+    };
+
+    if (formData.branchDescription !== undefined && hasStringChanged(formData.branchDescription, branch.branchDescription)) count++;
+    if (formData.branchAddress !== undefined && hasStringChanged(formData.branchAddress, branch.branchAddress)) count++;
+    if (formData.latitude !== undefined && formData.latitude !== branch.latitude) count++;
+    if (formData.longitude !== undefined && formData.longitude !== branch.longitude) count++;
+    if (formData.branchPhoneNumber !== undefined && hasStringChanged(formData.branchPhoneNumber, branch.branchPhoneNumber)) count++;
+    if (formData.branchPhoneNumberAlt !== undefined && hasStringChanged(formData.branchPhoneNumberAlt, branch.branchPhoneNumberAlt)) count++;
+    if (formData.branchEmail !== undefined && hasStringChanged(formData.branchEmail, branch.branchEmail)) count++;
+    if (formData.branchEmailAlt !== undefined && hasStringChanged(formData.branchEmailAlt, branch.branchEmailAlt)) count++;
+
+    if (formData.isOpen !== undefined && formData.isOpen !== branch.isOpen) count++;
+    if (formData.isActive !== undefined && formData.isActive !== branch.isActive) count++;
+
+    if (newImageFile !== null) count++;
+    if (imageDeleted) count++;
+
+    const origUber = branch.platformConnections?.find(
+      (pc) => pc.platformCode === "UberEats" || (pc.platformCode as any) === 0
+    );
+    if (uberUrl !== (origUber?.storeUrl || "")) count++;
+    if (uberExternalStoreId !== (origUber?.externalStoreId || "")) count++;
+    if (uberClientId !== (origUber?.clientId || "")) count++;
+    if (uberClientSecret !== "" && uberClientSecret !== (origUber?.isConfigured ? "••••••••" : "")) count++;
+    if (uberWebhookSecret !== (origUber?.webhookSecret || "")) count++;
+    if (uberWebhookConnectionKey !== (origUber?.webhookConnectionKey || "")) count++;
+    const origUberEnv = origUber ? (origUber.environment === PlatformEnvironment.Production || (origUber.environment as any) === "Production" || (origUber.environment as any) === 1 ? 1 : 0) : 0;
+    if (uberEnvironment !== origUberEnv) count++;
+    if (uberAutoAccept !== (origUber?.autoAcceptOrders ?? true)) count++;
+
+    const origDd = branch.platformConnections?.find(
+      (pc) => pc.platformCode === "DoorDash" || (pc.platformCode as any) === 1
+    );
+    if (ddUrl !== (origDd?.storeUrl || "")) count++;
+    if (ddExternalStoreId !== (origDd?.externalStoreId || "")) count++;
+    if (ddClientId !== (origDd?.clientId || "")) count++;
+    if (ddClientSecret !== "" && ddClientSecret !== (origDd?.isConfigured ? "••••••••" : "")) count++;
+    if (ddWebhookSecret !== (origDd?.webhookSecret || "")) count++;
+    if (ddWebhookConnectionKey !== (origDd?.webhookConnectionKey || "")) count++;
+    const origDdEnv = origDd ? (origDd.environment === PlatformEnvironment.Production || (origDd.environment as any) === "Production" || (origDd.environment as any) === 1 ? 1 : 0) : 0;
+    if (ddEnvironment !== origDdEnv) count++;
+    if (ddAutoAccept !== (origDd?.autoAcceptOrders ?? true)) count++;
+
+    if (formData.openingHours && branch.openingHours) {
+      DAYS.forEach(({ index }) => {
+        const origH = branch.openingHours?.find((h) => {
+          const hDay = h.dayOfWeek as any;
+          if (typeof hDay === "string") {
+            const dayConfig = DAYS.find((d) => d.label.toLowerCase() === hDay.toLowerCase());
+            return dayConfig?.index === index;
+          }
+          return hDay === index;
+        });
+        const currentH = formData.openingHours?.find((h) => {
+          const hDay = h.dayOfWeek as any;
+          if (typeof hDay === "string") {
+            const dayConfig = DAYS.find((d) => d.label.toLowerCase() === hDay.toLowerCase());
+            return dayConfig?.index === index;
+          }
+          return hDay === index;
+        });
+
+        const origOpen = origH?.isClosed ? "" : (origH?.openAt ? origH.openAt.substring(0, 5) : "");
+        const currentOpen = currentH?.isClosed ? "" : (currentH?.openAt ? currentH.openAt.substring(0, 5) : "");
+        const origClose = origH?.isClosed ? "" : (origH?.closeAt ? origH.closeAt.substring(0, 5) : "");
+        const currentClose = currentH?.isClosed ? "" : (currentH?.closeAt ? currentH.closeAt.substring(0, 5) : "");
+        const origClosed = origH?.isClosed ?? false;
+        const currentClosed = currentH?.isClosed ?? false;
+
+        if (origOpen !== currentOpen || origClose !== currentClose || origClosed !== currentClosed) {
+          count++;
+        }
+      });
+    }
+
+    if (formData.saleListing) {
+      if (hasStringChanged(formData.saleListing.listingDescription, branch.saleListing?.listingDescription)) count++;
+      if (hasStringChanged(formData.saleListing.includedPackageDescription, branch.saleListing?.includedPackageDescription)) count++;
+      if (hasStringChanged(formData.saleListing.inquiryPhone, branch.saleListing?.inquiryPhone)) count++;
+
+      const origHighlights = branch.saleListing?.highlights || [];
+      const currentHighlights = formData.saleListing.highlights || [];
+      if (origHighlights.length !== currentHighlights.length || origHighlights.some((h, i) => h !== currentHighlights[i])) {
+        count++;
+      }
+    }
+
+    return count;
+  };
+
   const handleHoursChange = (dayIndex: number, field: string, value: any) => {
     const hours = [...(formData.openingHours || [])];
-    const index = hours.findIndex((h) => h.dayOfWeek === dayIndex);
+    const index = hours.findIndex((h) => {
+      const hDay = h.dayOfWeek as any;
+      if (typeof hDay === "string") {
+        const dayConfig = DAYS.find(
+          (d) => d.label.toLowerCase() === hDay.toLowerCase()
+        );
+        return dayConfig?.index === dayIndex;
+      }
+      return hDay === dayIndex;
+    });
 
     const updatedHours = index > -1 ? { ...hours[index] } : {
       dayOfWeek: dayIndex,
@@ -366,6 +609,8 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
   const currentBranch = { ...branch, ...formData };
   const isListedForSale = currentBranch.purpose === BranchPurpose.ListedForSale || (currentBranch.purpose as any) === "ListedForSale";
+  const activeImagePreview = newImagePreview || (!imageDeleted ? currentBranch.branchImageUrl : "");
+  const changesCount = getChangesCount();
 
   return (
     <div className="space-y-6">
@@ -424,7 +669,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             branchName: e.target.value,
                           })
                         }
-                        disabled={!isSuper}
+                        disabled={!isSuper || !isEditingMode}
                       />
                     </div>
                     <div className="space-y-2">
@@ -437,7 +682,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             purpose: parseInt(val) as BranchPurpose,
                           })
                         }
-                        disabled={!isSuper}
+                        disabled={!isSuper || !isEditingMode}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select purpose" />
@@ -469,37 +714,96 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                           branchDescription: e.target.value,
                         })
                       }
-                      disabled={!canEdit}
+                      disabled={!canEdit || !isEditingMode}
                       rows={3}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Branch Cover Image URL</Label>
-                    <div className="flex gap-3 items-center">
-                      <Input
-                        placeholder="https://images.unsplash.com/... or image path"
-                        value={currentBranch.branchImageUrl || ""}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            branchImageUrl: e.target.value,
-                          })
-                        }
-                        disabled={!canEdit}
-                        className="flex-1"
-                      />
-                      {currentBranch.branchImageUrl && (
-                        <div className="h-10 w-10 relative rounded-md border overflow-hidden flex-shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={currentBranch.branchImageUrl}
-                            alt="Branch Thumbnail"
-                            className="h-full w-full object-cover"
-                          />
+                    <Label>Branch Cover Image</Label>
+                    {activeImagePreview ? (
+                      <div className="relative rounded-md border border-border overflow-hidden group h-48 w-full max-w-md bg-muted/30">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={activeImagePreview}
+                          alt="Branch Cover"
+                          className="h-full w-full object-cover"
+                        />
+                        {(canEdit && isEditingMode) && (
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setNewImageFile(null);
+                                setNewImagePreview("");
+                                setImageDeleted(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" /> Remove
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => canEdit && isEditingMode && document.getElementById("branch-image-upload")?.click()}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (!canEdit || !isEditingMode) return;
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              toast.error("Image file is too large. Maximum size is 5MB.");
+                              return;
+                            }
+                            setNewImageFile(file);
+                            setNewImagePreview(URL.createObjectURL(file));
+                            setImageDeleted(false);
+                          }
+                        }}
+                        className={`border-2 border-dashed border-border rounded-md p-6 flex flex-col items-center justify-center gap-2 w-full max-w-md ${
+                          canEdit && isEditingMode
+                            ? "hover:border-primary/50 cursor-pointer bg-background hover:bg-muted/10 transition-colors"
+                            : "bg-muted/50 cursor-not-allowed opacity-60"
+                        }`}
+                      >
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                          <Upload className="h-5 w-5" />
                         </div>
-                      )}
-                    </div>
+                        <div className="text-sm font-semibold text-foreground">
+                          {canEdit && isEditingMode ? "Upload Branch Image" : "No Image Uploaded"}
+                        </div>
+                        {(canEdit && isEditingMode) && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            Drag & drop or click to choose a file<br />
+                            Supports PNG, JPG, JPEG, GIF up to 5MB
+                          </div>
+                        )}
+                        {(canEdit && isEditingMode) && (
+                          <input
+                            id="branch-image-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 5 * 1024 * 1024) {
+                                  toast.error("Image file is too large. Maximum size is 5MB.");
+                                  return;
+                                }
+                                setNewImageFile(file);
+                                setNewImagePreview(URL.createObjectURL(file));
+                                setImageDeleted(false);
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -510,7 +814,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                         <Select
                           value={locationInputType}
                           onValueChange={(val) => setLocationInputType(val as "Address" | "Coordinates")}
-                          disabled={!isSuper}
+                          disabled={!isSuper || !isEditingMode}
                         >
                           <SelectTrigger id="locationInputTypeMgr" className="w-[160px]">
                             <SelectValue />
@@ -530,7 +834,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               setFormData({ ...formData, branchAddress: val })
                             }
                             onSelect={handleLocationSelect}
-                            disabled={!isSuper}
+                            disabled={!isSuper || !isEditingMode}
                           />
                         </div>
                       )}
@@ -551,7 +855,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   latitude: e.target.value ? parseFloat(e.target.value) : undefined,
                                 })
                               }
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                             />
                           </div>
                           <div className="space-y-2 flex-1">
@@ -568,7 +872,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   longitude: e.target.value ? parseFloat(e.target.value) : undefined,
                                 })
                               }
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                             />
                           </div>
                         </div>
@@ -597,7 +901,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             branchPhoneNumber: e.target.value,
                           })
                         }
-                        disabled={!canEdit}
+                        disabled={!canEdit || !isEditingMode}
                       />
                     </div>
                     <div className="space-y-2">
@@ -610,7 +914,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             branchPhoneNumberAlt: e.target.value,
                           })
                         }
-                        disabled={!canEdit}
+                        disabled={!canEdit || !isEditingMode}
                         placeholder="e.g. (555) 999-9999"
                       />
                     </div>
@@ -627,7 +931,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             branchEmail: e.target.value,
                           })
                         }
-                        disabled={!canEdit}
+                        disabled={!canEdit || !isEditingMode}
                       />
                     </div>
                     <div className="space-y-2">
@@ -640,7 +944,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             branchEmailAlt: e.target.value,
                           })
                         }
-                        disabled={!canEdit}
+                        disabled={!canEdit || !isEditingMode}
                         placeholder="e.g. support@caffissimo.com"
                       />
                     </div>
@@ -677,7 +981,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             e.target.value,
                           )
                         }
-                        disabled={!canEdit}
+                        disabled={!canEdit || !isEditingMode}
                         rows={4}
                       />
                     </div>
@@ -699,7 +1003,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             e.target.value,
                           )
                         }
-                        disabled={!canEdit}
+                        disabled={!canEdit || !isEditingMode}
                         rows={3}
                       />
                     </div>
@@ -716,13 +1020,13 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                         onChange={(e) =>
                           handleListingChange("inquiryPhone", e.target.value)
                         }
-                        disabled={!canEdit}
+                        disabled={!canEdit || !isEditingMode}
                       />
                     </div>
 
                     <div className="space-y-3 pt-2">
                       <Label>Storefront Card Bullet Highlights</Label>
-                      {canEdit && (
+                      {(canEdit && isEditingMode) && (
                         <div className="flex gap-2">
                           <Input
                             placeholder="e.g. Drive-thru window facility"
@@ -757,7 +1061,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 className="px-3 py-1 flex items-center gap-1 text-xs"
                               >
                                 {hl}
-                                {canEdit && (
+                                {(canEdit && isEditingMode) && (
                                   <button
                                     type="button"
                                     onClick={() => removeHighlight(index)}
@@ -788,9 +1092,16 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                   <CardContent>
                     <div className="space-y-4">
                       {DAYS.map(({ index, label }) => {
-                        const hours = currentBranch.openingHours?.find(
-                          (h) => h.dayOfWeek === index,
-                        );
+                        const hours = currentBranch.openingHours?.find((h) => {
+                          const hDay = h.dayOfWeek as any;
+                          if (typeof hDay === "string") {
+                            const dayConfig = DAYS.find(
+                              (d) => d.label.toLowerCase() === hDay.toLowerCase()
+                            );
+                            return dayConfig?.index === index;
+                          }
+                          return hDay === index;
+                        });
                         const isOpen =
                           hours && !hours.isClosed && hours.isActive;
                         return (
@@ -812,7 +1123,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                     e.target.value,
                                   )
                                 }
-                                disabled={!isSuper || !isOpen}
+                                disabled={!isSuper || !isOpen || !isEditingMode}
                                 className="w-28"
                               />
                               <span className="text-muted-foreground">to</span>
@@ -826,7 +1137,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                     e.target.value,
                                   )
                                 }
-                                disabled={!isSuper || !isOpen}
+                                disabled={!isSuper || !isOpen || !isEditingMode}
                                 className="w-28"
                               />
                               <div className="flex items-center gap-2 ml-4">
@@ -835,7 +1146,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   onCheckedChange={(v) =>
                                     handleHoursChange(index, "isActive", v)
                                   }
-                                  disabled={!isSuper}
+                                  disabled={!isSuper || !isEditingMode}
                                 />
                                 <span className="text-sm text-muted-foreground">
                                   Open
@@ -876,7 +1187,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             value={uberUrl}
                             onChange={(e) => setUberUrl(e.target.value)}
                             placeholder="https://ubereats.com/store/..."
-                            disabled={!isSuper}
+                            disabled={!isSuper || !isEditingMode}
                             className="flex-1 bg-background"
                           />
                           {uberUrl && (
@@ -919,7 +1230,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               value={uberClientId}
                               onChange={(e) => setUberClientId(e.target.value)}
                               placeholder="Enter Client ID"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -934,7 +1245,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   setUberClientSecret(e.target.value)
                                 }
                                 placeholder="Enter Client Secret"
-                                disabled={!isSuper}
+                                disabled={!isSuper || !isEditingMode}
                                 className="pr-10 bg-background"
                               />
                               <button
@@ -960,7 +1271,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberExternalStoreId(e.target.value)
                               }
                               placeholder="e.g. uber-store-123"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -972,7 +1283,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberWebhookSecret(e.target.value)
                               }
                               placeholder="Enter Webhook Secret"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -986,7 +1297,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberWebhookConnectionKey(e.target.value)
                               }
                               placeholder="Auto-generated or custom key"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -997,7 +1308,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               onChange={(e) =>
                                 setUberEnvironment(parseInt(e.target.value))
                               }
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                             >
                               <option value={0}>Sandbox (Testing)</option>
@@ -1023,7 +1334,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             value={ddUrl}
                             onChange={(e) => setDdUrl(e.target.value)}
                             placeholder="https://doordash.com/store/..."
-                            disabled={!isSuper}
+                            disabled={!isSuper || !isEditingMode}
                             className="flex-1 bg-background"
                           />
                           {ddUrl && (
@@ -1066,7 +1377,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               value={ddClientId}
                               onChange={(e) => setDdClientId(e.target.value)}
                               placeholder="Enter Client ID"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -1081,7 +1392,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   setDdClientSecret(e.target.value)
                                 }
                                 placeholder="Enter Client Secret"
-                                disabled={!isSuper}
+                                disabled={!isSuper || !isEditingMode}
                                 className="pr-10 bg-background"
                               />
                               <button
@@ -1107,7 +1418,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdExternalStoreId(e.target.value)
                               }
                               placeholder="e.g. doordash-store-456"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -1119,7 +1430,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdWebhookSecret(e.target.value)
                               }
                               placeholder="Enter Webhook Secret"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -1133,7 +1444,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdWebhookConnectionKey(e.target.value)
                               }
                               placeholder="Auto-generated or custom key"
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="bg-background"
                             />
                           </div>
@@ -1144,7 +1455,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               onChange={(e) =>
                                 setDdEnvironment(parseInt(e.target.value))
                               }
-                              disabled={!isSuper}
+                              disabled={!isSuper || !isEditingMode}
                               className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                             >
                               <option value={0}>Sandbox (Testing)</option>
@@ -1179,7 +1490,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                       onCheckedChange={(v) =>
                         setFormData({ ...formData, isOpen: v })
                       }
-                      disabled={!canEdit}
+                      disabled={!canEdit || !isEditingMode}
                     />
                   </div>
                   <div className="flex items-center justify-between border-t pt-4">
@@ -1194,24 +1505,19 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                       onCheckedChange={(v) =>
                         setFormData({ ...formData, isActive: v })
                       }
-                      disabled={!isSuper}
+                      disabled={!isSuper || !isEditingMode}
                     />
                   </div>
                 </CardContent>
               </Card>
 
-              {canEdit && (
+              {canEdit && !isEditingMode && (
                 <Button
                   className="w-full"
-                  onClick={handleSave}
-                  disabled={isUpdating}
+                  onClick={() => setIsEditingMode(true)}
                 >
-                  {isUpdating ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  Save Changes
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Branch
                 </Button>
               )}
             </div>
@@ -1226,6 +1532,39 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
           <UberMenusTab branchId={branch.branchId} canEdit={isSuper} />
         </TabsContent>
       </Tabs>
+
+      {isEditingMode && changesCount > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-background/95 backdrop-blur border border-border shadow-2xl rounded-full px-6 py-3 flex items-center justify-between gap-8 max-w-xl w-[90%] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-sm font-semibold text-foreground">
+              {changesCount} {changesCount === 1 ? "change" : "changes"} made
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleDiscard}
+              className="rounded-full"
+            >
+              Discard
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={handleSave}
+              disabled={isUpdating}
+              className="rounded-full px-4"
+            >
+              {isUpdating && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+              Save
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

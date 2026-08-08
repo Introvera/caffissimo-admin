@@ -44,7 +44,26 @@ export default function RootLayout({
               themes={["light", "dark"]}
             >
               {children}
-              <Toaster position="top-right" richColors closeButton />
+              <Toaster
+                position="top-right"
+                expand={true}
+                visibleToasts={6}
+                toastOptions={{
+                  style: {
+                    borderRadius: "12px",
+                    fontFamily: "var(--font-jakarta), sans-serif",
+                  },
+                  classNames: {
+                    toast: "group w-full max-w-[380px] p-4 rounded-xl border flex gap-3 text-sm shadow-lg transition-all duration-300 pointer-events-auto " +
+                           "bg-white border-zinc-200 text-zinc-900 " +
+                           "dark:bg-[#1c1c1f] dark:border-zinc-800 dark:text-zinc-50",
+                    title: "font-semibold text-[14px] leading-tight text-zinc-950 dark:text-zinc-50",
+                    description: "text-[12px] text-zinc-500 dark:text-zinc-400 mt-1 leading-snug",
+                    closeButton: "absolute right-3 top-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors border-none bg-transparent cursor-pointer p-0",
+                    actionButton: "text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors bg-transparent border-none",
+                  }
+                }}
+              />
             </ThemeProvider>
           </AuthProvider>
         </ReduxProvider>

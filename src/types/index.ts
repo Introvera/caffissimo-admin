@@ -79,6 +79,7 @@ export interface Branch {
   branchName: string;
   branchDescription?: string;
   branchImageUrl?: string;
+  branchImageFile?: File;
   branchAddress: string;
   latitude?: number;
   longitude?: number;

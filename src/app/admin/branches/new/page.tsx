@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff, Plus, X, Globe, Phone, Mail, FileText, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Plus, X, Globe, Phone, Mail, FileText, Image as ImageIcon, ExternalLink, Upload, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +56,8 @@ export default function NewBranchPage() {
   const [name, setName] = useState("");
   const [purpose, setPurpose] = useState<BranchPurpose>(BranchPurpose.Operational);
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [address, setAddress] = useState("");
   const [latitude, setLatitude] = useState<number | undefined>(undefined);
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
@@ -160,7 +161,7 @@ export default function NewBranchPage() {
         branchName: name,
         purpose,
         branchDescription: description || undefined,
-        branchImageUrl: imageUrl || undefined,
+        branchImageFile: imageFile || undefined,
         branchAddress: address,
         latitude: latitude || undefined,
         longitude: longitude || undefined,
@@ -330,21 +331,74 @@ export default function NewBranchPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Branch Image URL</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    id="imageUrl"
-                    placeholder="https://images.unsplash.com/... or media path"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                  />
-                  {imageUrl && (
-                    <div className="h-10 w-10 relative rounded-md border overflow-hidden flex-shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={imageUrl} alt="Branch Preview" className="h-full w-full object-cover" />
+                <Label>Branch Cover Image</Label>
+                {imagePreview ? (
+                  <div className="relative rounded-md border border-border overflow-hidden group h-48 w-full max-w-md bg-muted/30">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imagePreview}
+                      alt="Branch Preview"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview("");
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" /> Remove
+                      </Button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => document.getElementById("branch-image-upload")?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast.error("Image file is too large. Maximum size is 5MB.");
+                          return;
+                        }
+                        setImageFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="border-2 border-dashed border-border hover:border-primary/50 rounded-md p-6 flex flex-col items-center justify-center gap-2 cursor-pointer bg-background hover:bg-muted/10 transition-colors w-full max-w-md"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                      <Upload className="h-5 w-5" />
+                    </div>
+                    <div className="text-sm font-semibold text-foreground">Upload Branch Image</div>
+                    <div className="text-xs text-muted-foreground text-center">
+                      Drag & drop or click to choose a file<br />
+                      Supports PNG, JPG, JPEG, GIF up to 5MB
+                    </div>
+                    <input
+                      id="branch-image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error("Image file is too large. Maximum size is 5MB.");
+                            return;
+                          }
+                          setImageFile(file);
+                          setImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
