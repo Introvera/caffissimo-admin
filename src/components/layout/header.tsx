@@ -258,12 +258,10 @@ export function Header() {
 
             <DropdownMenuSeparator className="my-1.5" />
 
-            <DropdownMenuItem className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors focus:bg-muted/50">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">Profile</span>
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors focus:bg-muted/50">
+            <DropdownMenuItem 
+              className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors focus:bg-muted/50"
+              onClick={() => router.push("/admin/settings")}
+            >
               <Settings className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm">Settings</span>
             </DropdownMenuItem>

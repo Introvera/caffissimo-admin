@@ -158,22 +158,33 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
   const handleSave = async () => {
     try {
-      // Map listing details if ListedForSale
-      const payload: any = { ...formData };
-      if (
-        payload.purpose === BranchPurpose.ListedForSale &&
-        !payload.saleListing
-      ) {
-        payload.saleListing = {
-          branchSaleListingId: "",
-          branchId: resolvedParams.id,
-          listingDescription: "",
-          includedPackageDescription: "",
-          highlights: [],
-        };
-      }
+      const isListed = currentBranch.purpose === BranchPurpose.ListedForSale || (currentBranch.purpose as any) === "ListedForSale";
+      const cleanOpeningHours = currentBranch.openingHours?.map((oh) => ({
+        dayOfWeek: oh.dayOfWeek,
+        openAt: oh.isClosed ? "09:00" : (oh.openAt ? oh.openAt.substring(0, 5) : "09:00"),
+        closeAt: oh.isClosed ? "17:00" : (oh.closeAt ? oh.closeAt.substring(0, 5) : "17:00"),
+        isClosed: oh.isClosed ?? false,
+      }));
 
-      if (payload.purpose === BranchPurpose.Operational) {
+      const payload: any = {
+        purpose: isListed ? BranchPurpose.ListedForSale : BranchPurpose.Operational,
+        branchName: currentBranch.branchName,
+        branchDescription: currentBranch.branchDescription || undefined,
+        branchImageUrl: currentBranch.branchImageUrl || undefined,
+        branchFacebookUrl: undefined,
+        branchInstagramUrl: undefined,
+        branchAddress: currentBranch.branchAddress,
+        latitude: currentBranch.latitude !== undefined && currentBranch.latitude !== null ? Number(currentBranch.latitude) : undefined,
+        longitude: currentBranch.longitude !== undefined && currentBranch.longitude !== null ? Number(currentBranch.longitude) : undefined,
+        branchPhoneNumber: currentBranch.branchPhoneNumber,
+        branchPhoneNumberAlt: currentBranch.branchPhoneNumberAlt || undefined,
+        branchEmail: currentBranch.branchEmail || undefined,
+        branchEmailAlt: currentBranch.branchEmailAlt || undefined,
+        isOpen: currentBranch.isOpen,
+        openingHours: isListed ? [] : cleanOpeningHours,
+      };
+
+      if (!isListed) {
         payload.platformConnections = [
           {
             platformCode: 0,
@@ -211,11 +222,18 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
         payload.uberEatsUrl = uberUrl.trim() || undefined;
         payload.doorDashUrl = ddUrl.trim() || undefined;
         if (uberClientSecret && uberClientSecret !== "••••••••") {
-          payload.uberEatsApiKey = uberClientSecret.trim();
+          payload.branchUberApiKey = uberClientSecret.trim();
         }
         if (ddClientSecret && ddClientSecret !== "••••••••") {
-          payload.doorDashApiKey = ddClientSecret.trim();
+          payload.branchDoorDashApiKey = ddClientSecret.trim();
         }
+      } else {
+        payload.saleListing = {
+          listingDescription: currentBranch.saleListing?.listingDescription || "",
+          includedPackageDescription: currentBranch.saleListing?.includedPackageDescription || "",
+          inquiryPhone: currentBranch.saleListing?.inquiryPhone || undefined,
+          highlights: currentBranch.saleListing?.highlights || [],
+        };
       }
 
       await updateBranch({ id: resolvedParams.id, data: payload }).unwrap();
@@ -230,17 +248,25 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
     const hours = [...(formData.openingHours || [])];
     const index = hours.findIndex((h) => h.dayOfWeek === dayIndex);
 
-    if (index > -1) {
-      hours[index] = { ...hours[index], [field]: value };
+    const updatedHours = index > -1 ? { ...hours[index] } : {
+      dayOfWeek: dayIndex,
+      openAt: "09:00",
+      closeAt: "17:00",
+      isActive: true,
+      isClosed: false,
+    };
+
+    if (field === "isActive") {
+      updatedHours.isActive = value;
+      updatedHours.isClosed = !value;
     } else {
-      hours.push({
-        dayOfWeek: dayIndex,
-        openAt: "09:00",
-        closeAt: "17:00",
-        isActive: true,
-        isClosed: false,
-        [field]: value,
-      } as any);
+      (updatedHours as any)[field] = value;
+    }
+
+    if (index > -1) {
+      hours[index] = updatedHours as any;
+    } else {
+      hours.push(updatedHours as any);
     }
 
     setFormData({ ...formData, openingHours: hours });
@@ -339,7 +365,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
   }
 
   const currentBranch = { ...branch, ...formData };
-  const isListedForSale = currentBranch.purpose === BranchPurpose.ListedForSale;
+  const isListedForSale = currentBranch.purpose === BranchPurpose.ListedForSale || (currentBranch.purpose as any) === "ListedForSale";
 
   return (
     <div className="space-y-6">
@@ -404,9 +430,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                     <div className="space-y-2">
                       <Label>Branch Purpose</Label>
                       <Select
-                        value={(
-                          currentBranch.purpose ?? BranchPurpose.Operational
-                        ).toString()}
+                        value={isListedForSale ? "1" : "0"}
                         onValueChange={(val) =>
                           setFormData({
                             ...formData,
@@ -827,7 +851,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
               )}
 
               {/* Platform Connections (Operational Only) */}
-              {!isListedForSale && (
+              {!isListedForSale && isSuper && (
                 <Card className="border border-border/60 shadow-sm transition-all duration-300">
                   <CardHeader>
                     <CardTitle>Platform Connections</CardTitle>

@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { canCreateBranch } from "@/lib/rbac";
+import { canCreateBranch, isSuperAdmin } from "@/lib/rbac";
 import { useAppSelector } from "@/stores/store";
 import { useCreateBranchMutation } from "@/stores/api/branchApi";
 import { UserRole, BranchPurpose } from "@/types";
@@ -106,6 +106,7 @@ export default function NewBranchPage() {
   const [newHighlight, setNewHighlight] = useState("");
 
   const canCreate = canCreateBranch(currentRole);
+  const isSuper = isSuperAdmin(currentRole);
 
   const updateHours = (
     day: string,
@@ -541,7 +542,7 @@ export default function NewBranchPage() {
           )}
 
           {/* Platform Connections (Operational Only) */}
-          {purpose === BranchPurpose.Operational && (
+          {purpose === BranchPurpose.Operational && isSuper && (
             <Card className="border border-border/60 shadow-sm transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-xl">Platform Connections</CardTitle>

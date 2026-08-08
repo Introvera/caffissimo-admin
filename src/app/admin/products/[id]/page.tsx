@@ -148,11 +148,35 @@ function ImageUploader({
   const renderItem = (f: File | string, i?: number) => {
     const isString = typeof f === "string";
     const name = isString ? f.split("/").pop() || "Image" : (f as File).name;
+    
+    let src = "";
+    if (isString) {
+      src = f as string;
+    } else {
+      try {
+        src = URL.createObjectURL(f as File);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     return (
-      <Badge key={i ?? 'single'} variant="secondary" className="flex items-center gap-1">
-        <span className="truncate max-w-[120px]">{name}</span>
-        {!disabled && <X className="h-3 w-3 cursor-pointer hover:text-destructive flex-shrink-0" onClick={(e) => removeFile(e, i)} />}
-      </Badge>
+      <div key={i ?? 'single'} className="relative group w-24 h-24 rounded-lg overflow-hidden border border-border bg-muted flex flex-col items-center justify-center">
+        {src ? (
+          <img src={src} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-[10px] text-muted-foreground truncate px-1 w-full text-center">{name}</span>
+        )}
+        {!disabled && (
+          <button
+            type="button"
+            className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => removeFile(e, i)}
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
     );
   };
 
@@ -266,7 +290,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         const bpVariants = bp.variants?.map(v => ({
           id: generateId(),
           originalId: v.branchProductVariantId,
-          variantName: v.variantName,
+          variantName: v.variantName || v.sizeName || "",
           price: v.price,
           isAvailable: v.isAvailable
         })) || [];
@@ -437,18 +461,18 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             if (!v.originalId) {
               await createBranchProductVariant({
                 branchProductId: branchConf.originalId,
-                variantName: v.variantName,
+                sizeName: v.variantName,
                 price: Number(v.price),
                 isAvailable: v.isAvailable
-              }).unwrap();
+              } as any).unwrap();
             } else {
               await updateBranchProductVariant({
                 id: v.originalId,
                 data: {
-                  variantName: v.variantName,
+                  sizeName: v.variantName,
                   price: Number(v.price),
                   isAvailable: v.isAvailable
-                }
+                } as any
               }).unwrap();
             }
           }

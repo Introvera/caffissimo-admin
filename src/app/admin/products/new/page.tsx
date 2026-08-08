@@ -89,7 +89,7 @@ function ImageUploader({
     if (multiple) {
       onChange([...(Array.isArray(value) ? value : []), ...files]);
     } else {
-      onChange(files[0]); // Only take the first one for single
+      onChange(files[0]);
     }
   };
 
@@ -102,6 +102,39 @@ function ImageUploader({
     } else {
       onChange(null);
     }
+  };
+
+  const renderItem = (f: File | string, i?: number) => {
+    const isString = typeof f === "string";
+    const name = isString ? f.split("/").pop() || "Image" : (f as File).name;
+    
+    let src = "";
+    if (isString) {
+      src = f as string;
+    } else {
+      try {
+        src = URL.createObjectURL(f as File);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    return (
+      <div key={i ?? 'single'} className="relative group w-24 h-24 rounded-lg overflow-hidden border border-border bg-muted flex flex-col items-center justify-center">
+        {src ? (
+          <img src={src} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-[10px] text-muted-foreground truncate px-1 w-full text-center">{name}</span>
+        )}
+        <button
+          type="button"
+          className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => removeFile(e, i)}
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -123,18 +156,8 @@ function ImageUploader({
       <p className="text-sm text-muted-foreground">
         Drag and drop {multiple ? "images" : "an image"} here, or click to browse
       </p>
-      <div className="mt-4 flex flex-wrap gap-2 justify-center">
-        {Array.isArray(value) ? value.map((f, i) => (
-          <Badge key={i} variant="secondary" className="flex items-center gap-1">
-            {f.name}
-            <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={(e) => removeFile(e, i)} />
-          </Badge>
-        )) : value ? (
-          <Badge variant="secondary" className="flex items-center gap-1">
-            {value.name}
-            <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={(e) => removeFile(e)} />
-          </Badge>
-        ) : null}
+      <div className="mt-4 flex flex-wrap gap-2 justify-center" onClick={e => e.stopPropagation()}>
+        {Array.isArray(value) ? value.map((f, i) => renderItem(f, i)) : value ? renderItem(value) : null}
       </div>
     </div>
   );
