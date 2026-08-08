@@ -34,8 +34,9 @@ import {
   useCreateBranchToppingMutation
 } from "@/stores/api/toppingApi";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
-import { UserRole, ToppingCategory } from "@/types";
+import { Category, Branch, UserRole, ToppingCategory } from "@/types";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 interface ToppingFormData {
   toppingName: string;
@@ -55,6 +56,7 @@ type BranchToppingConfig = {
   branchId: string;
   isAvailable: boolean;
   overrideToppingPrice: number | null;
+  overrideImageFiles?: (File | string)[];
 };
 
 export default function NewToppingPage() {
@@ -74,6 +76,7 @@ export default function NewToppingPage() {
 
   const [activeTab, setActiveTab] = useState("base");
   const [branchConfigs, setBranchConfigs] = useState<BranchToppingConfig[]>([]);
+  const [toppingImages, setToppingImages] = useState<(File | string)[]>([]);
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   useEffect(() => {
@@ -82,6 +85,7 @@ export default function NewToppingPage() {
         branchId: assignedBranchId,
         isAvailable: true,
         overrideToppingPrice: null,
+        overrideImageFiles: [],
       }]);
     }
   }, [isSuper, assignedBranchId, branchConfigs.length]);
@@ -109,6 +113,7 @@ export default function NewToppingPage() {
         branchId,
         isAvailable: true,
         overrideToppingPrice: null,
+        overrideImageFiles: [],
       }
     ]);
     setActiveTab(`branch-${branchId}`);
@@ -135,7 +140,8 @@ export default function NewToppingPage() {
         toppingCategoryId: data.toppingCategoryId,
         toppingPrice: Number(data.price),
         isActive: data.isActive,
-      } as never).unwrap();
+        imageFiles: toppingImages.filter((f): f is File => f instanceof File),
+      } as any).unwrap();
 
       const toppingId = newTopping.toppingId;
 
@@ -146,7 +152,8 @@ export default function NewToppingPage() {
           toppingId: toppingId,
           isAvailable: branchConf.isAvailable,
           overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-        }).unwrap();
+          overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
+        } as any).unwrap();
       }
 
       toast.success("Topping created successfully with branch overrides");
@@ -313,6 +320,23 @@ export default function NewToppingPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Topping Images</CardTitle>
+                    <CardDescription>Upload image files for this topping</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ImageUploader
+                      multiple={true}
+                      value={toppingImages}
+                      onChange={(val) => setToppingImages(val as (File | string)[])}
+                      accept="image/*"
+                      maxSizeMB={5}
+                      helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                    />
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Sidebar */}
@@ -386,6 +410,18 @@ export default function NewToppingPage() {
                               Leave empty to use base price: ${basePriceValue.toFixed(2)}
                             </p>
                           </div>
+                        </div>
+
+                        <div className="space-y-2 border-t pt-4">
+                          <Label>Branch Topping Image Override (Optional)</Label>
+                          <ImageUploader
+                            multiple={true}
+                            value={branchConf.overrideImageFiles || []}
+                            onChange={(val) => updateBranchConfig(branchConf.branchId, { overrideImageFiles: val as (File | string)[] })}
+                            accept="image/*"
+                            maxSizeMB={5}
+                            helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                          />
                         </div>
                       </CardContent>
                     </Card>

@@ -469,7 +469,7 @@ export default function UberPromotionsPage() {
             </div>
 
             {/* Advanced */}
-            <button type="button" className="text-sm text-primary underline" onClick={() => setShowAdvanced((s) => !s)}>
+            <button type="button" className="text-sm text-primary underline hover:text-primary/80 transition-colors" onClick={() => setShowAdvanced((s) => !s)}>
               {showAdvanced ? "Hide advanced options" : "Advanced options (budget, audience, schedule)"}
             </button>
 
@@ -527,7 +527,7 @@ export default function UberPromotionsPage() {
                     {DAYS.map((d) => (
                       <button key={d} type="button"
                         onClick={() => set({ scheduleDays: toggleArr(form.scheduleDays, d) })}
-                        className={`px-2 py-1 rounded text-xs border ${form.scheduleDays.includes(d) ? "bg-primary text-primary-foreground" : "bg-background"}`}>
+                        className={`px-2 py-1 rounded text-xs border transition-colors ${form.scheduleDays.includes(d) ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-background hover:bg-muted"}`}>
                         {d.slice(0, 3)}
                       </button>
                     ))}

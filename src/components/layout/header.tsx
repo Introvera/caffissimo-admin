@@ -152,7 +152,7 @@ export function Header() {
                 type="button"
                 onClick={() => dispatch(setDateRangePreset(preset))}
                 className={cn(
-                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 text-xs font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 text-xs font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
                   dateRangePreset === preset
                     ? "bg-background text-foreground font-bold shadow-sm border border-border rounded-sm"
                     : "hover:text-foreground text-muted-foreground"
@@ -258,12 +258,10 @@ export function Header() {
 
             <DropdownMenuSeparator className="my-1.5" />
 
-            <DropdownMenuItem className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors focus:bg-muted/50">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">Profile</span>
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors focus:bg-muted/50">
+            <DropdownMenuItem 
+              className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors focus:bg-muted/50"
+              onClick={() => router.push("/admin/settings")}
+            >
               <Settings className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm">Settings</span>
             </DropdownMenuItem>

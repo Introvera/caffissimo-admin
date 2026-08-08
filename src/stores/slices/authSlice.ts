@@ -39,9 +39,9 @@ function friendlyAuthError(error: unknown): string {
     "auth/email-already-in-use":     "An account with this email already exists.",
     "auth/weak-password":            "Password must be at least 6 characters.",
     "auth/requires-recent-login":    "Please sign in again to continue.",
-    "auth/popup-closed-by-user":     "Sign-in was cancelled. Please try again.",
+    "auth/popup-closed-by-user":     "Sign in was cancelled. Please try again.",
     "auth/account-exists-with-different-credential":
-                                     "An account already exists with a different sign-in method.",
+                                     "An account already exists with a different sign in method.",
   };
 
   return map[code] ?? "Something went wrong. Please try again.";

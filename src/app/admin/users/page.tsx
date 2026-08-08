@@ -66,7 +66,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAppSelector } from "@/stores/store";
-import { canManageUsers, canAccessAllBranches } from "@/lib/rbac";
+import { canManageUsers, canAccessAllBranches, isSuperAdmin } from "@/lib/rbac";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { getInitials, formatDate } from "@/lib/utils";
 import { User, UserRole } from "@/types";
@@ -137,7 +138,7 @@ export default function UsersPage() {
   const { data: branchesData } = useGetBranchesQuery({ pageSize: 100 });
   const branches = branchesData?.items || [];
   
-  const { data: usersData } = useGetUsersQuery({
+  const { data: usersData, isLoading: isUsersLoading } = useGetUsersQuery({
     page: 1,
     pageSize: 100,
     branchId: canAccessAllBranches(currentRole) ? undefined : (effectiveBranchId || undefined),
@@ -287,95 +288,106 @@ export default function UsersPage() {
     }
   };
 
+  const isSuper = isSuperAdmin(currentRole);
+
   const columns = useMemo(
-    () => [
-      columnHelper.accessor("name", {
-        header: "User",
-        cell: (info) => {
-          const user = info.row.original;
-          return (
-            <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium text-foreground">{user.name}</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+    () => {
+      const cols: any[] = [
+        columnHelper.accessor("name", {
+          header: "User",
+          cell: (info) => {
+            const user = info.row.original;
+            return (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium text-foreground">{user.name}</p>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                </div>
               </div>
-            </div>
-          );
-        },
-      }),
-      columnHelper.accessor("role", {
-        header: "Role",
-        enableSorting: false,
-        cell: (info) => (
-          <Badge variant={roleBadgeVariants[info.getValue()]}>
-            <Shield className="h-3 w-3 mr-1" />
-            {roleLabels[info.getValue()]}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor("branchId", {
-        header: "Branch",
-        enableSorting: false,
-        cell: (info) => (
-          <span className="text-sm text-foreground">
-            {getBranchName(info.getValue())}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("isActive", {
-        header: "Status",
-        enableSorting: false,
-        cell: (info) => (
-          <Badge variant={info.getValue() ? "success" : "secondary"}>
-            {info.getValue() ? "Active" : "Inactive"}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor("createdAt", {
-        header: "Created",
-        cell: (info) => (
-          <span className="text-sm text-muted-foreground">
-            {formatDate(info.getValue())}
-          </span>
-        ),
-      }),
-      columnHelper.display({
-        id: "actions",
-        cell: (info) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleResetPassword(info.row.original.id)}>
-                <Shield className="h-4 w-4 mr-2" />
-                Reset Password
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-destructive"
-                onClick={() => handleDeleteUser(info.row.original.id)}
-              >
-                <UserX className="h-4 w-4 mr-2" />
-                Delete User
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
-      }),
-    ],
-    []
+            );
+          },
+        }),
+        columnHelper.accessor("role", {
+          header: "Role",
+          enableSorting: false,
+          cell: (info) => (
+            <Badge variant={roleBadgeVariants[info.getValue()]}>
+              <Shield className="h-3 w-3 mr-1" />
+              {roleLabels[info.getValue()]}
+            </Badge>
+          ),
+        }),
+        columnHelper.accessor("branchId", {
+          header: "Branch",
+          enableSorting: false,
+          cell: (info) => (
+            <span className="text-sm text-foreground">
+              {getBranchName(info.getValue())}
+            </span>
+          ),
+        }),
+        columnHelper.accessor("isActive", {
+          header: "Status",
+          enableSorting: false,
+          cell: (info) => (
+            <Badge variant={info.getValue() ? "success" : "secondary"}>
+              {info.getValue() ? "Active" : "Inactive"}
+            </Badge>
+          ),
+        }),
+        columnHelper.accessor("createdAt", {
+          header: "Created",
+          cell: (info) => (
+            <span className="text-sm text-muted-foreground">
+              {formatDate(info.getValue())}
+            </span>
+          ),
+        }),
+      ];
+
+      if (isSuper) {
+        cols.push(
+          columnHelper.display({
+            id: "actions",
+            cell: (info) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleResetPassword(info.row.original.id)}>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Reset Password
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="text-destructive"
+                    onClick={() => handleDeleteUser(info.row.original.id)}
+                  >
+                    <UserX className="h-4 w-4 mr-2" />
+                    Delete User
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ),
+          })
+        );
+      }
+
+      return cols;
+    },
+    [isSuper, branches]
   );
 
   const table = useReactTable({
@@ -627,7 +639,31 @@ export default function UsersPage() {
 
       <div>
         <div className="p-0">
-          {filteredUsers.length === 0 ? (
+          {isUsersLoading ? (
+            <div className="border border-border/60 rounded-xl overflow-hidden bg-background shadow-sm">
+              <div className="p-4 border-b border-border/60 flex justify-between bg-muted/20">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-4 w-1/6" />
+                <Skeleton className="h-4 w-1/6" />
+                <Skeleton className="h-4 w-1/6" />
+              </div>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="p-4 border-b border-border/60 flex items-center justify-between last:border-b-0">
+                  <div className="flex items-center gap-3 w-1/4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+              ))}
+            </div>
+          ) : filteredUsers.length === 0 ? (
             <div className="p-6">
               <EmptyState
                 icon={Users}

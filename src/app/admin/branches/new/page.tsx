@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff, Plus, X, Globe, Phone, Mail, FileText, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Plus, X, Globe, Phone, Mail, FileText, Image as ImageIcon, ExternalLink, Upload, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { canCreateBranch } from "@/lib/rbac";
+import { canCreateBranch, isSuperAdmin } from "@/lib/rbac";
 import { useAppSelector } from "@/stores/store";
 import { useCreateBranchMutation } from "@/stores/api/branchApi";
 import { UserRole, BranchPurpose } from "@/types";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 const DAYS = [
   { key: "monday", label: "Monday", index: 1 },
@@ -56,7 +57,8 @@ export default function NewBranchPage() {
   const [name, setName] = useState("");
   const [purpose, setPurpose] = useState<BranchPurpose>(BranchPurpose.Operational);
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [address, setAddress] = useState("");
   const [latitude, setLatitude] = useState<number | undefined>(undefined);
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
@@ -106,6 +108,7 @@ export default function NewBranchPage() {
   const [newHighlight, setNewHighlight] = useState("");
 
   const canCreate = canCreateBranch(currentRole);
+  const isSuper = isSuperAdmin(currentRole);
 
   const updateHours = (
     day: string,
@@ -159,7 +162,7 @@ export default function NewBranchPage() {
         branchName: name,
         purpose,
         branchDescription: description || undefined,
-        branchImageUrl: imageUrl || undefined,
+        branchImageFile: imageFile || undefined,
         branchAddress: address,
         latitude: latitude || undefined,
         longitude: longitude || undefined,
@@ -329,21 +332,14 @@ export default function NewBranchPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Branch Image URL</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    id="imageUrl"
-                    placeholder="https://images.unsplash.com/... or media path"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                  />
-                  {imageUrl && (
-                    <div className="h-10 w-10 relative rounded-md border overflow-hidden flex-shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={imageUrl} alt="Branch Preview" className="h-full w-full object-cover" />
-                    </div>
-                  )}
-                </div>
+                <Label>Branch Cover Image</Label>
+                <ImageUploader
+                  value={imageFile}
+                  onChange={(val) => setImageFile(val as File | null)}
+                  accept="image/*"
+                  maxSizeMB={5}
+                  helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
+                />
               </div>
             </CardContent>
           </Card>
@@ -541,7 +537,7 @@ export default function NewBranchPage() {
           )}
 
           {/* Platform Connections (Operational Only) */}
-          {purpose === BranchPurpose.Operational && (
+          {purpose === BranchPurpose.Operational && isSuper && (
             <Card className="border border-border/60 shadow-sm transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-xl">Platform Connections</CardTitle>
