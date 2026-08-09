@@ -297,9 +297,6 @@ export default function DashboardPage() {
                       >
                         <td className="px-6 py-3">
                           <Link href={`/admin/orders/${order.orderId}`} className="flex items-center gap-3">
-                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                              <Clock className="h-3.5 w-3.5 text-primary" />
-                            </div>
                             <div className="min-w-0">
                               <p className="text-sm font-medium truncate">{order.orderNumber || "No Number"}</p>
                               <p className="text-xs text-muted-foreground">

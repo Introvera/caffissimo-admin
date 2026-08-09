@@ -382,7 +382,7 @@ export function Sidebar() {
       >
         {!collapsed ? (
           <>
-            <Link href="/admin/dashboard" className="flex items-center overflow-hidden">
+            <Link href="/admin/dashboard" className="flex items-center overflow-hidden hover:opacity-90 transition-opacity">
               <div className="relative flex h-14 min-w-[100px] shrink-0 items-center justify-start">
                 {logoError ? (
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">

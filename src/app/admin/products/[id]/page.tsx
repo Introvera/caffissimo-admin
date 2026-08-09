@@ -56,6 +56,7 @@ import {
 } from "@/stores/api/toppingApi";
 import { Category, Branch, UserRole, BranchProductResponse } from "@/types";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 const productSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -104,84 +105,7 @@ function newFiles(value: File | string | (File | string)[] | null): File[] | und
   return files.length > 0 ? files : undefined;
 }
 
-function ImageUploader({
-  multiple = false,
-  value,
-  onChange,
-  disabled = false
-}: {
-  multiple?: boolean, 
-  value: File | string | (File | string)[] | null, 
-  onChange: (files: File | File[] | null) => void,
-  disabled?: boolean
-}) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (disabled) return;
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
-    handleFiles(files);
-  };
-
-  const handleFiles = (files: File[]) => {
-    if (files.length === 0) return;
-    if (multiple) {
-      onChange([...(Array.isArray(value) ? value : []), ...files] as File[]);
-    } else {
-      onChange(files[0]);
-    }
-  };
-
-  const removeFile = (e: React.MouseEvent, index?: number) => {
-    e.stopPropagation();
-    if (disabled) return;
-    if (multiple && Array.isArray(value)) {
-      const newValue = [...value];
-      newValue.splice(index!, 1);
-      onChange(newValue as any);
-    } else {
-      onChange(null);
-    }
-  };
-
-  const renderItem = (f: File | string, i?: number) => {
-    const isString = typeof f === "string";
-    const name = isString ? f.split("/").pop() || "Image" : (f as File).name;
-    return (
-      <Badge key={i ?? 'single'} variant="secondary" className="flex items-center gap-1">
-        <span className="truncate max-w-[120px]">{name}</span>
-        {!disabled && <X className="h-3 w-3 cursor-pointer hover:text-destructive flex-shrink-0" onClick={(e) => removeFile(e, i)} />}
-      </Badge>
-    );
-  };
-
-  return (
-    <div 
-      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${disabled ? 'opacity-60 cursor-not-allowed bg-muted/10' : 'cursor-pointer hover:bg-muted/50'}`}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={handleDrop}
-      onClick={() => !disabled && fileInputRef.current?.click()}
-    >
-      <input 
-        type="file" 
-        hidden 
-        ref={fileInputRef} 
-        multiple={multiple} 
-        accept="image/*"
-        onChange={(e) => handleFiles(Array.from(e.target.files || []))}
-        disabled={disabled}
-      />
-      <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-      <p className="text-sm text-muted-foreground">
-        Drag and drop {multiple ? "images" : "an image"} here, or click to browse
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2 justify-center" onClick={e => e.stopPropagation()}>
-        {Array.isArray(value) ? value.map((f, i) => renderItem(f, i)) : value ? renderItem(value) : null}
-      </div>
-    </div>
-  );
-}
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -266,7 +190,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         const bpVariants = bp.variants?.map(v => ({
           id: generateId(),
           originalId: v.branchProductVariantId,
-          variantName: v.variantName,
+          variantName: v.variantName || v.sizeName || "",
           price: v.price,
           isAvailable: v.isAvailable
         })) || [];
@@ -437,18 +361,18 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             if (!v.originalId) {
               await createBranchProductVariant({
                 branchProductId: branchConf.originalId,
-                variantName: v.variantName,
+                sizeName: v.variantName,
                 price: Number(v.price),
                 isAvailable: v.isAvailable
-              }).unwrap();
+              } as any).unwrap();
             } else {
               await updateBranchProductVariant({
                 id: v.originalId,
                 data: {
-                  variantName: v.variantName,
+                  sizeName: v.variantName,
                   price: Number(v.price),
                   isAvailable: v.isAvailable
-                }
+                } as any
               }).unwrap();
             }
           }

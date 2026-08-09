@@ -14,6 +14,7 @@ import {
   Circle,
   ChevronDown,
   Trash2,
+  List,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -354,7 +355,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                           <div className="mt-1 flex flex-col gap-0.5 mb-1.5">
                             {item.toppings.map((t) => (
                               <span key={t.orderItemToppingId} className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                <span className="text-[8px]">▶</span>
+                                <List className="h-3 w-3 text-muted-foreground/70 shrink-0" />
                                 {t.quantity > 1 ? `${t.quantity}x ` : ""}{t.toppingNameSnapshot}
                                 {t.unitPrice > 0 && <span className="opacity-70">(+{formatCurrency(t.unitPrice)})</span>}
                               </span>

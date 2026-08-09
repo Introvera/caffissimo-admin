@@ -36,6 +36,7 @@ import { useCreateBranchProductMutation } from "@/stores/api/branchProductApi";
 import { useGetToppingsQuery, useCreateProductToppingMutation } from "@/stores/api/toppingApi";
 import { Category, Branch, UserRole } from "@/types";
 import { toast } from "sonner";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 // We remove tags and tastingNotes
 const productSchema = z.object({
@@ -66,79 +67,7 @@ function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-function ImageUploader({ 
-  multiple = false, 
-  value, 
-  onChange 
-}: { 
-  multiple?: boolean, 
-  value: File | File[] | null, 
-  onChange: (files: File | File[] | null) => void 
-}) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
-    handleFiles(files);
-  };
-
-  const handleFiles = (files: File[]) => {
-    console.debug("[ImageUploader] picked", files.map(f => `${f.name} (${f.size} bytes, ${f.type})`));
-    if (files.length === 0) return;
-    if (multiple) {
-      onChange([...(Array.isArray(value) ? value : []), ...files]);
-    } else {
-      onChange(files[0]); // Only take the first one for single
-    }
-  };
-
-  const removeFile = (e: React.MouseEvent, index?: number) => {
-    e.stopPropagation();
-    if (multiple && Array.isArray(value)) {
-      const newValue = [...value];
-      newValue.splice(index!, 1);
-      onChange(newValue);
-    } else {
-      onChange(null);
-    }
-  };
-
-  return (
-    <div 
-      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={handleDrop}
-      onClick={() => fileInputRef.current?.click()}
-    >
-      <input 
-        type="file" 
-        hidden 
-        ref={fileInputRef} 
-        multiple={multiple} 
-        accept="image/*"
-        onChange={(e) => handleFiles(Array.from(e.target.files || []))}
-      />
-      <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-      <p className="text-sm text-muted-foreground">
-        Drag and drop {multiple ? "images" : "an image"} here, or click to browse
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2 justify-center">
-        {Array.isArray(value) ? value.map((f, i) => (
-          <Badge key={i} variant="secondary" className="flex items-center gap-1">
-            {f.name}
-            <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={(e) => removeFile(e, i)} />
-          </Badge>
-        )) : value ? (
-          <Badge variant="secondary" className="flex items-center gap-1">
-            {value.name}
-            <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={(e) => removeFile(e)} />
-          </Badge>
-        ) : null}
-      </div>
-    </div>
-  );
-}
 
 export default function NewProductPage() {
   const currentRole = useAppSelector((state) => state.auth.user?.role);
