@@ -51,7 +51,7 @@ export default function SettingsPage() {
               />
               <Percent className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-caption text-muted-foreground">
               Applied to all orders
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function SettingsPage() {
               />
               <Percent className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-caption text-muted-foreground">
               Optional service fee for online orders
             </p>
           </div>

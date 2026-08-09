@@ -148,7 +148,7 @@ export default function OrdersPage() {
             value={orderTypeFilter}
             onValueChange={handleFilterChange(setOrderTypeFilter)}
           >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -164,7 +164,7 @@ export default function OrdersPage() {
             value={statusFilter}
             onValueChange={handleFilterChange(setStatusFilter)}
           >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -253,7 +253,7 @@ export default function OrdersPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-body text-muted-foreground">
                         {order.orderType
                           ? (ORDER_TYPE_LABELS[order.orderType] ??
                             order.orderType)
@@ -264,12 +264,12 @@ export default function OrdersPage() {
                       <StatusBadge status={order.orderStatus} />
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-muted-foreground capitalize">
+                      <span className="text-body text-muted-foreground capitalize">
                         {order.paymentType}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-body text-muted-foreground">
                         {order.orderDate
                           ? format(
                               parseISO(order.orderDate),
@@ -310,7 +310,7 @@ export default function OrdersPage() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {(page - 1) * PAGE_SIZE + 1}
@@ -349,7 +349,7 @@ export default function OrdersPage() {
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0 text-xs"
+                      className="h-8 w-8 p-0 text-caption"
                       onClick={() => setPage(pageNum)}
                     >
                       {pageNum}

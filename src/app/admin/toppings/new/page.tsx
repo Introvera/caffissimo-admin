@@ -218,7 +218,7 @@ export default function NewToppingPage() {
             <TabsList className="bg-transparent h-auto p-0 gap-0 justify-start flex-1">
               <TabsTrigger 
                 value="base" 
-                className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+                className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
               >
                 Base
               </TabsTrigger>
@@ -228,7 +228,7 @@ export default function NewToppingPage() {
                   <TabsTrigger 
                     key={config.branchId} 
                     value={`branch-${config.branchId}`}
-                    className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary flex items-center gap-1.5"
+                    className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary flex items-center gap-1.5"
                   >
                     {b?.branchName.replace("Caffissimo", "").trim() || "Branch"}
                     {isSuper && <X className="h-3 w-3 hover:text-destructive z-10" onClick={(e) => removeBranchConfig(config.branchId, e)} />}
@@ -274,7 +274,7 @@ export default function NewToppingPage() {
                         {...register("toppingName")}
                       />
                       {errors.toppingName && (
-                        <p className="text-sm text-destructive">{errors.toppingName.message}</p>
+                        <p className="text-body text-destructive">{errors.toppingName.message}</p>
                       )}
                     </div>
 
@@ -297,7 +297,7 @@ export default function NewToppingPage() {
                           </SelectContent>
                         </Select>
                         {errors.toppingCategoryId && (
-                          <p className="text-sm text-destructive">{errors.toppingCategoryId.message}</p>
+                          <p className="text-body text-destructive">{errors.toppingCategoryId.message}</p>
                         )}
                       </div>
                       <div className="space-y-2">
@@ -314,7 +314,7 @@ export default function NewToppingPage() {
                           />
                         </div>
                         {errors.price && (
-                          <p className="text-sm text-destructive">{errors.price.message}</p>
+                          <p className="text-body text-destructive">{errors.price.message}</p>
                         )}
                       </div>
                     </div>
@@ -349,7 +349,7 @@ export default function NewToppingPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <Label>Active Status</Label>
-                        <p className="text-xs text-muted-foreground">Overall availability</p>
+                        <p className="text-caption text-muted-foreground">Overall availability</p>
                       </div>
                       <Switch
                         checked={watch("isActive")}
@@ -384,7 +384,7 @@ export default function NewToppingPage() {
                                 checked={branchConf.isAvailable} 
                                 onCheckedChange={(val) => updateBranchConfig(branchConf.branchId, { isAvailable: val })} 
                               />
-                              <span className="text-sm text-muted-foreground">
+                              <span className="text-body text-muted-foreground">
                                 {branchConf.isAvailable ? "Available in this branch" : "Unavailable in this branch"}
                               </span>
                             </div>
@@ -406,7 +406,7 @@ export default function NewToppingPage() {
                                 }} 
                               />
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-caption text-muted-foreground mt-1">
                               Leave empty to use base price: ${basePriceValue.toFixed(2)}
                             </p>
                           </div>

@@ -213,7 +213,7 @@ export default function ToppingsPage() {
             setCategoryFilter(val);
             setPagination(prev => ({ ...prev, pageIndex: 0 }));
           }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -306,7 +306,7 @@ export default function ToppingsPage() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between border-t border-border/60 px-6 py-4 bg-muted/5">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {pagination.pageIndex * pagination.pageSize + 1}
@@ -349,7 +349,7 @@ export default function ToppingsPage() {
                       key={pageNum}
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0 text-xs"
+                      className="h-8 w-8 p-0 text-caption"
                       onClick={() => table.setPageIndex(pageNum)}
                     >
                       {pageNum + 1}

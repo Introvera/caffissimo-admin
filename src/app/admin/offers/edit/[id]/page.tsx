@@ -487,13 +487,13 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-semibold text-sm flex items-center gap-1.5">
+                          <p className="font-semibold text-body flex items-center gap-1.5">
                             {item.label}
                             {isSelected && (
                               <Check className="h-3.5 w-3.5 text-foreground bg-primary text-primary-foreground rounded-full p-0.5" />
                             )}
                           </p>
-                          <p className="text-xs text-muted-foreground leading-normal">
+                          <p className="text-caption text-muted-foreground leading-normal">
                             {item.desc}
                           </p>
                         </div>
@@ -565,7 +565,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
               <div className="flex items-center justify-between border-t pt-4">
                 <div className="space-y-0.5">
                   <Label>Active Immediately</Label>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-caption text-muted-foreground">
                     If enabled, the offer will be active immediately once start date is reached.
                   </p>
                 </div>
@@ -671,7 +671,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
             <div className="grid gap-6 sm:grid-cols-2">
               <Card className="flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center justify-between">
+                  <CardTitle className="text-body flex items-center justify-between">
                     <span>1. Products to BUY *</span>
                     <Badge variant="secondary">{buyProductIds.length} selected</Badge>
                   </CardTitle>
@@ -688,13 +688,13 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                   </div>
                   <div className="flex-1 overflow-y-auto max-h-72 border rounded-lg p-2 space-y-3 bg-muted/20">
                     {isLoadingProducts ? (
-                      <p className="text-xs text-muted-foreground p-2">Loading products...</p>
+                      <p className="text-caption text-muted-foreground p-2">Loading products...</p>
                     ) : getGroupedProducts(buySearchText).length === 0 ? (
-                      <p className="text-xs text-muted-foreground p-2">No matching products found.</p>
+                      <p className="text-caption text-muted-foreground p-2">No matching products found.</p>
                     ) : (
                       getGroupedProducts(buySearchText).map((cat) => (
                         <div key={cat.productCategoryId} className="space-y-1">
-                          <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider px-1">
+                          <p className="text-detail font-bold uppercase text-muted-foreground tracking-wider px-1">
                             {cat.categoryName}
                           </p>
                           <div className="space-y-0.5">
@@ -705,7 +705,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                                   key={prod.productId}
                                   type="button"
                                   onClick={() => toggleBuyProduct(prod.productId)}
-                                  className={`w-full text-left px-2 py-1.5 rounded-md text-xs border transition-colors flex items-center justify-between ${
+                                  className={`w-full text-left px-2 py-1.5 rounded-md text-caption border transition-colors flex items-center justify-between ${
                                     selected
                                       ? "bg-primary text-primary-foreground border-primary"
                                       : "bg-background hover:bg-muted border-border"
@@ -726,7 +726,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
 
               <Card className="flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center justify-between">
+                  <CardTitle className="text-body flex items-center justify-between">
                     <span>2. Products to GET *</span>
                     <Badge variant="secondary">{getProductIds.length} selected</Badge>
                   </CardTitle>
@@ -743,13 +743,13 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                   </div>
                   <div className="flex-1 overflow-y-auto max-h-72 border rounded-lg p-2 space-y-3 bg-muted/20">
                     {isLoadingProducts ? (
-                      <p className="text-xs text-muted-foreground p-2">Loading products...</p>
+                      <p className="text-caption text-muted-foreground p-2">Loading products...</p>
                     ) : getGroupedProducts(getSearchText).length === 0 ? (
-                      <p className="text-xs text-muted-foreground p-2">No matching products found.</p>
+                      <p className="text-caption text-muted-foreground p-2">No matching products found.</p>
                     ) : (
                       getGroupedProducts(getSearchText).map((cat) => (
                         <div key={cat.productCategoryId} className="space-y-1">
-                          <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider px-1">
+                          <p className="text-detail font-bold uppercase text-muted-foreground tracking-wider px-1">
                             {cat.categoryName}
                           </p>
                           <div className="space-y-0.5">
@@ -760,7 +760,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                                   key={prod.productId}
                                   type="button"
                                   onClick={() => toggleGetProduct(prod.productId)}
-                                  className={`w-full text-left px-2 py-1.5 rounded-md text-xs border transition-colors flex items-center justify-between ${
+                                  className={`w-full text-left px-2 py-1.5 rounded-md text-caption border transition-colors flex items-center justify-between ${
                                     selected
                                       ? "bg-primary text-primary-foreground border-primary"
                                       : "bg-background hover:bg-muted border-border"
@@ -786,16 +786,16 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
         <div className="space-y-6">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-h3 flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-muted-foreground" />
                 Target Branches
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {isLoadingBranches ? (
-                <p className="text-sm text-muted-foreground">Loading branches...</p>
+                <p className="text-body text-muted-foreground">Loading branches...</p>
               ) : branches.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No branches found.</p>
+                <p className="text-body text-muted-foreground">No branches found.</p>
               ) : (
                 <>
                   <div className="flex gap-2">
@@ -803,7 +803,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                       variant="outline"
                       size="sm"
                       onClick={selectAllBranches}
-                      className="text-xs h-7 px-2"
+                      className="text-caption h-7 px-2"
                     >
                       Select All
                     </Button>
@@ -811,7 +811,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                       variant="outline"
                       size="sm"
                       onClick={deselectAllBranches}
-                      className="text-xs h-7 px-2"
+                      className="text-caption h-7 px-2"
                     >
                       Clear All
                     </Button>
@@ -825,7 +825,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                           key={b.branchId}
                           type="button"
                           onClick={() => toggleBranch(b.branchId)}
-                          className={`px-3 py-1.5 rounded-lg text-xs border transition-colors flex items-center gap-1.5 font-medium ${
+                          className={`px-3 py-1.5 rounded-lg text-caption border transition-colors flex items-center gap-1.5 font-medium ${
                             selected
                               ? "bg-primary text-primary-foreground border-primary"
                               : "bg-background text-foreground border-border hover:bg-muted"
@@ -839,7 +839,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                   </div>
 
                   {selectedBranchIds.length === 0 && (
-                    <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 text-[11px] p-2.5 rounded-lg text-primary flex items-start gap-2">
+                    <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 text-detail p-2.5 rounded-lg text-primary flex items-start gap-2">
                       <Compass className="h-4 w-4 shrink-0 mt-0.5" />
                       <p className="leading-snug">
                         <strong>Apply Globally:</strong> No branches selected. This offer will apply globally to all current and future branches.
@@ -854,7 +854,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
           {offerType !== "BuyXGetY" && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-h3 flex items-center gap-2">
                   <Tag className="h-5 w-5 text-muted-foreground" />
                   Target Products
                 </CardTitle>
@@ -867,7 +867,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                       setTargetScope("all");
                       setSelectedProductIds([]);
                     }}
-                    className={`py-1.5 text-xs font-semibold rounded-md transition-all ${
+                    className={`py-1.5 text-caption font-semibold rounded-md transition-all ${
                       targetScope === "all"
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -878,7 +878,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                   <button
                     type="button"
                     onClick={() => setTargetScope("products")}
-                    className={`py-1.5 text-xs font-semibold rounded-md transition-all ${
+                    className={`py-1.5 text-caption font-semibold rounded-md transition-all ${
                       targetScope === "products"
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -889,7 +889,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                 </div>
 
                 {targetScope === "all" ? (
-                  <div className="bg-blue-500/5 border border-blue-500/20 text-xs p-3 rounded-lg text-blue-700 dark:text-blue-300">
+                  <div className="bg-blue-500/5 border border-blue-500/20 text-caption p-3 rounded-lg text-blue-700 dark:text-blue-300">
                     <p className="leading-relaxed">
                       This offer will apply directly to the **entire bill (order-level)**.
                     </p>
@@ -900,7 +900,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search products..."
-                        className="pl-8 h-9 text-xs"
+                        className="pl-8 h-9 text-caption"
                         value={productSearchText}
                         onChange={(e) => setProductSearchText(e.target.value)}
                       />
@@ -908,13 +908,13 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
 
                     <div className="overflow-y-auto max-h-80 border rounded-lg p-2 space-y-3 bg-muted/10">
                       {isLoadingProducts ? (
-                        <p className="text-xs text-muted-foreground p-1">Loading products...</p>
+                        <p className="text-caption text-muted-foreground p-1">Loading products...</p>
                       ) : getGroupedProducts(productSearchText).length === 0 ? (
-                        <p className="text-xs text-muted-foreground p-1">No matching products found.</p>
+                        <p className="text-caption text-muted-foreground p-1">No matching products found.</p>
                       ) : (
                         getGroupedProducts(productSearchText).map((cat) => (
                           <div key={cat.productCategoryId} className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider px-1">
+                            <p className="text-detail font-bold uppercase text-muted-foreground tracking-wider px-1">
                               {cat.categoryName}
                             </p>
                             <div className="space-y-0.5">
@@ -925,7 +925,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                                     key={prod.productId}
                                     type="button"
                                     onClick={() => toggleProduct(prod.productId)}
-                                    className={`w-full text-left px-2 py-1.5 rounded-md text-xs border transition-colors flex items-center justify-between ${
+                                    className={`w-full text-left px-2 py-1.5 rounded-md text-caption border transition-colors flex items-center justify-between ${
                                       selected
                                         ? "bg-primary text-primary-foreground border-primary"
                                         : "bg-background hover:bg-muted border-border"
@@ -942,7 +942,7 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
                       )}
                     </div>
                     {selectedProductIds.length > 0 && (
-                      <p className="text-xs text-muted-foreground font-semibold text-right">
+                      <p className="text-caption text-muted-foreground font-semibold text-right">
                         {selectedProductIds.length} product(s) selected
                       </p>
                     )}

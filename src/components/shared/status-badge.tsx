@@ -25,7 +25,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[normalizedStatus] || statusConfig.Pending;
 
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium", config.containerClass, className)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-caption font-medium", config.containerClass, className)}>
       <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", config.dotClass)} />
       {config.label}
     </span>

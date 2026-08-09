@@ -274,10 +274,10 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
           </div>
           
           <div className="flex-grow pr-6">
-            <h4 className="font-semibold text-sm leading-tight text-zinc-950 dark:text-zinc-50">
+            <h4 className="font-semibold text-body leading-tight text-zinc-950 dark:text-zinc-50">
               &ldquo;{currentBranch.branchName}&rdquo; details updated
             </h4>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+            <p className="text-caption text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
               Details have been successfully updated.
             </p>
             
@@ -288,7 +288,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                   setIsEditingMode(false);
                   toast.dismiss(t);
                 }}
-                className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0"
+                className="text-caption font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0"
               >
                 View branch
               </button>
@@ -629,19 +629,19 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
         <TabsList className="bg-transparent border-b border-border rounded-none h-auto p-0 gap-0 w-full justify-start">
           <TabsTrigger
             value="overview"
-            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="products"
-            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
           >
             Products
           </TabsTrigger>
           <TabsTrigger
             value="uber-menus"
-            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
           >
             Uber Menus
           </TabsTrigger>
@@ -734,7 +734,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                         </div>
                       ) : (
                         <div className="border border-dashed border-border rounded-md p-6 flex flex-col items-center justify-center gap-2 w-full max-w-md bg-muted/50 opacity-60">
-                          <span className="text-xs text-muted-foreground font-semibold">No Image Uploaded</span>
+                          <span className="text-caption text-muted-foreground font-semibold">No Image Uploaded</span>
                         </div>
                       )
                     ) : (
@@ -764,7 +764,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                     <Label>Location</Label>
                     <div className="flex gap-3 items-end">
                       <div className="space-y-2 flex-shrink-0">
-                        <Label htmlFor="locationInputTypeMgr" className="text-xs text-muted-foreground">Location Type</Label>
+                        <Label htmlFor="locationInputTypeMgr" className="text-caption text-muted-foreground">Location Type</Label>
                         <Select
                           value={locationInputType}
                           onValueChange={(val) => setLocationInputType(val as "Address" | "Coordinates")}
@@ -796,7 +796,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                       {locationInputType === "Coordinates" && (
                         <div className="flex gap-3 flex-1">
                           <div className="space-y-2 flex-1">
-                            <Label htmlFor="mgrLatitude" className="text-xs text-muted-foreground">Latitude</Label>
+                            <Label htmlFor="mgrLatitude" className="text-caption text-muted-foreground">Latitude</Label>
                             <Input
                               id="mgrLatitude"
                               type="number"
@@ -813,7 +813,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             />
                           </div>
                           <div className="space-y-2 flex-1">
-                            <Label htmlFor="mgrLongitude" className="text-xs text-muted-foreground">Longitude</Label>
+                            <Label htmlFor="mgrLongitude" className="text-caption text-muted-foreground">Longitude</Label>
                             <Input
                               id="mgrLongitude"
                               type="number"
@@ -1003,7 +1003,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                       <div className="flex flex-wrap gap-2 pt-2">
                         {!currentBranch.saleListing?.highlights ||
                         currentBranch.saleListing.highlights.length === 0 ? (
-                          <span className="text-sm text-muted-foreground italic">
+                          <span className="text-body text-muted-foreground italic">
                             No highlights added yet. Add a few key bullet items.
                           </span>
                         ) : (
@@ -1012,7 +1012,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               <Badge
                                 key={index}
                                 variant="secondary"
-                                className="px-3 py-1 flex items-center gap-1 text-xs"
+                                className="px-3 py-1 flex items-center gap-1 text-caption"
                               >
                                 {hl}
                                 {(canEdit && isEditingMode) && (
@@ -1063,7 +1063,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             key={index}
                             className="flex items-center gap-4 border-b pb-3 last:border-0 last:pb-0"
                           >
-                            <span className="w-24 text-sm font-medium">
+                            <span className="w-24 text-body font-medium">
                               {label}
                             </span>
                             <div className="flex items-center gap-2 flex-1">
@@ -1102,7 +1102,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                   }
                                   disabled={!isSuper || !isEditingMode}
                                 />
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-body text-muted-foreground">
                                   Open
                                 </span>
                               </div>
@@ -1129,7 +1129,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                     {/* Uber Eats Section */}
                     <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-sm">
+                        <span className="font-semibold text-body">
                           Uber Eats Integration
                         </span>
                       </div>
@@ -1162,7 +1162,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                         <button
                           type="button"
                           onClick={() => setShowUberAdvanced(!showUberAdvanced)}
-                          className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                          className="text-caption text-primary font-medium hover:underline flex items-center gap-1"
                         >
                           {showUberAdvanced
                             ? "Hide Advanced Credentials"
@@ -1173,7 +1173,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                       {showUberAdvanced && (
                         <div className="space-y-4 pt-3 border-t mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2 md:col-span-2">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-caption text-muted-foreground">
                               Configure OAuth and Webhook parameters for Uber
                               Eats.
                             </p>
@@ -1263,7 +1263,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberEnvironment(parseInt(e.target.value))
                               }
                               disabled={!isSuper || !isEditingMode}
-                              className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                              className="w-full h-10 px-3 border rounded-md bg-background text-body"
                             >
                               <option value={0}>Sandbox (Testing)</option>
                               <option value={1}>Production (Live)</option>
@@ -1276,7 +1276,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                     {/* DoorDash Section */}
                     <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-sm">
+                        <span className="font-semibold text-body">
                           DoorDash Integration
                         </span>
                       </div>
@@ -1309,7 +1309,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                         <button
                           type="button"
                           onClick={() => setShowDdAdvanced(!showDdAdvanced)}
-                          className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                          className="text-caption text-primary font-medium hover:underline flex items-center gap-1"
                         >
                           {showDdAdvanced
                             ? "Hide Advanced Credentials"
@@ -1320,7 +1320,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                       {showDdAdvanced && (
                         <div className="space-y-4 pt-3 border-t mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2 md:col-span-2">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-caption text-muted-foreground">
                               Configure OAuth and Webhook parameters for
                               DoorDash.
                             </p>
@@ -1410,7 +1410,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdEnvironment(parseInt(e.target.value))
                               }
                               disabled={!isSuper || !isEditingMode}
-                              className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                              className="w-full h-10 px-3 border rounded-md bg-background text-body"
                             >
                               <option value={0}>Sandbox (Testing)</option>
                               <option value={1}>Production (Live)</option>
@@ -1435,7 +1435,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Branch Open</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-body text-muted-foreground">
                         Toggle to open or close the branch
                       </p>
                     </div>
@@ -1450,7 +1450,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                   <div className="flex items-center justify-between border-t pt-4">
                     <div>
                       <Label>Active Status</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-body text-muted-foreground">
                         Toggle system-wide active status for this branch
                       </p>
                     </div>
@@ -1491,7 +1491,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-background/95 backdrop-blur border border-border shadow-2xl rounded-full px-6 py-3 flex items-center justify-between gap-8 max-w-xl w-[90%] animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm font-semibold text-foreground">
+            <span className="text-body font-semibold text-foreground">
               {changesCount} {changesCount === 1 ? "change" : "changes"} made
             </span>
           </div>

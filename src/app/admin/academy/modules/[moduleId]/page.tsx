@@ -487,7 +487,7 @@ export default function ModuleDetailPage() {
                         setHeaderForm({ ...headerForm, isActive: v })
                       }
                     />
-                    <Label htmlFor="header-active" className="text-sm">
+                    <Label htmlFor="header-active" className="text-body">
                       Active
                     </Label>
                   </div>
@@ -495,10 +495,10 @@ export default function ModuleDetailPage() {
               ) : (
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="text-xl font-bold text-foreground">{module.title}</h1>
+                    <h1 className="text-h3 font-bold text-foreground">{module.title}</h1>
                     <Badge
                       variant="outline"
-                      className={`text-[10px] px-1.5 py-0 border-0 ${
+                      className={`text-detail px-1.5 py-0 border-0 ${
                         module.moduleType === TrainingModuleType.External
                           ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
                           : "bg-blue-500/10 text-blue-700 dark:text-blue-300"
@@ -508,7 +508,7 @@ export default function ModuleDetailPage() {
                     </Badge>
                     <Badge
                       variant={module.isActive ? "default" : "secondary"}
-                      className={`text-[10px] px-1.5 py-0 ${
+                      className={`text-detail px-1.5 py-0 ${
                         module.isActive
                           ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
                           : ""
@@ -518,11 +518,11 @@ export default function ModuleDetailPage() {
                     </Badge>
                   </div>
                   {module.description && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-body text-muted-foreground mt-1">
                       {module.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 mt-3 text-caption text-muted-foreground">
                     {module.moduleType === TrainingModuleType.External ? (
                       <span className="flex items-center gap-1">
                         <ExternalLink className="h-3.5 w-3.5" />
@@ -646,7 +646,7 @@ export default function ModuleDetailPage() {
                     <Video className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <p className="font-medium">No videos yet</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body text-muted-foreground">
                     Add your first training video to get started
                   </p>
                 </CardContent>
@@ -661,17 +661,17 @@ export default function ModuleDetailPage() {
                       <CardContent className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-caption font-bold text-muted-foreground">
                             {idx + 1}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{video.title}</p>
+                            <p className="font-medium text-body truncate">{video.title}</p>
                             <a
                               href={video.videoUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="text-xs text-primary hover:underline flex items-center gap-1 mt-0.5 truncate max-w-xs"
+                              className="text-caption text-primary hover:underline flex items-center gap-1 mt-0.5 truncate max-w-xs"
                             >
                               <ExternalLink className="h-3 w-3 shrink-0" />
                               {video.videoUrl}
@@ -679,13 +679,13 @@ export default function ModuleDetailPage() {
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {video.isRequired && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                              <Badge variant="outline" className="text-detail px-1.5 py-0">
                                 Required
                               </Badge>
                             )}
                             <Badge
                               variant={video.isActive ? "default" : "secondary"}
-                              className={`text-[10px] px-1.5 py-0 ${
+                              className={`text-detail px-1.5 py-0 ${
                                 video.isActive
                                   ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
                                   : ""
@@ -739,7 +739,7 @@ export default function ModuleDetailPage() {
                     <HelpCircle className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <p className="font-medium">No quiz questions yet</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body text-muted-foreground">
                     Add questions so employees can test their knowledge
                   </p>
                 </CardContent>
@@ -753,17 +753,17 @@ export default function ModuleDetailPage() {
                     <Card key={question.trainingQuizQuestionId}>
                       <CardHeader className="pb-2 pt-4 px-4 flex-row items-start justify-between gap-4 space-y-0">
                         <div className="flex items-start gap-3">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mt-0.5">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-caption font-bold mt-0.5">
                             {qi + 1}
                           </span>
-                          <p className="font-medium text-sm leading-snug">
+                          <p className="font-medium text-body leading-snug">
                             {question.questionText}
                           </p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <Badge
                             variant={question.isActive ? "default" : "secondary"}
-                            className={`text-[10px] px-1.5 py-0 ${
+                            className={`text-detail px-1.5 py-0 ${
                               question.isActive
                                 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
                                 : ""
@@ -797,14 +797,14 @@ export default function ModuleDetailPage() {
                           {question.options.map((option) => (
                             <div
                               key={option.trainingQuizOptionId}
-                              className="flex items-center gap-2.5 text-sm text-muted-foreground"
+                              className="flex items-center gap-2.5 text-body text-muted-foreground"
                             >
                               <Circle className="h-3.5 w-3.5 shrink-0 text-border" />
                               <span>{option.optionText}</span>
                             </div>
                           ))}
                         </div>
-                        <p className="mt-3 pl-9 text-[11px] text-muted-foreground italic">
+                        <p className="mt-3 pl-9 text-detail text-muted-foreground italic">
                           {question.options.length} answer option{question.options.length !== 1 ? "s" : ""}
                         </p>
                       </CardContent>
@@ -846,7 +846,7 @@ export default function ModuleDetailPage() {
                     <ExternalLink className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <p className="font-medium">No external courses yet</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body text-muted-foreground">
                     Add links to external courses or materials for this module
                   </p>
                 </CardContent>
@@ -861,17 +861,17 @@ export default function ModuleDetailPage() {
                       <CardContent className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-caption font-bold text-muted-foreground">
                             {idx + 1}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{course.title}</p>
+                            <p className="font-medium text-body truncate">{course.title}</p>
                             <a
                               href={course.courseUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="text-xs text-primary hover:underline flex items-center gap-1 mt-0.5 truncate max-w-xs"
+                              className="text-caption text-primary hover:underline flex items-center gap-1 mt-0.5 truncate max-w-xs"
                             >
                               <ExternalLink className="h-3 w-3 shrink-0" />
                               {course.courseUrl}
@@ -879,13 +879,13 @@ export default function ModuleDetailPage() {
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {course.isRequired && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                              <Badge variant="outline" className="text-detail px-1.5 py-0">
                                 Required
                               </Badge>
                             )}
                             <Badge
                               variant={course.isActive ? "default" : "secondary"}
-                              className={`text-[10px] px-1.5 py-0 ${
+                              className={`text-detail px-1.5 py-0 ${
                                 course.isActive
                                   ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
                                   : ""
@@ -953,7 +953,7 @@ export default function ModuleDetailPage() {
                   setVideoForm({ ...videoForm, videoUrl: e.target.value })
                 }
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 Paste a YouTube, Vimeo, or direct video link
               </p>
             </div>
@@ -976,8 +976,8 @@ export default function ModuleDetailPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <p className="text-sm font-medium">Required</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body font-medium">Required</p>
+                <p className="text-caption text-muted-foreground">
                   Employees must watch this video to complete the module
                 </p>
               </div>
@@ -991,8 +991,8 @@ export default function ModuleDetailPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <p className="text-sm font-medium">Active</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body font-medium">Active</p>
+                <p className="text-caption text-muted-foreground">
                   Show this video to employees
                 </p>
               </div>
@@ -1072,7 +1072,7 @@ export default function ModuleDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Answer Options *</Label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-caption text-muted-foreground">
                   Click the circle to mark correct
                 </p>
               </div>
@@ -1131,8 +1131,8 @@ export default function ModuleDetailPage() {
 
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <p className="text-sm font-medium">Active</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body font-medium">Active</p>
+                <p className="text-caption text-muted-foreground">
                   Include this question in the quiz
                 </p>
               </div>
@@ -1213,10 +1213,10 @@ export default function ModuleDetailPage() {
               <div className="flex items-center justify-between">
                 <Label>Answer Options *</Label>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-caption text-muted-foreground">
                     Click the circle to mark correct
                   </p>
-                  <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                  <p className="text-detail text-amber-600 dark:text-amber-400 font-medium">
                     Please re-select the correct answer option
                   </p>
                 </div>
@@ -1276,8 +1276,8 @@ export default function ModuleDetailPage() {
 
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <p className="text-sm font-medium">Active</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body font-medium">Active</p>
+                <p className="text-caption text-muted-foreground">
                   Include this question in the quiz
                 </p>
               </div>
@@ -1343,7 +1343,7 @@ export default function ModuleDetailPage() {
                   setCourseForm({ ...courseForm, courseUrl: e.target.value })
                 }
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 The URL where employees can complete this training course.
               </p>
             </div>
@@ -1366,8 +1366,8 @@ export default function ModuleDetailPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <p className="text-sm font-medium">Required</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body font-medium">Required</p>
+                <p className="text-caption text-muted-foreground">
                   Employees must visit/complete this course to pass
                 </p>
               </div>
@@ -1381,8 +1381,8 @@ export default function ModuleDetailPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <p className="text-sm font-medium">Active</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body font-medium">Active</p>
+                <p className="text-caption text-muted-foreground">
                   Show this course to employees immediately
                 </p>
               </div>

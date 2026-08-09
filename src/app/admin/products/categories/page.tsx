@@ -362,7 +362,7 @@ export default function ProductCategoriesPage() {
 
             {/* Pagination Controls */}
             <div className="flex items-center justify-between border-t border-border/60 px-6 py-4 bg-muted/5 mt-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {pagination.pageIndex * pagination.pageSize + 1}
@@ -405,7 +405,7 @@ export default function ProductCategoriesPage() {
                       key={pageNum}
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0 text-xs"
+                      className="h-8 w-8 p-0 text-caption"
                       onClick={() => table.setPageIndex(pageNum)}
                     >
                       {pageNum + 1}
@@ -489,8 +489,8 @@ export default function ProductCategoriesPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border p-4 bg-background">
               <div className="space-y-0.5">
-                <Label htmlFor="editCategoryActive" className="text-base">Active Status</Label>
-                <p className="text-sm text-muted-foreground">
+                <Label htmlFor="editCategoryActive" className="text-body">Active Status</Label>
+                <p className="text-body text-muted-foreground">
                   Determine if this category is available for grouping active products.
                 </p>
               </div>

@@ -107,7 +107,7 @@ export default function UberMenusPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           {showBranchFilter && (
             <Select value={branchFilter} onValueChange={(v) => { setBranchFilter(v); setPage(1); }}>
-              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
                 <SelectValue placeholder="Branch" />
               </SelectTrigger>
               <SelectContent>
@@ -168,12 +168,12 @@ export default function UberMenusPage() {
                     <TableRow key={menu.uberMenuId}>
                       <TableCell>
                         <p className="font-medium">{menu.menuName || (menu as any).title || "Untitled Menu"}</p>
-                        <p className="text-xs text-muted-foreground">ID: {(menu.uberMenuId || "").slice(0, 8)}</p>
+                        <p className="text-caption text-muted-foreground">ID: {(menu.uberMenuId || "").slice(0, 8)}</p>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Store className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-sm">{getBranchName(menu.branchId)}</span>
+                          <span className="text-body">{getBranchName(menu.branchId)}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -182,7 +182,7 @@ export default function UberMenusPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 text-body text-muted-foreground">
                           <Clock className="h-3.5 w-3.5" />
                           {menu.lastSyncedAt ? formatDate(menu.lastSyncedAt) : "Never"}
                         </div>
@@ -210,7 +210,7 @@ export default function UberMenusPage() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {(page - 1) * PAGE_SIZE + 1}

@@ -6,35 +6,36 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutGrid,
-  MapPin,
-  User,
-  Layers,
-  DollarSign,
-  Terminal,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  PanelLeftClose,
-  PanelLeftOpen,
-  ChevronDown,
-  X,
-  Package,
-  Coffee,
-  Tag,
-  ShoppingBag,
-  ShoppingCart,
-  BarChart3,
-  Clock,
-  FileText,
-  GraduationCap,
-  BookOpen,
-  Cable,
-  Store,
-  Truck,
-  Megaphone,
-  Calendar,
-} from "lucide-react";
+  TbLayoutDashboard,
+  TbMapPin,
+  TbUser,
+  TbLayersIntersect,
+  TbBox,
+  TbCoffee,
+  TbTag,
+  TbShoppingBag,
+  TbCalendar,
+  TbCurrencyDollar,
+  TbShoppingCart,
+  TbChartBar,
+  TbPlug,
+  TbToolsKitchen2,
+  TbTruck,
+  TbSpeakerphone,
+  TbTerminal2,
+  TbClock,
+  TbFileText,
+  TbSchool,
+  TbBook2,
+  TbChartLine,
+  TbSettings,
+  TbChevronDown,
+  TbX,
+  TbChevronLeft,
+  TbChevronRight,
+  TbChevronsLeft,
+  TbChevronsRight,
+} from "react-icons/tb";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -79,82 +80,82 @@ const navEntries: NavEntry[] = [
     type: "single",
     title: "Dashboard",
     href: "/admin/dashboard",
-    icon: LayoutGrid,
+    icon: TbLayoutDashboard,
     permission: canAccessAdmin,
   },
   {
     type: "single",
     title: "Branches",
     href: "/admin/branches",
-    icon: MapPin,
+    icon: TbMapPin,
     permission: canAccessAdmin,
   },
   {
     type: "single",
     title: "Users",
     href: "/admin/users",
-    icon: User,
+    icon: TbUser,
     permission: canAccessAdmin,
   },
   {
     type: "group",
     title: "Catalog",
-    icon: Layers,
+    icon: TbLayersIntersect,
     permission: canAccessAdmin,
     children: [
-      { title: "Products", href: "/admin/products", icon: Package },
-      { title: "Toppings", href: "/admin/toppings", icon: Coffee },
-      { title: "Offers", href: "/admin/offers", icon: Tag },
+      { title: "Products", href: "/admin/products", icon: TbBox },
+      { title: "Toppings", href: "/admin/toppings", icon: TbCoffee },
+      { title: "Offers", href: "/admin/offers", icon: TbTag },
     ],
   },
   {
     type: "group",
     title: "E-commerce",
-    icon: ShoppingBag,
+    icon: TbShoppingBag,
     permission: canAccessAdmin,
     children: [
-      { title: "Special Days", href: "/admin/special-days", icon: Calendar },
+      { title: "Special Days", href: "/admin/special-days", icon: TbCalendar },
     ],
   },
   {
     type: "group",
     title: "Sales",
-    icon: DollarSign,
+    icon: TbCurrencyDollar,
     permission: canAccessAdmin,
     children: [
-      { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
-      { title: "Sales Reports", href: "/admin/reports", icon: BarChart3 },
+      { title: "Orders", href: "/admin/orders", icon: TbShoppingCart },
+      { title: "Sales Reports", href: "/admin/reports", icon: TbChartBar },
     ],
   },
   {
     type: "group",
     title: "Integrations",
-    icon: Cable,
+    icon: TbPlug,
     permission: canAccessAdmin,
     children: [
-      { title: "Uber Eats Menus", href: "/admin/uber-eats", icon: Store },
-      { title: "Uber Eats Orders", href: "/admin/uber-eats/orders", icon: Truck },
-      { title: "Uber Promotions", href: "/admin/uber-eats/promotions", icon: Megaphone },
+      { title: "Uber Eats Menus", href: "/admin/uber-eats", icon: TbToolsKitchen2 },
+      { title: "Uber Eats Orders", href: "/admin/uber-eats/orders", icon: TbTruck },
+      { title: "Uber Promotions", href: "/admin/uber-eats/promotions", icon: TbSpeakerphone },
     ],
   },
   {
     type: "group",
     title: "System Logs",
-    icon: Terminal,
+    icon: TbTerminal2,
     permission: canAccessAdmin,
     children: [
-      { title: "POS Login Logs", href: "/admin/attendance", icon: Clock },
-      { title: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
+      { title: "POS Login Logs", href: "/admin/attendance", icon: TbClock },
+      { title: "Audit Logs", href: "/admin/audit-logs", icon: TbFileText },
     ],
   },
   {
     type: "group",
     title: "Academy",
-    icon: GraduationCap,
+    icon: TbSchool,
     permission: canAccessAdmin,
     children: [
-      { title: "Modules", href: "/admin/academy/modules", icon: BookOpen },
-      { title: "Progress", href: "/admin/academy/progress", icon: BarChart3 },
+      { title: "Modules", href: "/admin/academy/modules", icon: TbBook2 },
+      { title: "Progress", href: "/admin/academy/progress", icon: TbChartLine },
     ],
   },
 ];
@@ -173,10 +174,84 @@ export function Sidebar() {
     setMounted(true);
   }, []);
 
+  const authUser = useAppSelector((state) => state.auth.user);
+  const userName = authUser
+    ? (authUser.name || `${authUser.firstName ?? ""} ${authUser.lastName ?? ""}`.trim() || "User")
+    : "User";
+  const userEmail = authUser?.email || "";
+
+  const userWidget = (
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-lg transition-all duration-200",
+        sidebarCollapsed
+          ? "justify-center h-12 w-12 border border-border/60 bg-background shadow-xs hover:bg-accent/30 cursor-pointer"
+          : "px-3 py-2 hover:bg-accent/40 cursor-pointer"
+      )}
+    >
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-sm">
+        {userName ? userName.charAt(0).toUpperCase() : "U"}
+      </div>
+      {!sidebarCollapsed && (
+        <div className="flex flex-col min-w-0 flex-1 text-left">
+          <span className="text-body font-semibold text-foreground truncate leading-tight">
+            {userName}
+          </span>
+          {userEmail && (
+            <span className="text-caption text-muted-foreground truncate leading-tight mt-0 font-normal">
+              {userEmail}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderUserWidget = (collapsedState: boolean) => {
+    const isActuallyCollapsed = collapsedState && sidebarCollapsed;
+    
+    if (isActuallyCollapsed) {
+      return (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center w-full">{userWidget}</div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="flex flex-col gap-0.5 p-2 bg-popover text-popover-foreground border shadow-md rounded-lg">
+            <p className="text-body font-semibold text-foreground leading-tight">{userName}</p>
+            {userEmail && <p className="text-caption text-muted-foreground leading-tight">{userEmail}</p>}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+    
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-body font-medium transition-all duration-200",
+          "border border-border/60 bg-background shadow-xs hover:bg-accent/30 cursor-pointer"
+        )}
+      >
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-sm">
+          {userName ? userName.charAt(0).toUpperCase() : "U"}
+        </div>
+        <div className="flex flex-col min-w-0 flex-1 text-left">
+          <span className="text-body font-semibold text-foreground truncate leading-tight">
+            {userName}
+          </span>
+          {userEmail && (
+            <span className="text-caption text-muted-foreground truncate leading-tight mt-0 font-normal">
+              {userEmail}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const settingsEntry = {
     title: "Settings",
     href: "/admin/settings",
-    icon: Settings,
+    icon: TbSettings,
   };
 
   // Track which groups are open — auto-open the group containing the active route
@@ -236,7 +311,7 @@ export function Sidebar() {
         href={item.href}
         onClick={() => dispatch(setMobileMenuOpen(false))}
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent",
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-body font-medium transition-all hover:bg-accent",
           active
             ? indent
               ? "bg-primary/10 text-primary hover:bg-primary/15 font-semibold"
@@ -284,7 +359,7 @@ export function Sidebar() {
           <TooltipTrigger asChild>
             <button
               className={cn(
-                "flex w-full items-center justify-center rounded-lg px-2 py-2.5 text-sm font-medium transition-all hover:bg-accent",
+                "flex w-full items-center justify-center rounded-lg px-2 py-2.5 text-body font-medium transition-all hover:bg-accent",
                 active
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:text-foreground"
@@ -298,7 +373,7 @@ export function Sidebar() {
             className="flex flex-col gap-1 p-2"
             sideOffset={8}
           >
-            <p className="text-xs font-semibold text-muted-foreground mb-1">
+            <p className="text-caption font-semibold text-muted-foreground mb-1">
               {group.title}
             </p>
             {group.children.map((child) => {
@@ -310,7 +385,7 @@ export function Sidebar() {
                   href={child.href}
                   onClick={() => dispatch(setMobileMenuOpen(false))}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent",
+                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-body transition-colors hover:bg-accent",
                     childActive && "font-semibold text-primary"
                   )}
                 >
@@ -329,7 +404,7 @@ export function Sidebar() {
         <button
           onClick={() => toggleGroup(group.title)}
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent",
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-body font-medium transition-all hover:bg-accent",
             active
               ? "text-foreground"
               : "text-muted-foreground hover:text-foreground"
@@ -337,7 +412,7 @@ export function Sidebar() {
         >
           <Icon className="h-5 w-5 shrink-0" />
           <span className="flex-1 text-left">{group.title}</span>
-          <ChevronDown
+          <TbChevronDown
             className={cn(
               "h-4 w-4 shrink-0 transition-transform duration-200",
               open && "rotate-180"
@@ -376,53 +451,61 @@ export function Sidebar() {
     <div className="flex h-full flex-col">
       <div
         className={cn(
-          "flex h-20 items-center justify-between pl-4 pr-0",
+          "flex h-16 items-center justify-between pl-4 pr-0 bg-background border-b border-border/30 relative",
           collapsed && "justify-center pl-2 pr-0"
         )}
       >
         {!collapsed ? (
-          <>
-            <Link href="/admin/dashboard" className="flex items-center overflow-hidden hover:opacity-90 transition-opacity">
-              <div className="relative flex h-14 min-w-[100px] shrink-0 items-center justify-start">
-                {logoError ? (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                    <Coffee className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                ) : (
-                  <div className="flex h-14 items-center rounded-lg px-2 dark:px-0">
-                    {mounted ? (
-                      <img
-                        src={resolvedTheme === "dark" ? "/logo/logo-dark-theme.png" : "/logo/logo-light-theme.png"}
-                        alt="Caffissimo"
-                        className="h-12 w-36 object-contain object-left"
-                        onError={() => setLogoError(true)}
-                      />
-                    ) : (
-                      <div className="h-12 w-32" />
-                    )}
-                  </div>
-                )}
-              </div>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-              onClick={() => dispatch(setSidebarCollapsed(true))}
-              title="Collapse Sidebar"
-            >
-              <PanelLeftClose className="h-5 w-5" />
-            </Button>
-          </>
+          <Link href="/admin/dashboard" className="flex items-center overflow-hidden hover:opacity-90 transition-opacity">
+            <div className="relative flex h-12 min-w-[100px] shrink-0 items-center justify-start">
+              {logoError ? (
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+                  <TbCoffee className="h-5 w-5 text-primary-foreground" />
+                </div>
+              ) : (
+                <div className="flex h-12 items-center rounded-lg px-2 dark:px-0">
+                  {mounted ? (
+                    <img
+                      src={resolvedTheme === "dark" ? "/logo/logo-dark-theme.png" : "/logo/logo-light-theme.png"}
+                      alt="Caffissimo"
+                      className="h-10 w-32 object-contain object-left"
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : (
+                    <div className="h-10 w-28" />
+                  )}
+                </div>
+              )}
+            </div>
+          </Link>
+        ) : (
+          <Link href="/admin/dashboard" className="flex items-center justify-center hover:opacity-90 transition-opacity">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+              <TbCoffee className="h-5 w-5" />
+            </div>
+          </Link>
+        )}
+
+        {/* Desktop Overlapping Toggle Button on the Right Border */}
+        {!collapsed ? (
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute -right-3.5 top-[18px] z-40 h-7 w-7 rounded-full bg-background border border-border/60 shadow-sm hover:bg-accent text-muted-foreground hover:text-foreground hidden lg:flex items-center justify-center cursor-pointer"
+            onClick={() => dispatch(setSidebarCollapsed(true))}
+            title="Collapse Sidebar"
+          >
+            <TbChevronsLeft className="h-4 w-4" />
+          </Button>
         ) : (
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
-            className="h-10 w-10 text-muted-foreground hover:text-foreground animate-fadeIn"
+            className="absolute -right-3.5 top-[18px] z-40 h-7 w-7 rounded-full bg-background border border-border/60 shadow-sm hover:bg-accent text-muted-foreground hover:text-foreground hidden lg:flex items-center justify-center cursor-pointer"
             onClick={() => dispatch(setSidebarCollapsed(false))}
             title="Expand Sidebar"
           >
-            <PanelLeftOpen className="h-5 w-5" />
+            <TbChevronsRight className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -450,14 +533,16 @@ export function Sidebar() {
         </nav>
       </ScrollArea>
 
-      {canAccessAdmin(currentRole) && (
-        <div className={cn("py-4 mt-auto", collapsed ? "pl-3 pr-0" : "px-3")}>
+      {/* Sidebar Footer with Settings and User Info */}
+      <div className={cn("mt-auto py-4 flex flex-col gap-2.5", collapsed ? "pl-3 pr-0" : "px-3")}>
+        {canAccessAdmin(currentRole) && (
           <NavLink
             item={settingsEntry}
             collapsed={collapsed}
           />
-        </div>
-      )}
+        )}
+        {renderUserWidget(collapsed)}
+      </div>
     </div>
   );
 
@@ -468,7 +553,7 @@ export function Sidebar() {
         initial={false}
         animate={{ width: sidebarCollapsed ? 72 : 256 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="hidden lg:flex h-screen flex-col bg-sidebar fixed left-0 top-0 z-30 pt-3"
+        className="hidden lg:flex h-screen flex-col bg-sidebar border-r border-border/40 fixed left-0 top-0 z-30"
       >
         {sidebarContent(sidebarCollapsed)}
       </motion.aside>
@@ -498,7 +583,7 @@ export function Sidebar() {
                   size="icon"
                   onClick={() => dispatch(setMobileMenuOpen(false))}
                 >
-                  <X className="h-5 w-5" />
+                  <TbX className="h-5 w-5" />
                 </Button>
               </div>
               {sidebarContent(false)}

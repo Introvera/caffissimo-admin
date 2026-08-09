@@ -152,7 +152,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
     return (
       <div className="text-center py-20">
         <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Order Not Found</h2>
+        <h2 className="text-h3 font-semibold mb-2">Order Not Found</h2>
         <p className="text-muted-foreground mb-6">
           The order you&apos;re looking for doesn&apos;t exist or has been deleted.
         </p>
@@ -185,13 +185,13 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
           </Button>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-semibold">{order.orderNumber}</h1>
-              <span className="text-sm text-muted-foreground px-2 py-0.5 rounded-md bg-muted">
+              <h1 className="text-h3 font-semibold">{order.orderNumber}</h1>
+              <span className="text-body text-muted-foreground px-2 py-0.5 rounded-md bg-muted">
                 {ORDER_TYPE_LABELS[order.orderType] ?? order.orderType}
               </span>
               <StatusBadge status={order.orderStatus} />
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-body text-muted-foreground mt-0.5">
               {format(parseISO(order.orderDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
             </p>
           </div>
@@ -280,7 +280,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                           <Circle className="h-4 w-4" />
                         )}
                       </div>
-                      <span className={`text-xs font-medium ${
+                      <span className={`text-caption font-medium ${
                         isCompleted || isCurrent ? "text-foreground" : "text-muted-foreground"
                       }`}>
                         {step}
@@ -308,7 +308,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
               </div>
               <div>
                 <p className="font-medium text-destructive">Order Cancelled</p>
-                <p className="text-sm text-destructive/70">This order has been cancelled.</p>
+                <p className="text-body text-destructive/70">This order has been cancelled.</p>
               </div>
             </div>
           </CardContent>
@@ -322,13 +322,13 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
             <CardContent className="p-0">
               <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
                 <h3 className="font-semibold">Order Items</h3>
-                <span className="text-xs text-muted-foreground bg-muted rounded-full px-2.5 py-1">
+                <span className="text-caption text-muted-foreground bg-muted rounded-full px-2.5 py-1">
                   {order.items.length} {order.items.length === 1 ? "item" : "items"}
                 </span>
               </div>
 
               <div className="px-6">
-                <div className="grid grid-cols-[1fr_auto_auto] gap-x-6 py-3 text-xs text-muted-foreground border-b border-border/40">
+                <div className="grid grid-cols-[1fr_auto_auto] gap-x-6 py-3 text-caption text-muted-foreground border-b border-border/40">
                   <span>Product</span>
                   <span>Qty</span>
                   <span className="text-right">Price</span>
@@ -339,14 +339,14 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                     className="grid grid-cols-[1fr_auto_auto] gap-x-6 items-center py-3.5 border-b border-border/40 last:border-0"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-caption font-medium text-muted-foreground">
                         {index + 1}
                       </div>
                       <div>
-                        <p className="text-sm font-medium flex items-center gap-1.5">
+                        <p className="text-body font-medium flex items-center gap-1.5">
                           {item.productName}
                           {item.sizeName && (
-                            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm font-normal">
+                            <span className="text-caption text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm font-normal">
                               {item.sizeName}
                             </span>
                           )}
@@ -354,7 +354,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                         {item.toppings.length > 0 && (
                           <div className="mt-1 flex flex-col gap-0.5 mb-1.5">
                             {item.toppings.map((t) => (
-                              <span key={t.orderItemToppingId} className="text-[11px] text-muted-foreground flex items-center gap-1">
+                              <span key={t.orderItemToppingId} className="text-detail text-muted-foreground flex items-center gap-1">
                                 <List className="h-3 w-3 text-muted-foreground/70 shrink-0" />
                                 {t.quantity > 1 ? `${t.quantity}x ` : ""}{t.toppingNameSnapshot}
                                 {t.unitPrice > 0 && <span className="opacity-70">(+{formatCurrency(t.unitPrice)})</span>}
@@ -362,38 +362,38 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                             ))}
                           </div>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1 border-t border-border/40 pt-1 w-max">
+                        <p className="text-caption text-muted-foreground mt-1 border-t border-border/40 pt-1 w-max">
                           {formatCurrency(item.unitPrice)} base price
                         </p>
                       </div>
                     </div>
-                    <span className="text-sm tabular-nums w-8 text-center">{item.quantity}</span>
-                    <span className="text-sm font-medium tabular-nums text-right">{formatCurrency(item.lineTotal)}</span>
+                    <span className="text-body tabular-nums w-8 text-center">{item.quantity}</span>
+                    <span className="text-body font-medium tabular-nums text-right">{formatCurrency(item.lineTotal)}</span>
                   </div>
                 ))}
               </div>
 
               {/* Totals */}
               <div className="px-6 py-4 bg-muted/30 rounded-b-lg space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-body">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="tabular-nums">{formatCurrency(order.subTotal)}</span>
                 </div>
                 {order.discountTotal > 0 && (
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-body">
                     <span className="text-emerald-600">Discount</span>
                     <span className="text-emerald-600 tabular-nums">-{formatCurrency(order.discountTotal)}</span>
                   </div>
                 )}
                 {order.appliedOfferNameSnapshot && (
-                  <div className="flex justify-between text-xs text-muted-foreground">
+                  <div className="flex justify-between text-caption text-muted-foreground">
                     <span>Offer applied</span>
                     <span>{order.appliedOfferNameSnapshot}</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-2 border-t border-border/60">
                   <span className="font-semibold">Total</span>
-                  <span className="font-bold text-lg tabular-nums">{formatCurrency(order.grandTotal)}</span>
+                  <span className="font-bold text-h3 tabular-nums">{formatCurrency(order.grandTotal)}</span>
                 </div>
               </div>
             </CardContent>
@@ -405,22 +405,22 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
           <Card>
             <CardContent className="p-0">
               <div className="px-5 py-4 border-b border-border/60">
-                <h3 className="font-semibold text-sm">Details</h3>
+                <h3 className="font-semibold text-body">Details</h3>
               </div>
               <div className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Type</span>
-                  <span className="text-sm font-medium">
+                  <span className="text-body text-muted-foreground">Type</span>
+                  <span className="text-body font-medium">
                     {ORDER_TYPE_LABELS[order.orderType] ?? order.orderType}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-body text-muted-foreground">Status</span>
                   <StatusBadge status={order.orderStatus} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Payment</span>
-                  <span className="text-sm font-medium">{order.paymentType}</span>
+                  <span className="text-body text-muted-foreground">Payment</span>
+                  <span className="text-body font-medium">{order.paymentType}</span>
                 </div>
               </div>
             </CardContent>
@@ -430,7 +430,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
             <Card>
               <CardContent className="p-0">
                 <div className="px-5 py-4 border-b border-border/60">
-                  <h3 className="font-semibold text-sm">Branch</h3>
+                  <h3 className="font-semibold text-body">Branch</h3>
                 </div>
                 <div className="p-5">
                   <div className="flex items-start gap-3">
@@ -438,8 +438,8 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                       <Store className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{branch.branchName}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                      <p className="text-body font-medium">{branch.branchName}</p>
+                      <p className="text-caption text-muted-foreground mt-0.5 leading-relaxed">
                         {branch.branchAddress}
                       </p>
                     </div>

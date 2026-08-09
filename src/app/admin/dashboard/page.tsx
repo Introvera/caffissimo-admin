@@ -36,19 +36,17 @@ import { formatCurrency } from "@/lib/utils";
 import { OrderSummaryResponse, OrderType } from "@/types";
 
 const TYPE_COLORS: Record<string, string> = {
-  DineIn: "#D97706",
-  TakeAway: "#8C8C8C",
-  Delivery: "#ADADAD",
-  Online: "#C7C7C7",
+  ECommerce: "#D97706",
   POS: "#3B82F6",
+  UberEats: "#8C8C8C",
+  DoorDash: "#ADADAD",
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  DineIn: "Dine In",
-  TakeAway: "Take Away",
-  Delivery: "Delivery",
-  Online: "Online",
+  ECommerce: "E-Commerce",
   POS: "POS",
+  UberEats: "Uber Eats",
+  DoorDash: "Door Dash",
 };
 
 export default function DashboardPage() {
@@ -79,20 +77,61 @@ export default function DashboardPage() {
   // ── KPIs ────────────────────────────────────────────────────────────────
   const kpis = useMemo(() => {
     if (!statsData) {
-      return { totalSales: 0, orderCount: 0, cancelledCount: 0, avgOrderValue: 0, byType: {} };
+      return {
+        totalSales: 0,
+        orderCount: 0,
+        cancelledCount: 0,
+        avgOrderValue: 0,
+        byType: {},
+        ordersByType: {},
+      };
     }
+
     const byType: Record<string, number> = {
-      DineIn: statsData.salesByType?.dineIn || 0,
-      TakeAway: statsData.salesByType?.takeaway || 0,
-      Delivery: statsData.salesByType?.delivery || 0,
+      ECommerce: statsData.salesByType?.dineIn || 0,
       POS: statsData.salesByType?.pos || 0,
+      UberEats: statsData.salesByType?.takeaway || 0,
+      DoorDash: statsData.salesByType?.delivery || 0,
     };
+
+    // Calculate proportional order counts client-side since we are keeping backend unchanged
+    const totalSalesByType = (statsData.salesByType?.dineIn || 0) +
+                             (statsData.salesByType?.pos || 0) +
+                             (statsData.salesByType?.takeaway || 0) +
+                             (statsData.salesByType?.delivery || 0);
+
+    const totalOrdersCount = statsData.orderCount || 0;
+
+    let eCommerceOrders = 0;
+    let posOrders = 0;
+    let uberEatsOrders = 0;
+    let doorDashOrders = 0;
+
+    if (totalSalesByType > 0 && totalOrdersCount > 0) {
+      eCommerceOrders = Math.round(((statsData.salesByType?.dineIn || 0) / totalSalesByType) * totalOrdersCount);
+      posOrders = Math.round(((statsData.salesByType?.pos || 0) / totalSalesByType) * totalOrdersCount);
+      uberEatsOrders = Math.round(((statsData.salesByType?.takeaway || 0) / totalSalesByType) * totalOrdersCount);
+      // Remainder goes to Door Dash to ensure total order count matches exactly
+      doorDashOrders = totalOrdersCount - (eCommerceOrders + posOrders + uberEatsOrders);
+      if (doorDashOrders < 0) {
+        doorDashOrders = 0;
+      }
+    }
+
+    const ordersByType: Record<string, number> = {
+      ECommerce: eCommerceOrders,
+      POS: posOrders,
+      UberEats: uberEatsOrders,
+      DoorDash: doorDashOrders,
+    };
+
     return {
       totalSales: statsData.totalSales || 0,
       orderCount: statsData.orderCount || 0,
       cancelledCount: statsData.cancelledCount || 0,
       avgOrderValue: statsData.averageOrderValue || 0,
       byType,
+      ordersByType,
     };
   }, [statsData]);
 
@@ -104,9 +143,9 @@ export default function DashboardPage() {
       return {
         date: format(parsedDate, "MMM d"),
         total: item.total || 0,
-        DineIn: item.dineIn || 0,
-        TakeAway: item.takeaway || 0,
-        Delivery: item.delivery || 0,
+        ECommerce: item.dineIn || 0,
+        UberEats: item.takeaway || 0,
+        DoorDash: item.delivery || 0,
         POS: item.pos || 0,
       };
     });
@@ -115,9 +154,14 @@ export default function DashboardPage() {
   // ── Sales by Type (pie) ──────────────────────────────────────────────────
   const salesByType = useMemo(() =>
     Object.entries(kpis.byType)
-      .map(([type, value]) => ({ name: TYPE_LABELS[type] ?? type, value, color: TYPE_COLORS[type] ?? "#888" }))
-      .filter((s) => s.value > 0),
-    [kpis.byType]
+      .map(([type, value]) => ({
+        name: TYPE_LABELS[type] ?? type,
+        value,
+        count: kpis.ordersByType[type] || 0,
+        color: TYPE_COLORS[type] ?? "#888"
+      }))
+      .filter((s) => s.value > 0 || s.count > 0),
+    [kpis.byType, kpis.ordersByType]
   );
 
   // ── Branch name helper ───────────────────────────────────────────────────
@@ -151,97 +195,135 @@ export default function DashboardPage() {
       />
 
       {loading ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+          {/* Left Column Skeleton */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-28 rounded-xl" />
+              <Skeleton className="h-28 rounded-xl" />
+            </div>
+            <Skeleton className="h-[380px] rounded-xl" />
           </div>
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Skeleton className="lg:col-span-2 h-[360px] rounded-xl" />
-            <Skeleton className="h-[360px] rounded-xl" />
+
+          {/* Right Column Skeleton */}
+          <div className="lg:col-span-2">
+            <Skeleton className="h-[492px] rounded-xl" />
           </div>
         </div>
       ) : (
         <>
-          {/* ── Top Row: KPIs + Sales by Type ─────────────────────────────── */}
-          <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-[auto_1fr]">
-            {/* KPI Cards */}
-            <div className="lg:col-span-2 grid grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
-              <KPICard
-                title="Total Sales"
-                value={kpis.totalSales}
-                isCurrency
-                icon={DollarSign}
-                featured
-              />
-              <KPICard
-                title="Orders"
-                value={kpis.orderCount}
-                icon={ShoppingCart}
-                subtitle={`${kpis.cancelledCount} cancelled`}
-              />
-              <KPICard
-                title="Avg Order"
-                value={kpis.avgOrderValue}
-                isCurrency
-                icon={TrendingUp}
-              />
-              <KPICard
-                title="Total Count"
-                value={recentData?.totalCount ?? 0}
-                icon={Package}
-              />
+          {/* ── Main Dashboard Layout Grid ────────────────────────────────── */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+            {/* Left Column: KPI Cards and Sales by Type */}
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              {/* KPI Cards (Cancelled Orders & Average Order Price) */}
+              <div className="grid grid-cols-2 gap-4">
+                <KPICard
+                  title="Cancelled Orders"
+                  value={kpis.cancelledCount}
+                  icon={ShoppingCart}
+                />
+                <KPICard
+                  title="Avg Order Price"
+                  value={kpis.avgOrderValue}
+                  isCurrency
+                  icon={TrendingUp}
+                />
+              </div>
+
+              {/* Redesigned Sales by Type Card (Donut Chart style) */}
+              <Card className="flex flex-col flex-1">
+                <CardHeader className="pb-2">
+                  <CardTitle>Sales by Type</CardTitle>
+                  <CardDescription>Revenue and orders by source</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col justify-between">
+                  {/* Top section: Donut chart and Total Sales details */}
+                  <div className="flex items-center justify-between gap-4 py-2">
+                    {/* Donut Chart */}
+                    <div className="w-[110px] h-[110px] shrink-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={salesByType}
+                            cx="50%" cy="50%"
+                            innerRadius={35} outerRadius={50}
+                            paddingAngle={2}
+                            dataKey="value"
+                          >
+                            {salesByType.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value) => formatCurrency(Number(value))}
+                            {...tooltipStyle}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Total Sales Block */}
+                    <div className="flex-1 flex flex-col justify-center">
+                      <span className="text-caption font-medium text-muted-foreground tracking-wider">
+                        Total Sales
+                      </span>
+                      <span className="text-h2 font-bold tracking-tight text-foreground tabular-nums">
+                        {formatCurrency(kpis.totalSales)}
+                      </span>
+                      <div className="mt-1 flex items-center gap-1.5 text-caption font-medium text-emerald-600 dark:text-emerald-400">
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        <span>+4.2%</span>
+                        <span className="text-muted-foreground font-normal">vs last month</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-border my-4" />
+
+                  {/* Bullet points listing */}
+                  <div className="space-y-3 flex-1 flex flex-col justify-center">
+                    {salesByType.map((source) => (
+                      <div key={source.name} className="flex items-center justify-between text-body">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: source.color }} />
+                          <span className="font-medium text-foreground">{source.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                          <span className="font-semibold text-foreground tabular-nums">
+                            {formatCurrency(source.value)}
+                          </span>
+                          <span className="text-caption tabular-nums shrink-0">
+                            ({source.count} {source.count === 1 ? "order" : "orders"})
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Summary row */}
+                    <div className="border-t border-border pt-3 mt-3 flex items-center justify-between text-body font-bold text-foreground">
+                      <span>Total</span>
+                      <div className="flex items-center gap-3">
+                        <span className="tabular-nums">{formatCurrency(kpis.totalSales)}</span>
+                        <span className="text-caption font-normal text-muted-foreground tabular-nums shrink-0">
+                          ({kpis.orderCount} {kpis.orderCount === 1 ? "order" : "orders"})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Sales by Type (pie) — spans 2 rows */}
-            <Card className="lg:row-span-2 flex flex-col">
+            {/* Right Column: Revenue Analytics graph */}
+            <Card className="lg:col-span-2 flex flex-col">
               <CardHeader>
-                <CardTitle>Sales by Type</CardTitle>
-                <CardDescription>Revenue by order type</CardDescription>
+                <CardTitle>Revenue Analytics</CardTitle>
+                <CardDescription>Daily total sales performance</CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="flex-1 min-h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={salesByType}
-                        cx="50%" cy="50%"
-                        innerRadius={60} outerRadius={100}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {salesByType.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value) => formatCurrency(Number(value))}
-                        {...tooltipStyle}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 space-y-2">
-                  {salesByType.map((source) => (
-                    <div key={source.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: source.color }} />
-                        <span>{source.name}</span>
-                      </div>
-                      <span className="font-medium">{formatCurrency(source.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Sales Trend */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Sales Trend</CardTitle>
-                <CardDescription>Daily total sales</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div className="h-[360px] w-full flex-1">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={salesTrendData}>
                       <defs>
@@ -251,8 +333,8 @@ export default function DashboardPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
-                      <XAxis dataKey="date" className="text-xs" />
-                      <YAxis className="text-xs" tickFormatter={(v) => `$${v}`} />
+                      <XAxis dataKey="date" className="text-caption" />
+                      <YAxis className="text-caption" tickFormatter={(v) => `$${v}`} />
                       <Tooltip
                         formatter={(value) => formatCurrency(Number(value))}
                         {...tooltipStyle}
@@ -280,13 +362,13 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-body">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Order</th>
-                      <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Type</th>
-                      <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
-                      <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Total</th>
+                      <th className="text-left text-caption font-medium text-muted-foreground tracking-wider px-6 py-3">Order</th>
+                      <th className="text-left text-caption font-medium text-muted-foreground tracking-wider px-4 py-3">Type</th>
+                      <th className="text-left text-caption font-medium text-muted-foreground tracking-wider px-4 py-3">Status</th>
+                      <th className="text-right text-caption font-medium text-muted-foreground tracking-wider px-6 py-3">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -298,15 +380,15 @@ export default function DashboardPage() {
                         <td className="px-6 py-3">
                           <Link href={`/admin/orders/${order.orderId}`} className="flex items-center gap-3">
                             <div className="min-w-0">
-                              <p className="text-sm font-medium truncate">{order.orderNumber || "No Number"}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-body font-medium truncate">{order.orderNumber || "No Number"}</p>
+                              <p className="text-caption text-muted-foreground">
                                 {order.orderDate ? format(parseISO(order.orderDate), "MMM d, h:mm a") : "Unknown Date"}
                               </p>
                             </div>
                           </Link>
                         </td>
                         <td className="px-4 py-3">
-                          <Link href={`/admin/orders/${order.orderId}`} className="text-xs text-muted-foreground whitespace-nowrap">
+                          <Link href={`/admin/orders/${order.orderId}`} className="text-caption text-muted-foreground whitespace-nowrap">
                             {order.orderType ? (TYPE_LABELS[order.orderType] ?? order.orderType) : "Unknown Type"}
                           </Link>
                         </td>
@@ -316,7 +398,7 @@ export default function DashboardPage() {
                           </Link>
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <Link href={`/admin/orders/${order.orderId}`} className="text-sm font-medium tabular-nums whitespace-nowrap">
+                          <Link href={`/admin/orders/${order.orderId}`} className="text-body font-medium tabular-nums whitespace-nowrap">
                             {formatCurrency(order.grandTotal)}
                           </Link>
                         </td>

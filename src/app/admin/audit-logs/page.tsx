@@ -132,7 +132,7 @@ export default function AuditLogsPage() {
       columnHelper.accessor("createdAt", {
         header: "Timestamp",
         cell: (info) => (
-          <span className="text-sm text-muted-foreground inline-flex items-center gap-2">
+          <span className="text-body text-muted-foreground inline-flex items-center gap-2">
             <Clock className="h-3 w-3" />
             {formatDateTime(info.getValue())}
           </span>
@@ -151,7 +151,7 @@ export default function AuditLogsPage() {
         header: "User",
         enableSorting: false,
         cell: (info) => (
-          <span className="inline-flex items-center gap-2 text-sm text-foreground">
+          <span className="inline-flex items-center gap-2 text-body text-foreground">
             <User className="h-3 w-3 text-muted-foreground" />
             {info.getValue()}
           </span>
@@ -162,7 +162,7 @@ export default function AuditLogsPage() {
         header: "Entity",
         enableSorting: false,
         cell: (info) => (
-          <span className="text-sm text-foreground">
+          <span className="text-body text-foreground">
             {info.row.original.entityType}
             <span className="text-muted-foreground"> #{info.row.original.entityId.split("-").pop()}</span>
           </span>
@@ -172,7 +172,7 @@ export default function AuditLogsPage() {
         header: "Branch",
         enableSorting: false,
         cell: (info) => (
-          <span className="text-sm text-foreground">
+          <span className="text-body text-foreground">
             {getBranchName(info.getValue())}
           </span>
         ),
@@ -181,7 +181,7 @@ export default function AuditLogsPage() {
         header: "Details",
         enableSorting: false,
         cell: (info) => (
-          <span className="text-xs text-muted-foreground truncate block max-w-[200px]">
+          <span className="text-caption text-muted-foreground truncate block max-w-[200px]">
             {formatDetails(info.getValue())}
           </span>
         ),
@@ -237,7 +237,7 @@ export default function AuditLogsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2.5">
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Action" />
             </SelectTrigger>
             <SelectContent>
@@ -323,7 +323,7 @@ export default function AuditLogsPage() {
 
               {/* Pagination - same as Orders */}
               <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   Showing{" "}
                   <span className="font-medium text-foreground">
                     {pageIndex * pageSize + 1}
@@ -363,7 +363,7 @@ export default function AuditLogsPage() {
                         key={pageNum}
                         variant={pageIndex === pageNum ? "default" : "outline"}
                         size="sm"
-                        className="h-8 w-8 p-0 text-xs"
+                        className="h-8 w-8 p-0 text-caption"
                         onClick={() => table.setPageIndex(pageNum)}
                       >
                         {pageNum + 1}

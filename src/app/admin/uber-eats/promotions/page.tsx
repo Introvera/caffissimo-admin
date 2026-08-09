@@ -245,8 +245,8 @@ export default function UberPromotionsPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Uber Eats Promotions</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-h2 font-semibold">Uber Eats Promotions</h1>
+          <p className="text-body text-muted-foreground mt-1">
             Create and manage promotions on your Uber Eats store
           </p>
         </div>
@@ -281,7 +281,7 @@ export default function UberPromotionsPage() {
           <CardContent className="py-12 text-center">
             <Tag className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
             <p className="font-medium">Select a branch</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-body text-muted-foreground mt-1">
               Choose a branch from the dropdown above to manage its Uber Eats promotions
             </p>
           </CardContent>
@@ -291,7 +291,7 @@ export default function UberPromotionsPage() {
           <CardContent className="py-12 text-center">
             <Tag className="h-10 w-10 mx-auto text-yellow-500 mb-3" />
             <p className="font-medium">Promotions API Not Available</p>
-            <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+            <p className="text-body text-muted-foreground mt-2 max-w-md mx-auto">
               The Uber Eats Promotions API requires separate approval from Uber.
               Contact your Uber partner manager to enable promotions access for your account.
             </p>
@@ -307,7 +307,7 @@ export default function UberPromotionsPage() {
           <CardContent className="py-12 text-center">
             <Tag className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
             <p className="font-medium">No promotions</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-body text-muted-foreground mt-1">
               Create a promotion to attract more customers on Uber Eats
             </p>
           </CardContent>
@@ -469,7 +469,7 @@ export default function UberPromotionsPage() {
             </div>
 
             {/* Advanced */}
-            <button type="button" className="text-sm text-primary underline hover:text-primary/80 transition-colors" onClick={() => setShowAdvanced((s) => !s)}>
+            <button type="button" className="text-body text-primary underline hover:text-primary/80 transition-colors" onClick={() => setShowAdvanced((s) => !s)}>
               {showAdvanced ? "Hide advanced options" : "Advanced options (budget, audience, schedule)"}
             </button>
 
@@ -510,12 +510,12 @@ export default function UberPromotionsPage() {
 
                 <div className="flex flex-col gap-2">
                   {form.promoType === "PERCENT_OFF" && (
-                    <label className="flex items-center gap-2 text-sm">
+                    <label className="flex items-center gap-2 text-body">
                       <input type="checkbox" checked={form.happyHour} onChange={(e) => set({ happyHour: e.target.checked })} />
                       Happy Hour experience (2–5 PM, percent-off only)
                     </label>
                   )}
-                  <label className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-body">
                     <input type="checkbox" checked={form.uberOne} onChange={(e) => set({ uberOne: e.target.checked })} />
                     Uber One members only
                   </label>
@@ -527,18 +527,18 @@ export default function UberPromotionsPage() {
                     {DAYS.map((d) => (
                       <button key={d} type="button"
                         onClick={() => set({ scheduleDays: toggleArr(form.scheduleDays, d) })}
-                        className={`px-2 py-1 rounded text-xs border transition-colors ${form.scheduleDays.includes(d) ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-background hover:bg-muted"}`}>
+                        className={`px-2 py-1 rounded text-caption border transition-colors ${form.scheduleDays.includes(d) ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-background hover:bg-muted"}`}>
                         {d.slice(0, 3)}
                       </button>
                     ))}
                   </div>
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <div>
-                      <Label className="text-xs">From</Label>
+                      <Label className="text-caption">From</Label>
                       <Input type="time" value={form.scheduleStart} onChange={(e) => set({ scheduleStart: e.target.value })} />
                     </div>
                     <div>
-                      <Label className="text-xs">To</Label>
+                      <Label className="text-caption">To</Label>
                       <Input type="time" value={form.scheduleEnd} onChange={(e) => set({ scheduleEnd: e.target.value })} />
                     </div>
                   </div>
@@ -569,11 +569,11 @@ function ItemCheckboxList({
   onToggle: (id: string) => void;
 }) {
   if (products.length === 0)
-    return <p className="text-xs text-muted-foreground">No branch products found.</p>;
+    return <p className="text-caption text-muted-foreground">No branch products found.</p>;
   return (
     <div className="max-h-40 overflow-y-auto border rounded p-2 space-y-1 mt-1">
       {products.map((p) => (
-        <label key={p.branchProductId} className="flex items-center gap-2 text-sm">
+        <label key={p.branchProductId} className="flex items-center gap-2 text-body">
           <input
             type="checkbox"
             checked={selected.includes(p.branchProductId)}
@@ -599,7 +599,7 @@ function PromotionCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="text-body flex items-center gap-2">
               <Badge>{promoTypeLabel(promo.promoType)}</Badge>
               {promo.status && (
                 <Badge variant={promo.status.toUpperCase() === "ACTIVE" ? "default" : "secondary"}>
@@ -614,7 +614,7 @@ function PromotionCard({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-2 text-sm">
+      <CardContent className="space-y-2 text-body">
         {pct != null && pct > 0 && (
           <Row label="Discount" value={`${pct}% off`} />
         )}
@@ -637,7 +637,7 @@ function PromotionCard({
         {promo.endDate && <Row label="End" value={new Date(promo.endDate).toLocaleDateString()} />}
         {promo.promotionId && (
           <div className="pt-1 border-t">
-            <span className="font-mono text-xs text-muted-foreground truncate block">
+            <span className="font-mono text-caption text-muted-foreground truncate block">
               ID: {promo.promotionId}
             </span>
           </div>

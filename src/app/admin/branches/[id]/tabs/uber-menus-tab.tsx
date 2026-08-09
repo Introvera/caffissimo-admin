@@ -95,7 +95,7 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Uber Eats Menus</h3>
+        <h3 className="text-h3 font-medium">Uber Eats Menus</h3>
         <div className="flex gap-2">
            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
@@ -145,7 +145,7 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
                   <TableCell>
                     <div>
                       <p className="font-medium">{menu.menuName || (menu as any).title || "Untitled Menu"}</p>
-                      <p className="text-xs text-muted-foreground">ID: {menu.uberMenuId.slice(0, 8)}</p>
+                      <p className="text-caption text-muted-foreground">ID: {menu.uberMenuId.slice(0, 8)}</p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -154,7 +154,7 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-body text-muted-foreground">
                       <Clock className="h-3.5 w-3.5" />
                       {menu.lastSyncedAt ? formatDate(menu.lastSyncedAt) : "Never"}
                     </div>

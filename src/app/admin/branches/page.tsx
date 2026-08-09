@@ -7,8 +7,6 @@ import {
   Phone,
   Mail,
   Clock,
-  ExternalLink,
-  Settings,
   Store,
   Plus,
   Search,
@@ -20,6 +18,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { TbDotsVertical } from "react-icons/tb";
 import { PageHeader } from "@/components/shared/page-header";
 import { useAppSelector } from "@/stores/store";
 import { useGetBranchesQuery, useUpdateBranchMutation } from "@/stores/api/branchApi";
@@ -160,23 +165,45 @@ export default function BranchesPage() {
                           <Store className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg">{branch.branchName}</CardTitle>
-                          <div className="flex items-center gap-2 mt-1">
+                          <CardTitle className="text-h3 flex items-center gap-2">
+                            <span>{branch.branchName}</span>
                             <Badge
                               variant={branch.isOpen ? "success" : "secondary"}
+                              className="px-2 py-0 h-5 text-[11px] font-semibold"
                             >
                               {branch.isOpen ? "Open" : "Closed"}
                             </Badge>
-                          </div>
+                          </CardTitle>
                         </div>
                       </div>
-                      {canManage && (
-                        <Switch
-                          checked={branch.isOpen}
-                          disabled={isUpdating}
-                          onCheckedChange={() => handleToggleOpen(branch.branchId, branch.isOpen)}
-                        />
-                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0">
+                            <TbDotsVertical className="h-5 w-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40 bg-background border shadow-md rounded-lg">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/branches/${branch.branchId}`} className="cursor-pointer">
+                              View Branch
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            disabled={!branch.uberEatsUrl} 
+                            onClick={() => branch.uberEatsUrl && window.open(branch.uberEatsUrl, "_blank")}
+                            className="cursor-pointer"
+                          >
+                            Uber Eats
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            disabled={!branch.doorDashUrl} 
+                            onClick={() => branch.doorDashUrl && window.open(branch.doorDashUrl, "_blank")}
+                            className="cursor-pointer"
+                          >
+                            Door Dash
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col space-y-4">
@@ -184,78 +211,45 @@ export default function BranchesPage() {
                       <div className="grid grid-cols-2 gap-x-4 gap-y-3.5">
                         {/* Address */}
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
-                            <MapPin className="h-4 w-4 shrink-0" />
-                            <span>Address</span>
-                          </div>
-                          <p className="text-sm text-foreground break-words leading-normal">{branch.branchAddress}</p>
+                          <span className="text-body text-slate-500 dark:text-slate-400">Address</span>
+                          <p className="text-body text-foreground break-words leading-normal">{branch.branchAddress}</p>
                         </div>
 
                         {/* Phone */}
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
-                            <Phone className="h-4 w-4 shrink-0" />
-                            <span>Phone</span>
-                          </div>
-                          <p className="text-sm text-foreground break-words leading-normal">{branch.branchPhoneNumber}</p>
+                          <span className="text-body text-slate-500 dark:text-slate-400">Phone</span>
+                          <p className="text-body text-foreground break-words leading-normal">{branch.branchPhoneNumber}</p>
                         </div>
 
                         {/* Email */}
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
-                            <Mail className="h-4 w-4 shrink-0" />
-                            <span>Email</span>
-                          </div>
-                          <p className="text-sm text-foreground break-words leading-normal">{branch.branchEmail}</p>
+                          <span className="text-body text-slate-500 dark:text-slate-400">Email</span>
+                          <p className="text-body text-foreground break-words leading-normal">{branch.branchEmail}</p>
                         </div>
 
                         {/* Hours */}
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
-                            <Clock className="h-4 w-4 shrink-0" />
-                            <span>Hours</span>
-                          </div>
-                          <p className="text-sm text-foreground break-words leading-normal">Today: {getTodayHours(branch)}</p>
+                          <span className="text-body text-slate-500 dark:text-slate-400">Hours</span>
+                          <p className="text-body text-foreground break-words leading-normal">Today: {getTodayHours(branch)}</p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Platform Links */}
-                    <div className="flex gap-2">
-                      {branch.uberEatsUrl && (
-                        <a
-                          href={branch.uberEatsUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1"
-                        >
-                          <Button variant="outline" size="sm" className="w-full">
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Uber Eats
-                          </Button>
-                        </a>
-                      )}
-                      {branch.doorDashUrl && (
-                        <a
-                          href={branch.doorDashUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1"
-                        >
-                          <Button variant="outline" size="sm" className="w-full">
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            DoorDash
-                          </Button>
-                        </a>
+                    <div className="mt-auto">
+                      {canManage && (
+                        <div className="flex items-center justify-between border-t border-border/50 pt-3">
+                          <span className="text-body font-semibold text-muted-foreground">Active Status</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-caption font-medium text-foreground">{branch.isOpen ? "Open" : "Closed"}</span>
+                            <Switch
+                              checked={branch.isOpen}
+                              disabled={isUpdating}
+                              onCheckedChange={() => handleToggleOpen(branch.branchId, branch.isOpen)}
+                            />
+                          </div>
+                        </div>
                       )}
                     </div>
-
-                    <Link href={`/admin/branches/${branch.branchId}`} className="mt-auto">
-                      <Button variant="outline" className="w-full">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Manage Branch
-                      </Button>
-                    </Link>
                   </CardContent>
                 </Card>
               </motion.div>

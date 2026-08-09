@@ -127,7 +127,7 @@ export function ImageUploader({
         ) : (
           <div className="flex flex-col items-center gap-1 p-2 text-center">
             <FileText className="h-8 w-8 text-muted-foreground" />
-            <span className="text-[9px] text-muted-foreground truncate w-20 px-1">
+            <span className="text-detail text-muted-foreground truncate w-20 px-1">
               {name}
             </span>
           </div>
@@ -178,10 +178,10 @@ export function ImageUploader({
         </div>
 
         {/* Text descriptions */}
-        <h4 className="text-sm font-semibold text-foreground mb-1">
+        <h4 className="text-body font-semibold text-foreground mb-1">
           Choose a file or drag & drop it here.
         </h4>
-        <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
+        <p className="text-caption text-muted-foreground mb-4 max-w-xs mx-auto">
           {helperText}
         </p>
 
@@ -191,7 +191,7 @@ export function ImageUploader({
           variant="outline"
           size="sm"
           disabled={disabled}
-          className="rounded-full px-5 py-1.5 h-8 text-xs border-muted-foreground/20 text-muted-foreground hover:text-foreground font-medium bg-background shadow-none"
+          className="rounded-full px-5 py-1.5 h-8 text-caption border-muted-foreground/20 text-muted-foreground hover:text-foreground font-medium bg-background shadow-none"
           onClick={(e) => {
             e.stopPropagation();
             if (!disabled) fileInputRef.current?.click();

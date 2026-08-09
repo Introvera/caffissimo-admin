@@ -134,9 +134,9 @@ export default function OffersPage() {
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate">{offer.offerName}</p>
+                        <p className="font-semibold text-body truncate">{offer.offerName}</p>
                         {offer.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                          <p className="text-caption text-muted-foreground mt-0.5 line-clamp-2">
                             {offer.description}
                           </p>
                         )}
@@ -145,7 +145,7 @@ export default function OffersPage() {
                         <Badge
                           variant="secondary"
                           className={cn(
-                            "text-[10px] font-semibold border-transparent shadow-none px-2.5 py-0.5 rounded-full",
+                            "text-detail font-semibold border-transparent shadow-none px-2.5 py-0.5 rounded-full",
                             OFFER_TYPE_COLORS[offer.offerType as OfferType]
                           )}
                         >
@@ -153,7 +153,7 @@ export default function OffersPage() {
                         </Badge>
                         <Badge
                           variant={offer.isActive && !isExpired ? "success" : "secondary"}
-                          className="text-[10px]"
+                          className="text-detail"
                         >
                           {isExpired ? "Expired" : offer.isActive ? "Active" : "Inactive"}
                         </Badge>
@@ -162,13 +162,13 @@ export default function OffersPage() {
 
                     {/* Value indicator */}
                     {discountLabel && (
-                      <div className="flex items-center gap-1 text-xs font-semibold text-primary bg-primary/5 dark:bg-primary/10 w-fit px-2 py-1 rounded-md">
+                      <div className="flex items-center gap-1 text-caption font-semibold text-primary bg-primary/5 dark:bg-primary/10 w-fit px-2 py-1 rounded-md">
                         <span>{discountLabel}</span>
                       </div>
                     )}
 
                     {/* Dates */}
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-auto">
+                    <div className="flex items-center gap-1.5 text-caption text-muted-foreground mt-auto">
                       <Calendar className="h-3.5 w-3.5 shrink-0" />
                       <span>
                         {format(parseISO(offer.startDateTime), "MMM d")}
@@ -179,7 +179,7 @@ export default function OffersPage() {
 
                     {/* Branches info */}
                     {offer.offerBranches && offer.offerBranches.length > 0 && (
-                      <p className="text-xs text-muted-foreground border-t pt-2 mt-1">
+                      <p className="text-caption text-muted-foreground border-t pt-2 mt-1">
                         Applied to <span className="font-medium text-foreground">{offer.offerBranches.length} branch{offer.offerBranches.length !== 1 ? "es" : ""}</span>
                       </p>
                     )}
@@ -223,7 +223,7 @@ export default function OffersPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-body text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
               <Button
