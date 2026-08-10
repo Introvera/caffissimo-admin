@@ -135,7 +135,7 @@ export function KPICard({
               <span className={cn("p-1.5 rounded-lg shrink-0", iconBgClass)}>
                 <Icon className="h-3.5 w-3.5" />
               </span>
-              <span className="text-caption font-semibold tracking-wider">{title}</span>
+              <span className="text-caption font-medium tracking-normal">{title}</span>
             </div>
             
             <div className="flex items-baseline gap-2 mt-3">

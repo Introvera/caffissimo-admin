@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/shared/page-header";
+import { EditBar } from "@/components/shared/edit-bar";
 import { useAppSelector } from "@/stores/store";
 import { isSuperAdmin } from "@/lib/rbac";
 import { useGetCategoriesQuery, useCreateProductMutation } from "@/stores/api/productApi";
@@ -602,18 +603,15 @@ export default function NewProductPage() {
           ))}
         </Tabs>
 
-        <div className="flex justify-end gap-4 border-t pt-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmittingForm}>
-            {isSubmittingForm ? "Creating..." : "Create Product"}
-          </Button>
-        </div>
+        <EditBar
+          isVisible={true}
+          saveButtonType="submit"
+          onCancel={() => router.back()}
+          label="New product"
+          saveLabel={isSubmittingForm ? "Creating..." : "Create Product"}
+          cancelLabel="Cancel"
+          isSaving={isSubmittingForm}
+        />
       </form>
     </div>
   );

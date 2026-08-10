@@ -27,6 +27,7 @@ import { useCreateBranchMutation } from "@/stores/api/branchApi";
 import { UserRole, BranchPurpose } from "@/types";
 import { toast } from "sonner";
 import { ImageUploader } from "@/components/ui/image-uploader";
+import { EditBar } from "@/components/shared/edit-bar";
 
 const DAYS = [
   { key: "monday", label: "Monday", index: 1 },
@@ -869,18 +870,16 @@ export default function NewBranchPage() {
             </CardContent>
           </Card>
 
-          {/* Actions panel */}
-          <div className="flex gap-3">
-            <Link href="/admin/branches" className="flex-1">
-              <Button type="button" variant="outline" className="w-full">
-                Cancel
-              </Button>
-            </Link>
-            <Button type="submit" disabled={isCreating} className="flex-1">
-              {isCreating ? "Creating..." : "Create"}
-            </Button>
-          </div>
         </div>
+      <EditBar
+        isVisible={true}
+        saveButtonType="submit"
+        onCancel={() => router.push("/admin/branches")}
+        label="New branch"
+        saveLabel={isCreating ? "Creating..." : "Create Branch"}
+        cancelLabel="Cancel"
+        isSaving={isCreating}
+      />
       </form>
         </TabsContent>
       </Tabs>

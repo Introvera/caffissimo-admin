@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/shared/page-header";
+import { EditBar } from "@/components/shared/edit-bar";
 import { useAppSelector } from "@/stores/store";
 import { isSuperAdmin, canManageProducts } from "@/lib/rbac";
 import { 
@@ -749,15 +750,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           ))}
         </Tabs>
 
-        {isEditing && (
-          <div className="flex justify-end gap-4 border-t pt-6">
-            <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmittingForm}>
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmittingForm ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        )}
+        <EditBar
+          isVisible={isEditing}
+          saveButtonType="submit"
+          onCancel={() => setIsEditing(false)}
+          label="Unsaved changes"
+          saveLabel="Save Changes"
+          cancelLabel="Cancel"
+          isSaving={isSubmittingForm}
+        />
       </form>
     </div>
   );

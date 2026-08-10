@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
+import { EditBar } from "@/components/shared/edit-bar";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { useGetProductsQuery, useGetCategoriesQuery } from "@/stores/api/productApi";
 import { useCreateOfferMutation } from "@/stores/api/offerApi";
@@ -898,15 +899,15 @@ export default function NewOfferPage() {
         </div>
       </div>
 
-      {/* Action Footer */}
-      <div className="flex justify-end gap-4 border-t pt-6">
-        <Button variant="outline" type="button" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button onClick={handleCreate} disabled={isCreating}>
-          {isCreating ? "Creating..." : "Create Offer"}
-        </Button>
-      </div>
+      <EditBar
+        isVisible={true}
+        onSave={handleCreate}
+        onCancel={() => router.back()}
+        label="New offer"
+        saveLabel={isCreating ? "Creating..." : "Create Offer"}
+        cancelLabel="Cancel"
+        isSaving={isCreating}
+      />
     </div>
   );
 }

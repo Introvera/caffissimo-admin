@@ -31,6 +31,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
+import { EditBar } from "@/components/shared/edit-bar";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { useGetProductsQuery, useGetCategoriesQuery } from "@/stores/api/productApi";
 import { useGetOfferByIdQuery, useUpdateOfferMutation } from "@/stores/api/offerApi";
@@ -954,15 +955,15 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
         </div>
       </div>
 
-      {/* Action Footer */}
-      <div className="flex justify-end gap-4 border-t pt-6">
-        <Button variant="outline" type="button" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button onClick={handleUpdate} disabled={isUpdating}>
-          {isUpdating ? "Saving..." : "Save Changes"}
-        </Button>
-      </div>
+      <EditBar
+        isVisible={true}
+        onSave={handleUpdate}
+        onCancel={() => router.back()}
+        label="Editing offer"
+        saveLabel="Save Changes"
+        cancelLabel="Cancel"
+        isSaving={isUpdating}
+      />
     </div>
   );
 }

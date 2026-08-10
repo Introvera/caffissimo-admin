@@ -183,22 +183,22 @@ export function Sidebar() {
   const userWidget = (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-lg transition-all duration-200",
+        "flex items-center transition-all duration-200 cursor-pointer",
         sidebarCollapsed
-          ? "justify-center h-12 w-12 border border-border/60 bg-background shadow-xs hover:bg-accent/30 cursor-pointer"
-          : "px-3 py-2 hover:bg-accent/40 cursor-pointer"
+          ? "justify-center h-10 w-10"
+          : "gap-3 px-3 py-2 hover:bg-accent/40 rounded-lg"
       )}
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-sm">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-xs hover:bg-primary/20 transition-all">
         {userName ? userName.charAt(0).toUpperCase() : "U"}
       </div>
       {!sidebarCollapsed && (
-        <div className="flex flex-col min-w-0 flex-1 text-left">
+        <div className="flex flex-col min-w-0 flex-1 text-left justify-center py-0.5">
           <span className="text-body font-semibold text-foreground truncate leading-tight">
             {userName}
           </span>
           {userEmail && (
-            <span className="text-caption text-muted-foreground truncate leading-tight mt-0 font-normal">
+            <span className="text-[11px] text-muted-foreground truncate leading-normal font-normal">
               {userEmail}
             </span>
           )}
@@ -218,7 +218,7 @@ export function Sidebar() {
           </TooltipTrigger>
           <TooltipContent side="right" className="flex flex-col gap-0.5 p-2 bg-popover text-popover-foreground border shadow-md rounded-lg">
             <p className="text-body font-semibold text-foreground leading-tight">{userName}</p>
-            {userEmail && <p className="text-caption text-muted-foreground leading-tight">{userEmail}</p>}
+            {userEmail && <p className="text-[11px] text-muted-foreground leading-normal">{userEmail}</p>}
           </TooltipContent>
         </Tooltip>
       );
@@ -234,12 +234,12 @@ export function Sidebar() {
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-sm">
           {userName ? userName.charAt(0).toUpperCase() : "U"}
         </div>
-        <div className="flex flex-col min-w-0 flex-1 text-left">
+        <div className="flex flex-col min-w-0 flex-1 text-left justify-center py-0.5">
           <span className="text-body font-semibold text-foreground truncate leading-tight">
             {userName}
           </span>
           {userEmail && (
-            <span className="text-caption text-muted-foreground truncate leading-tight mt-0 font-normal">
+            <span className="text-[11px] text-muted-foreground truncate leading-normal font-normal">
               {userEmail}
             </span>
           )}
@@ -311,13 +311,15 @@ export function Sidebar() {
         href={item.href}
         onClick={() => dispatch(setMobileMenuOpen(false))}
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-body font-medium transition-all hover:bg-accent",
+          "flex items-center text-body font-medium transition-all hover:bg-accent rounded-lg",
           active
             ? indent
               ? "bg-primary/10 text-primary hover:bg-primary/15 font-semibold"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
             : "text-muted-foreground hover:text-foreground",
-          collapsed && "justify-center px-2 py-2.5"
+          collapsed
+            ? "h-10 w-10 justify-center p-0 shrink-0"
+            : "gap-3 px-3 py-2 w-full"
         )}
       >
         {!indent && <Icon className="h-5 w-5 shrink-0" />}
@@ -359,10 +361,11 @@ export function Sidebar() {
           <TooltipTrigger asChild>
             <button
               className={cn(
-                "flex w-full items-center justify-center rounded-lg px-2 py-2.5 text-body font-medium transition-all hover:bg-accent",
+                "flex items-center justify-center rounded-lg text-body font-medium transition-all hover:bg-accent",
                 active
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+                collapsed ? "h-10 w-10 p-0 shrink-0" : "w-full gap-3 px-3 py-2"
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
@@ -451,8 +454,8 @@ export function Sidebar() {
     <div className="flex h-full flex-col">
       <div
         className={cn(
-          "flex h-16 items-center justify-between pl-4 pr-0 bg-background border-b border-border/30 relative",
-          collapsed && "justify-center pl-2 pr-0"
+          "flex h-16 items-center justify-between bg-background border-b border-border/30 relative",
+          collapsed ? "justify-center px-0" : "pl-4 pr-0"
         )}
       >
         {!collapsed ? (
@@ -480,8 +483,19 @@ export function Sidebar() {
           </Link>
         ) : (
           <Link href="/admin/dashboard" className="flex items-center justify-center hover:opacity-90 transition-opacity">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
-              <TbCoffee className="h-5 w-5" />
+            <div className="flex h-12 items-center justify-center px-1">
+              {logoError || !mounted ? (
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+                  <TbCoffee className="h-4 w-4" />
+                </div>
+              ) : (
+                <img
+                  src={resolvedTheme === "dark" ? "/logo/logo-dark-theme.png" : "/logo/logo-light-theme.png"}
+                  alt="Caffissimo"
+                  className="h-7 max-w-[52px] object-contain"
+                  onError={() => setLogoError(true)}
+                />
+              )}
             </div>
           </Link>
         )}
@@ -510,8 +524,8 @@ export function Sidebar() {
         )}
       </div>
 
-      <ScrollArea className={cn("flex-1 py-4", collapsed ? "pl-3 pr-0" : "px-3")}>
-        <nav className={cn("flex flex-col", collapsed ? "gap-2.5" : "gap-2")}>
+      <ScrollArea className={cn("flex-1 py-4", collapsed ? "px-0" : "px-3")}>
+        <nav className={cn("flex flex-col items-center", collapsed ? "gap-2" : "gap-1 items-stretch")}>
           {filteredEntries.map((entry) => {
             if (entry.type === "single") {
               return (
@@ -534,7 +548,7 @@ export function Sidebar() {
       </ScrollArea>
 
       {/* Sidebar Footer with Settings and User Info */}
-      <div className={cn("mt-auto py-4 flex flex-col gap-2.5", collapsed ? "pl-3 pr-0" : "px-3")}>
+      <div className={cn("mt-auto py-4 flex flex-col items-center", collapsed ? "gap-2 px-0" : "gap-2.5 px-3 items-stretch")}>
         {canAccessAdmin(currentRole) && (
           <NavLink
             item={settingsEntry}

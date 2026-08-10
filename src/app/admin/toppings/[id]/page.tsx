@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
+import { EditBar } from "@/components/shared/edit-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/stores/store";
 import { isSuperAdmin, canManageProducts } from "@/lib/rbac";
@@ -591,15 +592,15 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
           })}
         </Tabs>
 
-        {isEditing && (
-          <div className="flex justify-end gap-4 border-t pt-6">
-            <Button type="button" variant="outline" onClick={() => setIsEditing(false)} disabled={isSubmittingForm}>Cancel</Button>
-            <Button type="submit" disabled={isSubmittingForm}>
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmittingForm ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        )}
+        <EditBar
+          isVisible={isEditing}
+          saveButtonType="submit"
+          onCancel={() => setIsEditing(false)}
+          label="Unsaved changes"
+          saveLabel="Save Changes"
+          cancelLabel="Cancel"
+          isSaving={isSubmittingForm}
+        />
       </form>
     </div>
   );

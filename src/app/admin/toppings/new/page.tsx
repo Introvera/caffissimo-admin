@@ -37,6 +37,7 @@ import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { Category, Branch, UserRole, ToppingCategory } from "@/types";
 import { toast } from "sonner";
 import { ImageUploader } from "@/components/ui/image-uploader";
+import { EditBar } from "@/components/shared/edit-bar";
 
 interface ToppingFormData {
   toppingName: string;
@@ -432,13 +433,15 @@ export default function NewToppingPage() {
           })}
         </Tabs>
 
-        <div className="flex justify-end gap-4 border-t pt-6">
-          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmittingForm}>Cancel</Button>
-          <Button type="submit" disabled={isSubmittingForm}>
-            <Save className="h-4 w-4 mr-2" />
-            {isSubmittingForm ? "Creating..." : "Create Topping"}
-          </Button>
-        </div>
+        <EditBar
+          isVisible={true}
+          saveButtonType="submit"
+          onCancel={() => router.back()}
+          label="New topping"
+          saveLabel={isSubmittingForm ? "Creating..." : "Create Topping"}
+          cancelLabel="Cancel"
+          isSaving={isSubmittingForm}
+        />
       </form>
     </div>
   );
