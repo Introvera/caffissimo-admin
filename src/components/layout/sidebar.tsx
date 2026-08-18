@@ -30,6 +30,7 @@ import {
   GraduationCap,
   BookOpen,
   Cable,
+  CreditCard,
   Store,
   Truck,
   Megaphone,
@@ -47,7 +48,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { setSidebarCollapsed, setMobileMenuOpen } from "@/stores/slices/uiSlice";
-import { canAccessAdmin } from "@/lib/rbac";
+import { canAccessAdmin, isSuperAdmin } from "@/lib/rbac";
 import { UserRole } from "@/types";
 
 interface NavChild {
@@ -135,6 +136,17 @@ const navEntries: NavEntry[] = [
       { title: "Uber Eats Menus", href: "/admin/uber-eats", icon: Store },
       { title: "Uber Eats Orders", href: "/admin/uber-eats/orders", icon: Truck },
       { title: "Uber Promotions", href: "/admin/uber-eats/promotions", icon: Megaphone },
+    ],
+  },
+  {
+    type: "group",
+    title: "Payments",
+    icon: CreditCard,
+    // SuperAdmin only. The page and the API both enforce this independently; the nav
+    // gate just avoids showing a door that will not open.
+    permission: isSuperAdmin,
+    children: [
+      { title: "Merchant Accounts", href: "/admin/payments", icon: CreditCard },
     ],
   },
   {

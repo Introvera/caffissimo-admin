@@ -1448,3 +1448,69 @@ export interface CreateFridgeTemperatureReportRequest {
 
 
 
+
+// ─── ANZ Worldline merchant accounts ──────────────────────────────────────────
+//
+// One account per branch per environment. Branches settle to their own bank
+// accounts, which in Australian acquiring normally means their own MID.
+//
+// Secrets are write-only across this whole surface: they go up as plaintext once
+// and are never returned — not the value, and not the encrypted form either. The
+// list model reports only whether a secret exists and where it is held.
+
+/**
+ * ANZ environment as it travels on the wire. A string union rather than reusing the
+ * numeric `PlatformEnvironment` enum above: the backend serializes enums as strings
+ * (JsonStringEnumConverter), so sending 0 or 1 would be rejected.
+ */
+export const AnzEnvironment = {
+  Sandbox: "Sandbox",
+  Production: "Production",
+} as const;
+
+export type AnzEnvironment = (typeof AnzEnvironment)[keyof typeof AnzEnvironment];
+
+/** Where a stored secret actually lives. */
+export enum AnzSecretStorage {
+  /** Encrypted in the database, decrypted at runtime with the master key. */
+  Encrypted = "Encrypted",
+  /** A configuration key — an environment variable, user-secret or appsettings entry. */
+  Configuration = "Configuration",
+  None = "None",
+}
+
+export interface AnzMerchantAccount {
+  anzMerchantAccountId: string;
+  branchId: string;
+  branchName?: string | null;
+  environment: AnzEnvironment;
+  /** ANZ merchantId / PSPID. An identifier, not a secret. */
+  merchantId: string;
+  apiKeyId: string;
+  webhookKeyId: string;
+  defaultCurrency: string;
+  isActive: boolean;
+  hasApiSecret: boolean;
+  hasWebhookSecret: boolean;
+  apiSecretStorage: AnzSecretStorage | string;
+  webhookSecretStorage: AnzSecretStorage | string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertAnzMerchantAccountRequest {
+  branchId: string;
+  environment: AnzEnvironment;
+  merchantId: string;
+  apiKeyId: string;
+  webhookKeyId: string;
+  defaultCurrency: string;
+  isActive: boolean;
+  /**
+   * Plaintext, encrypted server-side before storage. Omit on update to leave the
+   * stored secret untouched — ANZ shows a secret once, so correcting a merchant id
+   * must not require re-entering one nobody has any more.
+   */
+  apiSecret?: string;
+  webhookSecret?: string;
+}
