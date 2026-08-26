@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/shared/page-header";
+import { EditBar } from "@/components/shared/edit-bar";
 import { useAppSelector } from "@/stores/store";
 import { isSuperAdmin } from "@/lib/rbac";
 import { useGetCategoriesQuery, useCreateProductMutation } from "@/stores/api/productApi";
@@ -279,7 +280,7 @@ export default function NewProductPage() {
             <TabsList className="bg-transparent h-auto p-0 gap-0 justify-start flex-1">
               <TabsTrigger 
                 value="base" 
-                className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+                className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
               >
                 Base
               </TabsTrigger>
@@ -289,7 +290,7 @@ export default function NewProductPage() {
                   <TabsTrigger 
                     key={config.branchId} 
                     value={`branch-${config.branchId}`}
-                    className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary flex items-center gap-1.5"
+                    className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary flex items-center gap-1.5"
                   >
                     {b?.branchName.replace("Caffissimo", "").trim() || "Branch"}
                     {isSuper && <X className="h-3 w-3 hover:text-destructive z-10" onClick={(e) => removeBranchConfig(config.branchId, e)} />}
@@ -335,7 +336,7 @@ export default function NewProductPage() {
                       {...register("name")}
                     />
                     {errors.name && (
-                      <p className="text-sm text-destructive">{errors.name.message as string}</p>
+                      <p className="text-body text-destructive">{errors.name.message as string}</p>
                     )}
                   </div>
 
@@ -348,7 +349,7 @@ export default function NewProductPage() {
                       {...register("description")}
                     />
                     {errors.description && (
-                      <p className="text-sm text-destructive">
+                      <p className="text-body text-destructive">
                         {errors.description.message as string}
                       </p>
                     )}
@@ -372,7 +373,7 @@ export default function NewProductPage() {
                       </SelectContent>
                     </Select>
                     {errors.categoryId && (
-                      <p className="text-sm text-destructive">
+                      <p className="text-body text-destructive">
                         {errors.categoryId.message as string}
                       </p>
                     )}
@@ -392,7 +393,7 @@ export default function NewProductPage() {
                       />
                     </div>
                     {errors.price && (
-                      <p className="text-sm text-destructive">{errors.price.message as string}</p>
+                      <p className="text-body text-destructive">{errors.price.message as string}</p>
                     )}
                   </div>
                 </CardContent>
@@ -422,14 +423,14 @@ export default function NewProductPage() {
                 </CardHeader>
                 <CardContent>
                   {selectedToppingIds.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No toppings assigned.</p>
+                    <p className="text-body text-muted-foreground">No toppings assigned.</p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {selectedToppingIds.map(id => {
                         const topping = allToppings.find(t => t.toppingId === id);
                         if (!topping) return null;
                         return (
-                          <Badge key={id} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-3">
+                          <Badge key={id} variant="secondary" className="flex items-center gap-1 text-body py-1 px-3">
                             {topping.toppingName}
                             <X className="h-3 w-3 cursor-pointer hover:text-destructive ml-1" onClick={() => setSelectedToppingIds(prev => prev.filter(tid => tid !== id))} />
                           </Badge>
@@ -480,7 +481,7 @@ export default function NewProductPage() {
                       <CardTitle className="flex justify-between items-center">
                         Branch Settings
                         <div className="flex items-center gap-2">
-                          <Label className="text-sm font-normal">Active</Label>
+                          <Label className="text-body font-normal">Active</Label>
                           <Switch 
                             checked={branchConf.isActive} 
                             onCheckedChange={(val) => updateBranchConfig(branchConf.branchId, { isActive: val })} 
@@ -533,7 +534,7 @@ export default function NewProductPage() {
                         >
                           <TabsList className="w-full flex justify-start bg-transparent border-b border-border rounded-none h-auto p-0 gap-0 overflow-x-auto">
                             {branchConf.variants.map((v, idx) => (
-                              <TabsTrigger key={v.id} value={v.id} className="relative rounded-none bg-transparent border-0 shadow-none px-3 pb-2.5 pt-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary min-w-[70px]">
+                              <TabsTrigger key={v.id} value={v.id} className="relative rounded-none bg-transparent border-0 shadow-none px-3 pb-2.5 pt-1.5 text-caption font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary min-w-[70px]">
                                 {v.variantName || `Variant ${idx + 1}`}
                               </TabsTrigger>
                             ))}
@@ -592,7 +593,7 @@ export default function NewProductPage() {
                           ))}
                         </Tabs>
                       ) : (
-                        <p className="text-sm text-muted-foreground">No variants added.</p>
+                        <p className="text-body text-muted-foreground">No variants added.</p>
                       )}
                     </CardContent>
                   </Card>
@@ -602,18 +603,15 @@ export default function NewProductPage() {
           ))}
         </Tabs>
 
-        <div className="flex justify-end gap-4 border-t pt-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmittingForm}>
-            {isSubmittingForm ? "Creating..." : "Create Product"}
-          </Button>
-        </div>
+        <EditBar
+          isVisible={true}
+          saveButtonType="submit"
+          onCancel={() => router.back()}
+          label="New product"
+          saveLabel={isSubmittingForm ? "Creating..." : "Create Product"}
+          cancelLabel="Cancel"
+          isSaving={isSubmittingForm}
+        />
       </form>
     </div>
   );

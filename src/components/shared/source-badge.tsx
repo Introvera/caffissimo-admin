@@ -20,7 +20,7 @@ export function SourceBadge({ source, className }: SourceBadgeProps) {
   const config = sourceConfig[source];
 
   return (
-    <span className={cn("inline-block rounded-md px-2.5 py-1 text-xs font-medium", config.colors, className)}>
+    <span className={cn("inline-block rounded-md px-2.5 py-1 text-caption font-medium", config.colors, className)}>
       {config.label}
     </span>
   );

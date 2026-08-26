@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/shared/page-header";
+import { EditBar } from "@/components/shared/edit-bar";
 import { useAppSelector } from "@/stores/store";
 import { isSuperAdmin, canManageProducts } from "@/lib/rbac";
 import { 
@@ -483,7 +484,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             <TabsList className="bg-transparent h-auto p-0 gap-0 justify-start flex-1">
               <TabsTrigger 
                 value="base" 
-                className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+                className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
               >
                 Base
               </TabsTrigger>
@@ -493,7 +494,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   <TabsTrigger 
                     key={config.branchId} 
                     value={`branch-${config.branchId}`}
-                    className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary flex items-center gap-1.5"
+                    className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary flex items-center gap-1.5"
                   >
                     {b?.branchName.replace("Caffissimo", "").trim() || "Branch"}
                     {isSuper && isEditing && <X className="h-3 w-3 hover:text-destructive z-10" onClick={(e) => removeBranchConfig(config.branchId, e)} />}
@@ -533,12 +534,12 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                     <div className="space-y-2">
                       <Label htmlFor="name">Product Name</Label>
                       <Input id="name" disabled={isBaseFormDisabled} {...register("name")} />
-                      {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
+                      {errors.name && <p className="text-body text-destructive">{errors.name.message as string}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
                       <Textarea id="description" disabled={isBaseFormDisabled} rows={4} {...register("description")} />
-                      {errors.description && <p className="text-sm text-destructive">{errors.description.message as string}</p>}
+                      {errors.description && <p className="text-body text-destructive">{errors.description.message as string}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
@@ -550,7 +551,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                           ))}
                         </SelectContent>
                       </Select>
-                      {errors.categoryId && <p className="text-sm text-destructive">{errors.categoryId.message as string}</p>}
+                      {errors.categoryId && <p className="text-body text-destructive">{errors.categoryId.message as string}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -567,7 +568,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                           {...register("price", { valueAsNumber: true })}
                         />
                       </div>
-                      {errors.price && <p className="text-sm text-destructive">{errors.price.message as string}</p>}
+                      {errors.price && <p className="text-body text-destructive">{errors.price.message as string}</p>}
                     </div>
                      <div className="space-y-2 flex flex-col justify-center mt-4 pt-4 border-t">
                        <Label>Active</Label>
@@ -601,14 +602,14 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   </CardHeader>
                   <CardContent>
                     {selectedToppingIds.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No toppings assigned.</p>
+                      <p className="text-body text-muted-foreground">No toppings assigned.</p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {selectedToppingIds.map(id => {
                           const topping = allToppings.find(t => t.toppingId === id);
                           if (!topping) return null;
                           return (
-                            <Badge key={id} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-3">
+                            <Badge key={id} variant="secondary" className="flex items-center gap-1 text-body py-1 px-3">
                               {topping.toppingName}
                               {!isBaseFormDisabled && (
                                 <X className="h-3 w-3 cursor-pointer hover:text-destructive ml-1" onClick={() => setSelectedToppingIds(prev => prev.filter(tid => tid !== id))} />
@@ -652,7 +653,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                       <CardTitle className="flex justify-between items-center">
                         Branch Settings
                         <div className="flex items-center gap-2">
-                          <Label className="text-sm font-normal">Active</Label>
+                          <Label className="text-body font-normal">Active</Label>
                           <Switch disabled={isFormDisabled} checked={branchConf.isActive} onCheckedChange={(val) => updateBranchConfig(branchConf.branchId, { isActive: val })} />
                         </div>
                       </CardTitle>
@@ -692,7 +693,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                         >
                           <TabsList className="w-full flex justify-start bg-transparent border-b border-border rounded-none h-auto p-0 gap-0 overflow-x-auto">
                             {branchConf.variants.map((v, idx) => (
-                              <TabsTrigger key={v.id} value={v.id} className="relative rounded-none bg-transparent border-0 shadow-none px-3 pb-2.5 pt-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary min-w-[70px]">
+                              <TabsTrigger key={v.id} value={v.id} className="relative rounded-none bg-transparent border-0 shadow-none px-3 pb-2.5 pt-1.5 text-caption font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary min-w-[70px]">
                                 {v.variantName || `Variant ${idx + 1}`}
                               </TabsTrigger>
                             ))}
@@ -739,7 +740,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                           ))}
                         </Tabs>
                       ) : (
-                        <p className="text-sm text-muted-foreground">No variants added.</p>
+                        <p className="text-body text-muted-foreground">No variants added.</p>
                       )}
                     </CardContent>
                   </Card>
@@ -749,15 +750,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           ))}
         </Tabs>
 
-        {isEditing && (
-          <div className="flex justify-end gap-4 border-t pt-6">
-            <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmittingForm}>
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmittingForm ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        )}
+        <EditBar
+          isVisible={isEditing}
+          saveButtonType="submit"
+          onCancel={() => setIsEditing(false)}
+          label="Unsaved changes"
+          saveLabel="Save Changes"
+          cancelLabel="Cancel"
+          isSaving={isSubmittingForm}
+        />
       </form>
     </div>
   );

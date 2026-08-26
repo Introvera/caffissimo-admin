@@ -221,8 +221,8 @@ export default function ReportsPage() {
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Sales</p>
-                <p className="text-2xl font-bold">{formatCurrency(totals.total)}</p>
+                <p className="text-body text-muted-foreground">Total Sales</p>
+                <p className="text-h2 font-bold">{formatCurrency(totals.total)}</p>
               </div>
             </div>
           </CardContent>
@@ -234,8 +234,8 @@ export default function ReportsPage() {
                 <BarChart3 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Orders</p>
-                <p className="text-2xl font-bold">{totals.orders}</p>
+                <p className="text-body text-muted-foreground">Total Orders</p>
+                <p className="text-h2 font-bold">{totals.orders}</p>
               </div>
             </div>
           </CardContent>
@@ -247,8 +247,8 @@ export default function ReportsPage() {
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Avg Order Value</p>
-                <p className="text-2xl font-bold">{formatCurrency(totals.avg)}</p>
+                <p className="text-body text-muted-foreground">Avg Order Value</p>
+                <p className="text-h2 font-bold">{formatCurrency(totals.avg)}</p>
               </div>
             </div>
           </CardContent>
@@ -275,8 +275,8 @@ export default function ReportsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dailySummary}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis tickFormatter={(v) => `$${v}`} className="text-xs" />
+                    <XAxis dataKey="date" className="text-caption" />
+                    <YAxis tickFormatter={(v) => `$${v}`} className="text-caption" />
                     <Tooltip
                       formatter={(value) => formatCurrency(Number(value))}
                       contentStyle={{
@@ -334,7 +334,7 @@ export default function ReportsPage() {
               </Table>
               {dailySummary.length > DAILY_PAGE_SIZE && (
                 <div className="flex items-center justify-between border-t pt-4 mt-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body text-muted-foreground">
                     Showing {dailyPage * DAILY_PAGE_SIZE + 1}–{Math.min((dailyPage + 1) * DAILY_PAGE_SIZE, dailySummary.length)} of {dailySummary.length} days
                   </p>
                   <div className="flex items-center gap-2">
@@ -376,8 +376,8 @@ export default function ReportsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={branchComparison} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
-                      <XAxis type="number" tickFormatter={(v) => `$${v}`} className="text-xs" />
-                      <YAxis type="category" dataKey="name" width={100} className="text-xs" />
+                      <XAxis type="number" tickFormatter={(v) => `$${v}`} className="text-caption" />
+                      <YAxis type="category" dataKey="name" width={100} className="text-caption" />
                       <Tooltip
                         formatter={(value) => formatCurrency(Number(value))}
                         contentStyle={{

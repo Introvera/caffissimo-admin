@@ -71,8 +71,10 @@ export function KPICard({
   }
 
   // Define professional color configurations based on title or trend
+  const isCancelled = title.toLowerCase().includes("cancelled");
+  const isAvgPrice = title.toLowerCase().includes("avg") || title.toLowerCase().includes("average") || title.toLowerCase().includes("price");
   const isRevenue = title.toLowerCase().includes("revenue") || title.toLowerCase().includes("sales") || title.toLowerCase().includes("earning");
-  const isOrders = title.toLowerCase().includes("order");
+  const isOrders = title.toLowerCase().includes("order") && !isCancelled && !isAvgPrice;
   const isCustomers = title.toLowerCase().includes("user") || title.toLowerCase().includes("customer");
   
   let cardBgClass = "bg-card border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
@@ -83,6 +85,16 @@ export function KPICard({
     cardBgClass = "bg-gradient-to-br from-amber-500 to-amber-600 dark:from-amber-600 dark:to-amber-700 text-white border-transparent shadow-[0_4px_20px_-4px_rgba(217,119,6,0.3)]";
     iconBgClass = "bg-white/20 text-white border border-white/10";
     sparklineColor = "#ffffff";
+  } else if (isCancelled) {
+    // Soft red theme for cancelled
+    cardBgClass = "bg-gradient-to-b from-card to-red-50/20 dark:to-red-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
+    iconBgClass = "bg-red-500/10 text-red-600 dark:text-red-400";
+    sparklineColor = "#EF4444";
+  } else if (isAvgPrice) {
+    // Soft orange/amber theme for average price
+    cardBgClass = "bg-gradient-to-b from-card to-orange-50/20 dark:to-orange-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
+    iconBgClass = "bg-orange-500/10 text-orange-600 dark:text-orange-400";
+    sparklineColor = "#F97316";
   } else if (isRevenue) {
     // Beautiful subtle emerald theme
     cardBgClass = "bg-gradient-to-b from-card to-emerald-50/20 dark:to-emerald-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
@@ -123,15 +135,15 @@ export function KPICard({
               <span className={cn("p-1.5 rounded-lg shrink-0", iconBgClass)}>
                 <Icon className="h-3.5 w-3.5" />
               </span>
-              <span className="text-[11px] font-semibold tracking-wider uppercase">{title}</span>
+              <span className="text-caption font-medium tracking-normal">{title}</span>
             </div>
             
             <div className="flex items-baseline gap-2 mt-3">
-              <p className="text-2xl font-bold tracking-tight">{displayValue}</p>
+              <p className="text-h2 font-bold tracking-tight">{displayValue}</p>
               {trend && (
                 <span
                   className={cn(
-                    "flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                    "flex items-center text-detail font-bold px-1.5 py-0.5 rounded-full",
                     featured 
                       ? "bg-white/20 text-white" 
                       : trend.value >= 0
@@ -151,7 +163,7 @@ export function KPICard({
             
             {subtitle && (
               <p className={cn(
-                "text-[10px] mt-1.5",
+                "text-detail mt-1.5",
                 featured ? "text-white/60" : "text-muted-foreground"
               )}>
                 {subtitle}

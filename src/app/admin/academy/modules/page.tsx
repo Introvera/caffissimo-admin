@@ -283,8 +283,8 @@ export default function AcademyModulesPage() {
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div>
-                    <p className="text-sm font-medium">Active</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-body font-medium">Active</p>
+                    <p className="text-caption text-muted-foreground">
                       Make this module visible to employees immediately
                     </p>
                   </div>
@@ -396,8 +396,8 @@ export default function AcademyModulesPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <p className="text-sm font-medium">Active</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body font-medium">Active</p>
+                <p className="text-caption text-muted-foreground">
                   Whether employees can see and take this module
                 </p>
               </div>
@@ -478,11 +478,11 @@ function ModuleCard({
               <BookOpen className="h-4.5 w-4.5" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-sm text-foreground leading-snug line-clamp-2">
+              <h3 className="font-semibold text-body text-foreground leading-snug line-clamp-2">
                 {module.title}
               </h3>
               {module.description && (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                <p className="text-caption text-muted-foreground mt-0.5 line-clamp-2">
                   {module.description}
                 </p>
               )}
@@ -538,7 +538,7 @@ function ModuleCard({
       <CardContent className="px-4 pb-4 mt-auto">
         <div className="flex items-center justify-between">
           {/* Stats */}
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 text-caption text-muted-foreground">
             {module.moduleType === TrainingModuleType.External ? (
               <span className="flex items-center gap-1">
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -562,7 +562,7 @@ function ModuleCard({
             {/* Module Type badge */}
             <Badge
               variant="outline"
-              className={`text-[10px] px-1.5 py-0 border-0 ${
+              className={`text-detail px-1.5 py-0 border-0 ${
                 module.moduleType === TrainingModuleType.External
                   ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
                   : "bg-blue-500/10 text-blue-700 dark:text-blue-300"
@@ -574,7 +574,7 @@ function ModuleCard({
             {/* Status badge */}
             <Badge
               variant={module.isActive ? "default" : "secondary"}
-              className={`text-[10px] px-1.5 py-0 ${
+              className={`text-detail px-1.5 py-0 ${
                 module.isActive
                   ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
                   : ""

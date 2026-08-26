@@ -87,7 +87,7 @@ function StatusBadge({ status }: { status: TrainingQualificationStatus }) {
   const cfg = statusConfig[status];
   const Icon = cfg.icon;
   return (
-    <Badge variant="outline" className={`gap-1 text-xs px-2 py-0.5 ${cfg.className}`}>
+    <Badge variant="outline" className={`gap-1 text-caption px-2 py-0.5 ${cfg.className}`}>
       <Icon className="h-3 w-3" />
       {cfg.label}
     </Badge>
@@ -206,7 +206,7 @@ export default function AcademyProgressPage() {
             </div>
             <div>
               <p className="font-semibold text-foreground">No branch selected</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-body text-muted-foreground mt-1">
                 Use the branch selector in the top navigation bar to pick a branch and view its training progress.
               </p>
             </div>
@@ -270,8 +270,8 @@ export default function AcademyProgressPage() {
                       <Icon className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <p className="text-xl font-bold text-foreground">{count}</p>
-                      <p className="text-xs text-muted-foreground">{cfg.label}</p>
+                      <p className="text-h3 font-bold text-foreground">{count}</p>
+                      <p className="text-caption text-muted-foreground">{cfg.label}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -288,7 +288,7 @@ export default function AcademyProgressPage() {
             value={statusFilter}
             onValueChange={(val) => setStatusFilter(val as TrainingQualificationStatus | "all")}
           >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -345,12 +345,12 @@ export default function AcademyProgressPage() {
                 {filtered.map((row, idx) => (
                   <TableRow key={`${row.employeeId}-${row.trainingModuleId}-${idx}`}>
                     <TableCell>
-                      <span className="font-medium text-sm text-foreground">
+                      <span className="font-medium text-body text-foreground">
                         {row.trainingModuleTitle}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-muted-foreground font-mono">
+                      <span className="text-body text-muted-foreground font-mono">
                         {row.employeeId.slice(0, 8)}…
                       </span>
                     </TableCell>
@@ -378,12 +378,12 @@ export default function AcademyProgressPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-body text-muted-foreground">
                         {row.passedAt ? formatDate(row.passedAt) : "—"}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-body text-muted-foreground">
                         {formatDate(row.updatedAt)}
                       </span>
                     </TableCell>
@@ -395,7 +395,7 @@ export default function AcademyProgressPage() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   Page{" "}
                   <span className="font-medium text-foreground">{page}</span> of{" "}
                   <span className="font-medium text-foreground">{totalPages}</span>
@@ -424,7 +424,7 @@ export default function AcademyProgressPage() {
                         key={pg}
                         variant={page === pg ? "default" : "outline"}
                         size="sm"
-                        className="h-8 w-8 p-0 text-xs"
+                        className="h-8 w-8 p-0 text-caption"
                         onClick={() => setPage(pg)}
                         id={`progress-page-${pg}`}
                       >
@@ -465,7 +465,7 @@ export default function AcademyProgressPage() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : certsList.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-6">
+              <p className="text-center text-body text-muted-foreground py-6">
                 No certificate uploads found for this module.
               </p>
             ) : (
@@ -474,10 +474,10 @@ export default function AcademyProgressPage() {
                   <Card key={cert.employeeTrainingCertificateId} className="border border-border/80 shadow-none">
                     <CardContent className="p-3 flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium truncate" title={cert.originalFileName}>
+                        <p className="text-body font-medium truncate" title={cert.originalFileName}>
                           {cert.originalFileName}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-caption text-muted-foreground mt-0.5">
                           Size: {(cert.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB · Uploaded: {formatDate(cert.uploadedAt)}
                         </p>
                       </div>
@@ -485,7 +485,7 @@ export default function AcademyProgressPage() {
                         href={cert.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 flex items-center justify-center h-8 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium transition-colors"
+                        className="shrink-0 flex items-center justify-center h-8 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-caption font-medium transition-colors"
                       >
                         <ExternalLink className="h-3.5 w-3.5 mr-1" />
                         View

@@ -51,7 +51,7 @@ export function Calendar({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <span className="text-sm font-semibold text-foreground">
+        <span className="text-body font-semibold text-foreground">
           {format(currentMonth, "MMMM yyyy")}
         </span>
         <Button
@@ -73,7 +73,7 @@ export function Calendar({
         {days.map((day) => (
           <div
             key={day}
-            className="text-xs text-muted-foreground font-medium py-1.5"
+            className="text-caption text-muted-foreground font-medium py-1.5"
           >
             {day}
           </div>
@@ -104,9 +104,9 @@ export function Calendar({
           <button
             key={day.toString()}
             className={cn(
-              "h-8 w-8 text-center text-xs p-0 font-medium rounded-md transition-colors mx-auto flex items-center justify-center relative",
+              "h-8 w-8 text-center text-caption p-0 font-medium rounded-md transition-colors mx-auto flex items-center justify-center relative",
               !isCurrentMonth && "text-muted-foreground opacity-30",
-              isSelected && "bg-primary text-primary-foreground font-bold shadow-sm",
+              isSelected && "bg-primary text-primary-foreground font-semibold shadow-sm",
               !isSelected && isCurrentMonth && "hover:bg-accent text-foreground",
               isDisabled && "opacity-20 cursor-not-allowed"
             )}
@@ -259,9 +259,9 @@ export function DateRangeCalendar({
             key={day.toString()}
             type="button"
             className={cn(
-              "h-8 w-8 text-center text-xs p-0 font-medium transition-colors mx-auto flex items-center justify-center relative rounded-md",
+              "h-8 w-8 text-center text-caption p-0 font-medium transition-colors mx-auto flex items-center justify-center relative rounded-md",
               !isCurrentMonth && "text-muted-foreground opacity-30",
-              (isFrom || isTo) && "bg-primary text-primary-foreground font-bold shadow-sm rounded-md",
+              (isFrom || isTo) && "bg-primary text-primary-foreground font-semibold shadow-sm rounded-md",
               isInRange && !isFrom && !isTo && "bg-primary/10 text-primary rounded-none",
               // Handle range edge styling
               isInRange && isFrom && "rounded-r-none rounded-l-md",
@@ -298,7 +298,7 @@ export function DateRangeCalendar({
           ) : (
             <div className="w-7 h-7" />
           )}
-          <span className="text-sm font-semibold text-foreground">
+          <span className="text-body font-semibold text-foreground">
             {format(currentMonth, "MMMM yyyy")}
           </span>
           {!isLeft ? (
@@ -316,7 +316,7 @@ export function DateRangeCalendar({
         </div>
         <div className="grid grid-cols-7 text-center mb-1">
           {daysHeader.map((d) => (
-            <div key={d} className="text-xs text-muted-foreground font-medium py-1">
+            <div key={d} className="text-caption text-muted-foreground font-medium py-1">
               {d}
             </div>
           ))}
@@ -348,7 +348,7 @@ export function DateRangeCalendar({
               type="button"
               onClick={() => handlePreset(preset)}
               className={cn(
-                "w-full text-left px-3 py-1.5 text-xs font-semibold rounded-md transition-colors hover:bg-accent",
+                "w-full text-left px-3 py-1.5 text-caption font-semibold rounded-md transition-colors hover:bg-accent",
                 "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -374,17 +374,17 @@ export function DateRangeCalendar({
                 readOnly
                 placeholder="Start Date"
                 value={tempFrom ? format(tempFrom, "MMM dd, yyyy") : ""}
-                className="flex h-9 w-[120px] rounded-md border border-input bg-background text-foreground px-3 py-1.5 text-xs font-semibold ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-[120px] rounded-md border border-input bg-background text-foreground px-3 py-1.5 text-caption font-semibold ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
-            <span className="text-xs text-muted-foreground font-semibold">—</span>
+            <span className="text-caption text-muted-foreground font-semibold">—</span>
             <div className="relative">
               <input
                 type="text"
                 readOnly
                 placeholder="End Date"
                 value={tempTo ? format(tempTo, "MMM dd, yyyy") : ""}
-                className="flex h-9 w-[120px] rounded-md border border-input bg-background text-foreground px-3 py-1.5 text-xs font-semibold ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-[120px] rounded-md border border-input bg-background text-foreground px-3 py-1.5 text-caption font-semibold ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
           </div>
@@ -393,14 +393,14 @@ export function DateRangeCalendar({
             <Button
               variant="outline"
               size="sm"
-              className="h-8 text-xs font-semibold rounded-md"
+              className="h-8 text-caption font-semibold rounded-md"
               onClick={onCancel}
             >
               Cancel
             </Button>
             <Button
               size="sm"
-              className="h-8 text-xs font-semibold rounded-md bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="h-8 text-caption font-semibold rounded-md bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={!tempFrom || !tempTo}
               onClick={handleApply}
             >

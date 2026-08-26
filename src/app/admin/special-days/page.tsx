@@ -327,7 +327,7 @@ export default function SpecialDaysPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Active status filter */}
           <Select value={filterActive} onValueChange={(val) => { setFilterActive(val); setPage(1); }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -339,7 +339,7 @@ export default function SpecialDaysPage() {
 
           {/* Category filter */}
           <Select value={filterCategory} onValueChange={(val) => { setFilterCategory(val); setPage(1); }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -432,14 +432,14 @@ export default function SpecialDaysPage() {
                         <div className="p-2 rounded-lg bg-white/20 backdrop-blur-md text-white border border-white/20">
                           <CategoryIcon className="h-4.5 w-4.5" />
                         </div>
-                        <span className="text-sm font-bold text-white tracking-wide">
+                        <span className="text-body font-bold text-white tracking-wide">
                           {config.label}
                         </span>
                       </div>
 
                       {/* Top-Right Badges & Actions */}
                       <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5">
-                        <Badge variant={day.isActive && !isExpired ? "default" : "secondary"} className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full ${day.isActive && !isExpired ? config.badge : ""}`}>
+                        <Badge variant={day.isActive && !isExpired ? "default" : "secondary"} className={`text-detail font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full ${day.isActive && !isExpired ? config.badge : ""}`}>
                           {isExpired ? "Expired" : day.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </div>
@@ -448,13 +448,13 @@ export default function SpecialDaysPage() {
                     {/* Description/Info Area */}
                     <CardContent className="p-4 flex-1 flex flex-col gap-3 justify-between">
                       <div className="space-y-1">
-                        <div className="flex items-center text-xs text-muted-foreground gap-1.5">
+                        <div className="flex items-center text-caption text-muted-foreground gap-1.5">
                           <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                           <span>Timeline</span>
                         </div>
-                        <p className="text-sm font-medium tracking-tight leading-normal text-foreground">
+                        <p className="text-body font-medium tracking-tight leading-normal text-foreground">
                           {format(parseISO(day.startDate), "MMM dd, yyyy h:mm a")}
-                          <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                          <span className="block text-caption font-normal text-muted-foreground mt-0.5">
                             to {format(parseISO(day.endDate), "MMM dd, yyyy h:mm a")}
                           </span>
                         </p>
@@ -471,7 +471,7 @@ export default function SpecialDaysPage() {
                               title={day.isActive ? "Toggle Inactive" : "Toggle Active"}
                             />
                           )}
-                          <span className="text-xs text-muted-foreground font-medium">
+                          <span className="text-caption text-muted-foreground font-medium">
                             {day.isActive ? "Active overlay" : "Inactive overlay"}
                           </span>
                         </div>
@@ -516,7 +516,7 @@ export default function SpecialDaysPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm font-medium text-muted-foreground">
+              <span className="text-body font-medium text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
               <Button
@@ -659,7 +659,7 @@ export default function SpecialDaysPage() {
             <div className="flex items-center justify-between border-t dark:border-zinc-800 pt-4">
               <div className="space-y-0.5">
                 <Label htmlFor="modalActive">Active Immediately</Label>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-detail text-muted-foreground">
                   Seasonal branding will render on the customer apps as soon as the start date kicks off.
                 </p>
               </div>

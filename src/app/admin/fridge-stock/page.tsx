@@ -182,7 +182,7 @@ export default function FridgeStockPage() {
                     <Label>Fridge Temperatures (°F)</Label>
                     {FRIDGE_UNITS.map((unit) => (
                       <div key={unit} className="flex items-center gap-3">
-                        <span className="flex-1 text-sm">{unit}</span>
+                        <span className="flex-1 text-body">{unit}</span>
                         <div className="relative w-24">
                           <Input
                             type="number"
@@ -197,7 +197,7 @@ export default function FridgeStockPage() {
                               }))
                             }
                           />
-                          <span className="absolute right-2.5 top-2.5 text-xs text-muted-foreground">°F</span>
+                          <span className="absolute right-2.5 top-2.5 text-caption text-muted-foreground">°F</span>
                         </div>
                       </div>
                     ))}
@@ -269,7 +269,7 @@ export default function FridgeStockPage() {
                           <Calendar className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <CardTitle className="text-base">
+                          <CardTitle className="text-body">
                             {formatDate(report.date)}
                           </CardTitle>
                           <CardDescription>
@@ -286,8 +286,8 @@ export default function FridgeStockPage() {
                           key={entry.name}
                           className={`text-center p-3 rounded-lg ${getTemperatureColor(entry.temperature)}`}
                         >
-                          <p className="text-2xl font-bold">{entry.temperature}°F</p>
-                          <p className="text-xs line-clamp-2 mt-1">
+                          <p className="text-h2 font-bold">{entry.temperature}°F</p>
+                          <p className="text-caption line-clamp-2 mt-1">
                             {entry.name}
                           </p>
                         </div>
@@ -295,7 +295,7 @@ export default function FridgeStockPage() {
                     </div>
                     {report.notes && (
                       <div className="mt-4 p-3 rounded-lg bg-muted/50">
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-body text-muted-foreground">
                           <FileText className="h-4 w-4 inline mr-1" />
                           {report.notes}
                         </p>

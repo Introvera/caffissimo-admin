@@ -116,7 +116,7 @@ export default function UberEatsOrderDetailPage({
           <Button variant="ghost" size="sm" onClick={() => router.push("/admin/uber-eats/orders")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Orders
           </Button>
-          <h1 className="text-2xl font-bold font-mono">
+          <h1 className="text-h2 font-bold font-mono">
             #{order.displayId ?? order.uberOrderId.slice(0, 5).toUpperCase()}
           </h1>
           <Badge variant={stateVariant(order.currentState)}>
@@ -134,11 +134,11 @@ export default function UberEatsOrderDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1">
+            <CardTitle className="text-body flex items-center gap-1">
               <ShoppingBag className="h-4 w-4" /> Order Info
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
+          <CardContent className="space-y-1 text-body">
             <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span>{order.fulfillmentType ?? order.orderType ?? "-"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Brand</span><span>{order.brand ?? "UBER_EATS"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Placed</span><span>{formatDate(order.createdAt)}</span></div>
@@ -154,18 +154,18 @@ export default function UberEatsOrderDetailPage({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1">
+            <CardTitle className="text-body flex items-center gap-1">
               <User className="h-4 w-4" /> Customer
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
+          <CardContent className="space-y-1 text-body">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Name</span>
               <span>{[order.eaterFirstName, order.eaterLastName].filter(Boolean).join(" ") || order.customerName || "-"}</span>
             </div>
             <div className="flex justify-between"><span className="text-muted-foreground">Phone</span><span>{order.eaterPhone ?? "-"}</span></div>
             {order.specialInstructions && (
-              <div className="mt-2 p-2 bg-muted rounded text-xs">
+              <div className="mt-2 p-2 bg-muted rounded text-caption">
                 <span className="font-medium">Note: </span>{order.specialInstructions}
               </div>
             )}
@@ -174,11 +174,11 @@ export default function UberEatsOrderDetailPage({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1">
+            <CardTitle className="text-body flex items-center gap-1">
               <Truck className="h-4 w-4" /> Delivery
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
+          <CardContent className="space-y-1 text-body">
             <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span>{order.deliveryState ?? "-"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Driver</span><span>{order.deliveryDriverName ?? "-"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Est. Pickup</span><span>{formatDate(order.estimatedPickupTime)}</span></div>
@@ -189,7 +189,7 @@ export default function UberEatsOrderDetailPage({
       {/* Items */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Order Items ({order.items.length})</CardTitle>
+          <CardTitle className="text-body">Order Items ({order.items.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -203,7 +203,7 @@ export default function UberEatsOrderDetailPage({
                     {item.modifiers.length > 0 && (
                       <div className="ml-4 mt-1 space-y-0.5">
                         {item.modifiers.map((mod) => (
-                          <div key={mod.uberOrderStagingItemModifierId} className="text-sm text-muted-foreground flex justify-between gap-8">
+                          <div key={mod.uberOrderStagingItemModifierId} className="text-body text-muted-foreground flex justify-between gap-8">
                             <span>+ {mod.title} {mod.quantity > 1 ? `x${mod.quantity}` : ""}</span>
                             {mod.totalPrice > 0 && <span>{formatMoney(mod.totalPrice, currency)}</span>}
                           </div>
@@ -211,7 +211,7 @@ export default function UberEatsOrderDetailPage({
                       </div>
                     )}
                     {item.specialInstructions && (
-                      <div className="ml-4 mt-1 text-xs text-muted-foreground italic">
+                      <div className="ml-4 mt-1 text-caption text-muted-foreground italic">
                         &quot;{item.specialInstructions}&quot;
                       </div>
                     )}
@@ -219,7 +219,7 @@ export default function UberEatsOrderDetailPage({
                   <div className="text-right shrink-0">
                     <div className="font-medium">{formatMoney(item.totalPrice, currency)}</div>
                     {item.quantity > 1 && (
-                      <div className="text-xs text-muted-foreground">{formatMoney(item.unitPrice, currency)} each</div>
+                      <div className="text-caption text-muted-foreground">{formatMoney(item.unitPrice, currency)} each</div>
                     )}
                   </div>
                 </div>
@@ -234,7 +234,7 @@ export default function UberEatsOrderDetailPage({
       {(order.discountTotal > 0 || order.promotionSummary) && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-body flex items-center gap-2">
               <Tag className="h-4 w-4" />
               Promotions Applied
             </CardTitle>
@@ -243,9 +243,9 @@ export default function UberEatsOrderDetailPage({
             <div className="flex items-center justify-between">
               <div>
                 {order.promotionSummary ? (
-                  <p className="text-sm">{order.promotionSummary}</p>
+                  <p className="text-body">{order.promotionSummary}</p>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Discount applied</p>
+                  <p className="text-body text-muted-foreground">Discount applied</p>
                 )}
               </div>
               <span className="font-semibold text-destructive">
@@ -259,10 +259,10 @@ export default function UberEatsOrderDetailPage({
       {/* Financial Summary */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Payment Summary</CardTitle>
+          <CardTitle className="text-body">Payment Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 text-sm max-w-sm">
+          <div className="space-y-2 text-body max-w-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatMoney(order.subtotalAmount, currency)}</span></div>
             {order.discountTotal > 0 && (
               <div className="flex justify-between text-destructive">
@@ -283,7 +283,7 @@ export default function UberEatsOrderDetailPage({
               <div className="flex justify-between"><span className="text-muted-foreground">Tip</span><span>{formatMoney(order.tipTotal, currency)}</span></div>
             )}
             <Separator />
-            <div className="flex justify-between font-semibold text-base">
+            <div className="flex justify-between font-semibold text-body">
               <span>Total</span>
               <span>{formatMoney(order.totalAmount, currency)}</span>
             </div>
@@ -294,17 +294,17 @@ export default function UberEatsOrderDetailPage({
       {/* Status Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Status</CardTitle>
+          <CardTitle className="text-body">Status</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1 text-sm max-w-sm">
+          <div className="space-y-1 text-body max-w-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Received</span><span>{formatDate(order.receivedAt)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Fetched</span><span>{formatDate(order.fetchedAt)}</span></div>
             {order.acceptedAt && <div className="flex justify-between"><span className="text-muted-foreground">Accepted</span><span>{formatDate(order.acceptedAt)}</span></div>}
             {order.deniedAt && <div className="flex justify-between"><span className="text-muted-foreground">Denied</span><span>{formatDate(order.deniedAt)}</span></div>}
             {order.denyReasonCode && <div className="flex justify-between"><span className="text-muted-foreground">Deny Reason</span><span>{order.denyReasonCode}</span></div>}
             {order.lastSyncError && (
-              <div className="mt-2 p-2 bg-destructive/10 rounded text-xs text-destructive">
+              <div className="mt-2 p-2 bg-destructive/10 rounded text-caption text-destructive">
                 {order.lastSyncError}
               </div>
             )}

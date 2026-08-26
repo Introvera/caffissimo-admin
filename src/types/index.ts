@@ -1,6 +1,7 @@
 export enum UserRole {
   SuperAdmin = "SuperAdmin",
   SuperAdminDeveloper = "SuperAdminDeveloper",
+  Customer = "Customer",
   BranchOwner = "BranchOwner",
   BranchAdmin = "BranchAdmin",
   Supervisor = "Supervisor",

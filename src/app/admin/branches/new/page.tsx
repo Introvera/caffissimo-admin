@@ -27,6 +27,7 @@ import { useCreateBranchMutation } from "@/stores/api/branchApi";
 import { UserRole, BranchPurpose } from "@/types";
 import { toast } from "sonner";
 import { ImageUploader } from "@/components/ui/image-uploader";
+import { EditBar } from "@/components/shared/edit-bar";
 
 const DAYS = [
   { key: "monday", label: "Monday", index: 1 },
@@ -259,21 +260,21 @@ export default function NewBranchPage() {
         <TabsList className="bg-transparent border-b border-border rounded-none h-auto p-0 gap-0 w-full justify-start">
           <TabsTrigger
             value="overview"
-            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="products"
             disabled
-            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground/40 transition-colors cursor-not-allowed after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent"
+            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground/40 transition-colors cursor-not-allowed after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent"
           >
             Products
           </TabsTrigger>
           <TabsTrigger
             value="uber-menus"
             disabled
-            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-sm font-medium text-muted-foreground/40 transition-colors cursor-not-allowed after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent"
+            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground/40 transition-colors cursor-not-allowed after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent"
           >
             Uber Menus
           </TabsTrigger>
@@ -286,7 +287,7 @@ export default function NewBranchPage() {
           {/* Core Config */}
           <Card className="border border-border/60 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
+              <CardTitle className="text-h3 flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" /> Core Configuration
               </CardTitle>
               <CardDescription>Configure name, purpose, and visual branding</CardDescription>
@@ -347,7 +348,7 @@ export default function NewBranchPage() {
           {/* Location */}
           <Card className="border border-border/60 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
+              <CardTitle className="text-h3 flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" /> Location
               </CardTitle>
               <CardDescription>Specify the branch location by address or exact coordinates</CardDescription>
@@ -416,7 +417,7 @@ export default function NewBranchPage() {
           {purpose === BranchPurpose.ListedForSale && (
             <Card className="border border-border/60 shadow-sm transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
+                <CardTitle className="text-h3 flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" /> Listing Details
                 </CardTitle>
                 <CardDescription>Setup details visible on the public listings board</CardDescription>
@@ -472,10 +473,10 @@ export default function NewBranchPage() {
                   </div>
                   <div className="flex flex-wrap gap-2 pt-2">
                     {highlights.length === 0 ? (
-                      <span className="text-sm text-muted-foreground italic">No highlights added yet. Add a few key bullet items.</span>
+                      <span className="text-body text-muted-foreground italic">No highlights added yet. Add a few key bullet items.</span>
                     ) : (
                       highlights.map((hl, index) => (
-                        <Badge key={index} variant="secondary" className="px-3 py-1 flex items-center gap-1 text-xs">
+                        <Badge key={index} variant="secondary" className="px-3 py-1 flex items-center gap-1 text-caption">
                           {hl}
                           <button type="button" onClick={() => removeHighlight(index)} className="hover:text-destructive">
                             <X className="h-3 w-3" />
@@ -493,7 +494,7 @@ export default function NewBranchPage() {
           {purpose === BranchPurpose.Operational && (
             <Card className="border border-border/60 shadow-sm transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-xl">Operating Hours</CardTitle>
+                <CardTitle className="text-h3">Operating Hours</CardTitle>
                 <CardDescription>Set the opening hours for each day</CardDescription>
               </CardHeader>
               <CardContent>
@@ -503,7 +504,7 @@ export default function NewBranchPage() {
                     const closed = hours?.closed ?? false;
                     return (
                       <div key={key} className="flex items-center gap-4 border-b pb-3 last:border-0 last:pb-0">
-                        <span className="w-24 text-sm font-medium">{label}</span>
+                        <span className="w-24 text-body font-medium">{label}</span>
                         <div className="flex items-center gap-2 flex-1">
                           <Input
                             type="time"
@@ -525,7 +526,7 @@ export default function NewBranchPage() {
                               checked={!closed}
                               onCheckedChange={(checked) => updateHours(key, "closed", checked)}
                             />
-                            <span className="text-sm text-muted-foreground">Open</span>
+                            <span className="text-body text-muted-foreground">Open</span>
                           </div>
                         </div>
                       </div>
@@ -540,14 +541,14 @@ export default function NewBranchPage() {
           {purpose === BranchPurpose.Operational && isSuper && (
             <Card className="border border-border/60 shadow-sm transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-xl">Platform Connections</CardTitle>
+                <CardTitle className="text-h3">Platform Connections</CardTitle>
                 <CardDescription>Configure delivery partner storefront links and API credentials</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Uber Eats Section */}
                 <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">Uber Eats Integration</span>
+                    <span className="font-semibold text-body">Uber Eats Integration</span>
                   </div>
                   
                   <div className="space-y-2">
@@ -574,7 +575,7 @@ export default function NewBranchPage() {
                     <button
                       type="button"
                       onClick={() => setShowUberAdvanced(!showUberAdvanced)}
-                      className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                      className="text-caption text-primary font-medium hover:underline flex items-center gap-1"
                     >
                       {showUberAdvanced ? "Hide Advanced Credentials" : "Show Advanced Credentials & API Keys"}
                     </button>
@@ -583,7 +584,7 @@ export default function NewBranchPage() {
                   {showUberAdvanced && (
                     <div className="space-y-4 pt-3 border-t mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2 md:col-span-2">
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-caption text-muted-foreground">
                           Configure OAuth and Webhook parameters for Uber Eats.
                         </p>
                       </div>
@@ -654,7 +655,7 @@ export default function NewBranchPage() {
                           id="uberEnvironment"
                           value={uberEnvironment}
                           onChange={(e) => setUberEnvironment(parseInt(e.target.value))}
-                          className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                          className="w-full h-10 px-3 border rounded-md bg-background text-body"
                         >
                           <option value={0}>Sandbox (Testing)</option>
                           <option value={1}>Production (Live)</option>
@@ -668,7 +669,7 @@ export default function NewBranchPage() {
                 {/* DoorDash Section */}
                 <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">DoorDash Integration</span>
+                    <span className="font-semibold text-body">DoorDash Integration</span>
                   </div>
                   
                   <div className="space-y-2">
@@ -695,7 +696,7 @@ export default function NewBranchPage() {
                     <button
                       type="button"
                       onClick={() => setShowDdAdvanced(!showDdAdvanced)}
-                      className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                      className="text-caption text-primary font-medium hover:underline flex items-center gap-1"
                     >
                       {showDdAdvanced ? "Hide Advanced Credentials" : "Show Advanced Credentials & API Keys"}
                     </button>
@@ -704,7 +705,7 @@ export default function NewBranchPage() {
                   {showDdAdvanced && (
                     <div className="space-y-4 pt-3 border-t mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2 md:col-span-2">
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-caption text-muted-foreground">
                           Configure OAuth and Webhook parameters for DoorDash.
                         </p>
                       </div>
@@ -775,7 +776,7 @@ export default function NewBranchPage() {
                           id="ddEnvironment"
                           value={ddEnvironment}
                           onChange={(e) => setDdEnvironment(parseInt(e.target.value))}
-                          className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                          className="w-full h-10 px-3 border rounded-md bg-background text-body"
                         >
                           <option value={0}>Sandbox (Testing)</option>
                           <option value={1}>Production (Live)</option>
@@ -795,7 +796,7 @@ export default function NewBranchPage() {
           {/* Contact Info Card */}
           <Card className="border border-border/60 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
+              <CardTitle className="text-h3 flex items-center gap-2">
                 <Phone className="h-5 w-5 text-primary" /> Contact Details
               </CardTitle>
               <CardDescription>Primary and alternative customer support channels</CardDescription>
@@ -849,38 +850,36 @@ export default function NewBranchPage() {
           {/* Global Controls */}
           <Card className="border border-border/60 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Publish Status</CardTitle>
+              <CardTitle className="text-h3">Publish Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="text-sm font-semibold">Open Status</Label>
-                  <p className="text-xs text-muted-foreground">Show as active on storefront</p>
+                  <Label className="text-body font-semibold">Open Status</Label>
+                  <p className="text-caption text-muted-foreground">Show as active on storefront</p>
                 </div>
                 <Switch checked={isOpen} onCheckedChange={setIsOpen} />
               </div>
               <div className="flex items-center justify-between border-t pt-4">
                 <div>
-                  <Label className="text-sm font-semibold">Active Status</Label>
-                  <p className="text-xs text-muted-foreground">System level active status</p>
+                  <Label className="text-body font-semibold">Active Status</Label>
+                  <p className="text-caption text-muted-foreground">System level active status</p>
                 </div>
                 <Switch checked={isActive} onCheckedChange={setIsActive} />
               </div>
             </CardContent>
           </Card>
 
-          {/* Actions panel */}
-          <div className="flex gap-3">
-            <Link href="/admin/branches" className="flex-1">
-              <Button type="button" variant="outline" className="w-full">
-                Cancel
-              </Button>
-            </Link>
-            <Button type="submit" disabled={isCreating} className="flex-1">
-              {isCreating ? "Creating..." : "Create"}
-            </Button>
-          </div>
         </div>
+      <EditBar
+        isVisible={true}
+        saveButtonType="submit"
+        onCancel={() => router.push("/admin/branches")}
+        label="New branch"
+        saveLabel={isCreating ? "Creating..." : "Create Branch"}
+        cancelLabel="Cancel"
+        isSaving={isCreating}
+      />
       </form>
         </TabsContent>
       </Tabs>

@@ -283,8 +283,8 @@ export default function ToppingCategoriesPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border p-4 bg-background">
               <div className="space-y-0.5">
-                <Label htmlFor="editCategoryActive" className="text-base">Active Status</Label>
-                <p className="text-sm text-muted-foreground">
+                <Label htmlFor="editCategoryActive" className="text-body">Active Status</Label>
+                <p className="text-body text-muted-foreground">
                   Determine if this category is visible in product customizations.
                 </p>
               </div>

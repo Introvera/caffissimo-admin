@@ -161,7 +161,7 @@ export default function POSLoginReportPage() {
         <div className="space-y-6">
           {groupedByDate.map(([date, dateRecords]) => (
             <div key={date}>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+              <h3 className="text-body font-medium text-muted-foreground mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 {formatDate(date)}
               </h3>
@@ -213,7 +213,7 @@ export default function POSLoginReportPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Session details</DialogTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               {selectedRecord && (
                 <>
                   {selectedRecord.userDisplayName} — {formatDate(selectedRecord.date)}
@@ -223,7 +223,7 @@ export default function POSLoginReportPage() {
           </DialogHeader>
           {selectedRecord && (
             <div className="space-y-3 pt-2">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 All login and logout times for this day. System auto-logs out after 10 min of no activity.
               </p>
               <div className="rounded-lg border divide-y">
@@ -235,7 +235,7 @@ export default function POSLoginReportPage() {
                   return (
                     <div
                       key={session.posSessionId}
-                      className="flex items-center justify-between px-4 py-3 text-sm"
+                      className="flex items-center justify-between px-4 py-3 text-body"
                     >
                       <span className="inline-flex items-center gap-2">
                         <LoginIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -246,7 +246,7 @@ export default function POSLoginReportPage() {
                         <LogoutIcon className="h-3.5 w-3.5 text-muted-foreground" />
                         {formatTime(session.logoutAt)}
                         {session.endReason === "Idle" && (
-                          <span className="text-xs text-amber-600 dark:text-amber-400">
+                          <span className="text-caption text-amber-600 dark:text-amber-400">
                             (auto)
                           </span>
                         )}

@@ -64,10 +64,10 @@ export default function LoginPage() {
 
         {/* Form */}
         <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full py-12">
-          <h1 className="text-[1.9rem] font-bold text-foreground tracking-tight leading-tight mb-1.5">
+          <h1 className="text-h1 font-bold text-foreground tracking-tight leading-tight mb-1.5">
             Welcome Back
           </h1>
-          <p className="text-muted-foreground text-sm mb-8">
+          <p className="text-muted-foreground text-body mb-8">
             Enter your credentials to access the admin panel.
           </p>
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="email"
-                className="text-xs font-medium text-foreground"
+                className="text-caption font-medium text-foreground"
               >
                 Email
               </label>
@@ -88,7 +88,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="
-                  w-full px-3.5 py-2.5 rounded-lg text-sm
+                  w-full px-3.5 py-2.5 rounded-lg text-body
                   bg-background border border-border
                   text-foreground placeholder:text-muted-foreground
                   outline-none transition-all duration-200
@@ -101,7 +101,7 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="password"
-                className="text-xs font-medium text-foreground"
+                className="text-caption font-medium text-foreground"
               >
                 Password
               </label>
@@ -114,7 +114,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="
-                    w-full px-3.5 py-2.5 pr-10 rounded-lg text-sm
+                    w-full px-3.5 py-2.5 pr-10 rounded-lg text-body
                     bg-background border border-border
                     text-foreground placeholder:text-muted-foreground
                     outline-none transition-all duration-200
@@ -136,7 +136,7 @@ export default function LoginPage() {
               type="submit"
               disabled={isLoading}
               className="
-                w-full py-2.5 rounded-lg text-sm font-semibold
+                w-full py-2.5 rounded-lg text-body font-semibold
                 bg-primary text-primary-foreground
                 hover:opacity-90 active:opacity-80
                 disabled:opacity-60 disabled:cursor-not-allowed
@@ -149,7 +149,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-xs text-muted-foreground text-center">
+        <p className="text-caption text-muted-foreground text-center">
           © 2026 Caffissimo. All rights reserved.
         </p>
       </div>
@@ -174,11 +174,11 @@ export default function LoginPage() {
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-end p-12 w-full">
-          <h2 className="text-[2rem] font-bold text-white leading-snug tracking-tight mb-3 max-w-sm">
+          <h2 className="text-h1 font-bold text-white leading-snug tracking-tight mb-3 max-w-sm">
             Effortlessly manage your café and operations.
           </h2>
 
-          <p className="text-white/70 text-sm leading-relaxed max-w-xs">
+          <p className="text-white/70 text-body leading-relaxed max-w-xs">
             Track orders, manage your menu, monitor branches and keep your team
             in sync — all in one place.
           </p>

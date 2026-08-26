@@ -228,8 +228,8 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
                           }`}
                         >
                           <div>
-                            <p className="text-sm font-medium">{product.productName}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-body font-medium">{product.productName}</p>
+                            <p className="text-caption text-muted-foreground">
                               {product.variants?.length || 0} variant(s)
                             </p>
                           </div>
@@ -298,24 +298,24 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
                         </div>
                         <div>
                           <p className="font-medium">{product.productName}</p>
-                          <p className="text-xs text-muted-foreground">ID: {product.productId.slice(0, 8)}</p>
+                          <p className="text-caption text-muted-foreground">ID: {product.productId.slice(0, 8)}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="align-top py-4">
                       <div className="space-y-1.5">
                         {product.variants?.map((variant) => (
-                          <div key={variant.branchProductVariantId} className="flex items-center gap-2 text-sm">
+                          <div key={variant.branchProductVariantId} className="flex items-center gap-2 text-body">
                             <span className="text-muted-foreground">{variant.sizeName || variant.variantName || "Standard"}:</span>
                             <span className="font-medium">{formatCurrency(variant.priceOverride ?? variant.price)}</span>
                             {!variant.isAvailable && (
-                              <Badge variant="outline" className="text-[10px] h-4 px-1 py-0 border-destructive text-destructive">
+                              <Badge variant="outline" className="text-detail h-4 px-1 py-0 border-destructive text-destructive">
                                 Unavailable
                               </Badge>
                             )}
                           </div>
                         )) || (
-                          <span className="text-sm text-muted-foreground italic">No variants</span>
+                          <span className="text-body text-muted-foreground italic">No variants</span>
                         )}
                       </div>
                     </TableCell>
@@ -326,7 +326,7 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
                           disabled={!canEdit || isUpdating}
                           onCheckedChange={() => handleToggleAvailability(product.branchProductId, product.isAvailable)}
                         />
-                        <span className="text-sm font-medium">
+                        <span className="text-body font-medium">
                           {product.isAvailable ? "Available" : "Hidden"}
                         </span>
                       </div>
@@ -366,7 +366,7 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-body text-muted-foreground">
                 Page {page} of {data.totalPages}
               </span>
               <Button

@@ -106,14 +106,14 @@ function SearchResultsContent() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         {totalCount} result{totalCount !== 1 ? "s" : ""} for &quot;{searchParams.get("q")}&quot;
       </p>
 
       {results.orders.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-body flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
               Orders
             </CardTitle>
@@ -124,10 +124,10 @@ function SearchResultsContent() {
                 <li key={order.id}>
                   <Link
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-sm"
+                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-body"
                   >
                     <span className="font-medium">{order.orderNumber}</span>
-                    <span className="text-muted-foreground text-xs">
+                    <span className="text-muted-foreground text-caption">
                       {formatCurrency(order.total)}
                     </span>
                     <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" />
@@ -142,7 +142,7 @@ function SearchResultsContent() {
       {results.products.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-body flex items-center gap-2">
               <Package className="h-4 w-4" />
               Products
             </CardTitle>
@@ -153,7 +153,7 @@ function SearchResultsContent() {
                 <li key={product.productId}>
                   <Link
                     href="/admin/products"
-                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-sm"
+                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-body"
                   >
                     <span className="font-medium">{product.productName}</span>
                     <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" />
@@ -168,7 +168,7 @@ function SearchResultsContent() {
       {results.users.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-body flex items-center gap-2">
               <Users className="h-4 w-4" />
               Users
             </CardTitle>
@@ -179,11 +179,11 @@ function SearchResultsContent() {
                 <li key={user.id}>
                   <Link
                     href="/admin/users"
-                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-sm"
+                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-body"
                   >
                     <div>
                       <span className="font-medium">{user.name}</span>
-                      <span className="text-muted-foreground text-xs block">
+                      <span className="text-muted-foreground text-caption block">
                         {user.email}
                       </span>
                     </div>
@@ -199,7 +199,7 @@ function SearchResultsContent() {
       {results.branches.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-body flex items-center gap-2">
               <Store className="h-4 w-4" />
               Branches
             </CardTitle>
@@ -210,7 +210,7 @@ function SearchResultsContent() {
                 <li key={branch.branchId}>
                   <Link
                     href={`/admin/branches/${branch.branchId}`}
-                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-sm"
+                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-body"
                   >
                     <span className="font-medium">
                       {branch.branchName.replace("Caffissimo", "").trim()}
@@ -227,7 +227,7 @@ function SearchResultsContent() {
       {results.auditLogs.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-body flex items-center gap-2">
               <FileSearch className="h-4 w-4" />
               Activity
             </CardTitle>
@@ -238,11 +238,11 @@ function SearchResultsContent() {
                 <li key={log.id}>
                   <Link
                     href="/admin/audit-logs"
-                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-sm"
+                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-body"
                   >
                     <div>
                       <span className="font-medium">{actionLabels[log.action]}</span>
-                      <span className="text-muted-foreground text-xs block">
+                      <span className="text-muted-foreground text-caption block">
                         {log.userName} · {formatDateTime(log.createdAt)}
                       </span>
                     </div>

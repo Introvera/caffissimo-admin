@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 function HeaderFallback() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 lg:px-6 lg:rounded-t-2xl" />
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 lg:px-6" />
   );
 }
 
@@ -28,7 +28,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           sidebarCollapsed ? "lg:pl-[72px]" : "lg:pl-64"
         )}
       >
-        <div className="flex-1 flex flex-col lg:rounded-2xl bg-background lg:m-3 lg:max-h-[calc(100vh-1.5rem)] lg:overflow-hidden">
+        <div className="flex-1 flex flex-col bg-background lg:max-h-screen lg:overflow-hidden">
           <Suspense fallback={<HeaderFallback />}>
             <Header />
           </Suspense>

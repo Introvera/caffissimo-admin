@@ -84,6 +84,7 @@ import { toast } from "sonner";
 const roleLabels: Record<UserRole, string> = {
   [UserRole.SuperAdmin]: "Super Admin",
   [UserRole.SuperAdminDeveloper]: "Developer",
+  [UserRole.Customer]: "Customer",
   [UserRole.BranchOwner]: "Branch Owner",
   [UserRole.BranchAdmin]: "Branch Admin",
   [UserRole.Supervisor]: "Supervisor",
@@ -94,6 +95,7 @@ const roleLabels: Record<UserRole, string> = {
 const roleBadgeVariants: Record<UserRole, "default" | "secondary" | "outline"> = {
   [UserRole.SuperAdmin]: "default",
   [UserRole.SuperAdminDeveloper]: "default",
+  [UserRole.Customer]: "outline",
   [UserRole.BranchOwner]: "secondary",
   [UserRole.BranchAdmin]: "secondary",
   [UserRole.Supervisor]: "outline",
@@ -173,7 +175,7 @@ export default function UsersPage() {
   }, [globalFilter, roleFilter, currentRole, effectiveBranchId, users]);
 
   const getBranchName = (branchId?: string) => {
-    if (!branchId) return "All Branches";
+    if (!branchId) return "-";
     return branches.find((b) => b.branchId === branchId)?.branchName.replace("Caffissimo", "").trim() || "Unknown";
   };
 
@@ -306,7 +308,7 @@ export default function UsersPage() {
                 </Avatar>
                 <div>
                   <p className="font-medium text-foreground">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-body text-muted-foreground">{user.email}</p>
                 </div>
               </div>
             );
@@ -317,7 +319,6 @@ export default function UsersPage() {
           enableSorting: false,
           cell: (info) => (
             <Badge variant={roleBadgeVariants[info.getValue()]}>
-              <Shield className="h-3 w-3 mr-1" />
               {roleLabels[info.getValue()]}
             </Badge>
           ),
@@ -326,7 +327,7 @@ export default function UsersPage() {
           header: "Branch",
           enableSorting: false,
           cell: (info) => (
-            <span className="text-sm text-foreground">
+            <span className="text-body text-foreground">
               {getBranchName(info.getValue())}
             </span>
           ),
@@ -343,7 +344,7 @@ export default function UsersPage() {
         columnHelper.accessor("createdAt", {
           header: "Created",
           cell: (info) => (
-            <span className="text-sm text-muted-foreground">
+            <span className="text-body text-muted-foreground">
               {formatDate(info.getValue())}
             </span>
           ),
@@ -461,7 +462,7 @@ export default function UsersPage() {
                       }}
                     />
                     {formErrors.firstName && (
-                      <p className="text-xs text-destructive mt-1">{formErrors.firstName}</p>
+                      <p className="text-caption text-destructive mt-1">{formErrors.firstName}</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -477,7 +478,7 @@ export default function UsersPage() {
                       }}
                     />
                     {formErrors.lastName && (
-                      <p className="text-xs text-destructive mt-1">{formErrors.lastName}</p>
+                      <p className="text-caption text-destructive mt-1">{formErrors.lastName}</p>
                     )}
                   </div>
                 </div>
@@ -495,7 +496,7 @@ export default function UsersPage() {
                     }}
                   />
                   {formErrors.email && (
-                    <p className="text-xs text-destructive mt-1">{formErrors.email}</p>
+                    <p className="text-caption text-destructive mt-1">{formErrors.email}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -512,7 +513,7 @@ export default function UsersPage() {
                     }}
                   />
                   {formErrors.password && (
-                    <p className="text-xs text-destructive mt-1">{formErrors.password}</p>
+                    <p className="text-caption text-destructive mt-1">{formErrors.password}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -533,6 +534,7 @@ export default function UsersPage() {
                         <>
                           <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
                           <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
+                          <SelectItem value={UserRole.Customer}>Customer</SelectItem>
                           <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
                           <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
                           <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
@@ -541,6 +543,7 @@ export default function UsersPage() {
                         </>
                       ) : (
                         <>
+                          <SelectItem value={UserRole.Customer}>Customer</SelectItem>
                           <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
                           <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
                           <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
@@ -551,7 +554,7 @@ export default function UsersPage() {
                     </SelectContent>
                   </Select>
                 </div>
-{formData.role !== UserRole.SuperAdmin && formData.role !== UserRole.SuperAdminDeveloper && (
+                {formData.role !== UserRole.SuperAdmin && formData.role !== UserRole.SuperAdminDeveloper && formData.role !== UserRole.Customer && (
                   <div className="space-y-2">
                     <Label htmlFor="branch">Branch Assignment</Label>
                     {canAccessAllBranches(currentRole) ? (
@@ -598,7 +601,7 @@ export default function UsersPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2.5">
           <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-sm font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
@@ -607,6 +610,7 @@ export default function UsersPage() {
                 <>
                   <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
                   <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
+                  <SelectItem value={UserRole.Customer}>Customer</SelectItem>
                   <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
                   <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
                   <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
@@ -615,6 +619,7 @@ export default function UsersPage() {
                 </>
               ) : (
                 <>
+                  <SelectItem value={UserRole.Customer}>Customer</SelectItem>
                   <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
                   <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
                   <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
@@ -722,7 +727,7 @@ export default function UsersPage() {
 
               {/* Pagination - same as Orders */}
               <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   Showing{" "}
                   <span className="font-medium text-foreground">
                     {pageIndex * pageSize + 1}
@@ -762,7 +767,7 @@ export default function UsersPage() {
                         key={pageNum}
                         variant={pageIndex === pageNum ? "default" : "outline"}
                         size="sm"
-                        className="h-8 w-8 p-0 text-xs"
+                        className="h-8 w-8 p-0 text-caption"
                         onClick={() => table.setPageIndex(pageNum)}
                       >
                         {pageNum + 1}

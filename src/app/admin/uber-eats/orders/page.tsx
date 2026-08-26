@@ -247,19 +247,19 @@ export default function UberEatsOrdersPage() {
                     <div className="flex items-center gap-4 min-w-0">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-semibold text-lg">
+                          <span className="font-mono font-semibold text-h3">
                             #{order.displayId ?? order.uberOrderId.slice(0, 5).toUpperCase()}
                           </span>
                           <Badge variant={stateVariant(order.currentState)}>
                             {order.orderStatus ?? order.currentState ?? "Unknown"}
                           </Badge>
                           {order.promotionSummary && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-caption">
                               Promo
                             </Badge>
                           )}
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
+                        <div className="text-body text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
                           <span>{order.customerName ?? "Unknown customer"}</span>
                           <span>{order.itemCount} item{order.itemCount !== 1 ? "s" : ""}</span>
                           <span>{order.fulfillmentType ?? order.orderType ?? ""}</span>
@@ -270,18 +270,18 @@ export default function UberEatsOrdersPage() {
 
                     <div className="flex items-center gap-4 shrink-0">
                       {deadline && !deadline.expired && (
-                        <div className={`text-sm font-mono ${deadline.urgent ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+                        <div className={`text-body font-mono ${deadline.urgent ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
                           <Clock className="h-3 w-3 inline mr-1" />
                           {deadline.text}
                         </div>
                       )}
                       {deadline?.expired && (
-                        <div className="text-sm text-destructive font-semibold">
+                        <div className="text-body text-destructive font-semibold">
                           <AlertTriangle className="h-3 w-3 inline mr-1" />
                           Expired
                         </div>
                       )}
-                      <span className="font-semibold text-lg">
+                      <span className="font-semibold text-h3">
                         {formatMoney(order.totalAmount, order.currencyCode)}
                       </span>
                     </div>
@@ -303,7 +303,7 @@ export default function UberEatsOrdersPage() {
           >
             Previous
           </Button>
-          <span className="text-sm text-muted-foreground self-center">
+          <span className="text-body text-muted-foreground self-center">
             Page {page} of {Math.ceil(totalCount / 15)}
           </span>
           <Button
