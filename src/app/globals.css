@@ -541,7 +541,6 @@ input[type="reset"]:disabled,
   line-height: 1.4;
 }
 
-.text-chip,
 @utility text-chip {
   font-size: 0.8125rem !important; /* 13px */
   line-height: 1.4 !important;
