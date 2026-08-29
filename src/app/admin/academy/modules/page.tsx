@@ -448,7 +448,7 @@ function ModuleCard({
 }) {
   return (
     <Card
-      className="group relative flex flex-col cursor-pointer transition-shadow hover:shadow-md"
+      className="group relative flex flex-col cursor-pointer"
       onClick={onView}
     >
       {/* Top accent bar */}

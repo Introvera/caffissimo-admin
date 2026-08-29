@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   Coffee,
-  Edit,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
@@ -14,6 +13,7 @@ import {
   ArrowDown,
   MoreVertical,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import {
   useReactTable,
   getCoreRowModel,
@@ -24,6 +24,7 @@ import {
   PaginationState,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -54,7 +55,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/stores/store";
 import { useGetToppingsQuery, useGetToppingCategoriesQuery } from "@/stores/api/toppingApi";
 import { canManageProducts } from "@/lib/rbac";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { Topping, UserRole } from "@/types";
 
 const columnHelper = createColumnHelper<Topping>();
@@ -158,7 +159,7 @@ export default function ToppingsPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
                   <Link href={`/admin/toppings/${row.toppingId}`}>
-                    <Edit className="h-4 w-4 mr-2" />
+                    <TbEdit className="h-4 w-4 mr-2" />
                     Edit Topping
                   </Link>
                 </DropdownMenuItem>
@@ -208,12 +209,25 @@ export default function ToppingsPage() {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search toppings..."
+            value={globalFilter}
+            onChange={(e) => {
+              setGlobalFilter(e.target.value);
+              setPagination(prev => ({ ...prev, pageIndex: 0 }));
+            }}
+            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+          />
+        </div>
+
         <div className="flex flex-wrap items-center gap-2.5">
           <Select value={categoryFilter} onValueChange={(val) => {
             setCategoryFilter(val);
             setPagination(prev => ({ ...prev, pageIndex: 0 }));
           }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -226,22 +240,9 @@ export default function ToppingsPage() {
             </SelectContent>
           </Select>
         </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search toppings..."
-            value={globalFilter}
-            onChange={(e) => {
-              setGlobalFilter(e.target.value);
-              setPagination(prev => ({ ...prev, pageIndex: 0 }));
-            }}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
       </div>
 
-      <div>
+      <Card className="overflow-hidden">
         {toppingsLoading ? (
           <div className="space-y-2 p-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -262,7 +263,7 @@ export default function ToppingsPage() {
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border/60">
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
                       {headerGroup.headers.map((header) => (
                         <TableHead
                           key={header.id}
@@ -305,7 +306,7 @@ export default function ToppingsPage() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between border-t border-border/60 px-6 py-4 bg-muted/5">
+            <div className="flex items-center justify-between border-t px-6 py-4">
               <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
@@ -349,7 +350,10 @@ export default function ToppingsPage() {
                       key={pageNum}
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0 text-caption"
+                      className={cn(
+                        "h-8 w-8 p-0 text-caption font-medium",
+                        currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      )}
                       onClick={() => table.setPageIndex(pageNum)}
                     >
                       {pageNum + 1}
@@ -369,7 +373,7 @@ export default function ToppingsPage() {
             </div>
           </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

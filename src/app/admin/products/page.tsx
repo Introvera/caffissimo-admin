@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   Package,
-  Edit,
   Eye,
   EyeOff,
   DollarSign,
@@ -18,6 +17,7 @@ import {
   MoreVertical,
   Trash2,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import {
   useReactTable,
   getCoreRowModel,
@@ -28,6 +28,7 @@ import {
   PaginationState,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -59,7 +60,7 @@ import { useAppSelector } from "@/stores/store";
 import { useGetProductsQuery, useGetCategoriesQuery, useUpdateProductMutation } from "@/stores/api/productApi";
 import { useGetBranchProductsQuery, useCreateBranchProductMutation, useDeleteBranchProductMutation } from "@/stores/api/branchProductApi";
 import { canManageProducts, isSuperAdmin } from "@/lib/rbac";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { Product, UserRole } from "@/types";
 import { toast } from "sonner";
 
@@ -279,7 +280,7 @@ export default function ProductsPage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link href={`/admin/products/${targetId}`}>
-                        <Edit className="h-4 w-4 mr-2" />
+                        <TbEdit className="h-4 w-4 mr-2" />
                         Edit Product
                       </Link>
                     </DropdownMenuItem>
@@ -310,7 +311,7 @@ export default function ProductsPage() {
                       <>
                         <DropdownMenuItem asChild>
                           <Link href={`/admin/products/${targetId}`}>
-                            <Edit className="h-4 w-4 mr-2" />
+                            <TbEdit className="h-4 w-4 mr-2" />
                             Edit Branch Pricing
                           </Link>
                         </DropdownMenuItem>
@@ -382,12 +383,25 @@ export default function ProductsPage() {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search products..."
+            value={globalFilter}
+            onChange={(e) => {
+              setGlobalFilter(e.target.value);
+              setPagination(prev => ({ ...prev, pageIndex: 0 }));
+            }}
+            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+          />
+        </div>
+
         <div className="flex flex-wrap items-center gap-2.5">
           <Select value={categoryFilter} onValueChange={(val) => {
             setCategoryFilter(val);
             setPagination(prev => ({ ...prev, pageIndex: 0 }));
           }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -405,7 +419,7 @@ export default function ProductsPage() {
               setBranchFilter(val);
               setPagination(prev => ({ ...prev, pageIndex: 0 }));
             }}>
-              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
                 <SelectValue placeholder="Availability" />
               </SelectTrigger>
               <SelectContent>
@@ -415,22 +429,9 @@ export default function ProductsPage() {
             </Select>
           )}
         </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products..."
-            value={globalFilter}
-            onChange={(e) => {
-              setGlobalFilter(e.target.value);
-              setPagination(prev => ({ ...prev, pageIndex: 0 }));
-            }}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
       </div>
 
-      <div>
+      <Card className="overflow-hidden">
         {productsLoading ? (
           <div className="space-y-2 p-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -451,7 +452,7 @@ export default function ProductsPage() {
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border/60">
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
                       {headerGroup.headers.map((header) => (
                         <TableHead
                           key={header.id}
@@ -494,7 +495,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between border-t border-border/60 px-6 py-4 bg-muted/5">
+            <div className="flex items-center justify-between border-t px-6 py-4">
               <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
@@ -538,7 +539,10 @@ export default function ProductsPage() {
                       key={pageNum}
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0 text-caption"
+                      className={cn(
+                        "h-8 w-8 p-0 text-caption font-medium",
+                        currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      )}
                       onClick={() => table.setPageIndex(pageNum)}
                     >
                       {pageNum + 1}
@@ -558,7 +562,7 @@ export default function ProductsPage() {
             </div>
           </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

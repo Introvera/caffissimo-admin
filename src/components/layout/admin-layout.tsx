@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 function HeaderFallback() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 lg:px-6" />
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-white dark:bg-[#141414] px-4 lg:px-6" />
   );
 }
 
@@ -20,7 +20,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { sidebarCollapsed } = useAppSelector((state) => state.ui);
 
   return (
-    <div className="min-h-screen bg-sidebar">
+    <div className="min-h-screen bg-white dark:bg-[#141414]">
       <Sidebar />
       <div
         className={cn(
@@ -28,11 +28,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           sidebarCollapsed ? "lg:pl-[72px]" : "lg:pl-64"
         )}
       >
-        <div className="flex-1 flex flex-col bg-background lg:max-h-screen lg:overflow-hidden">
+        <div className="flex-1 flex flex-col bg-[#F8FAFB] dark:bg-[#141414] lg:max-h-screen lg:overflow-hidden">
           <Suspense fallback={<HeaderFallback />}>
             <Header />
           </Suspense>
-          <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#F8FAFB] dark:bg-[#141414]">{children}</main>
         </div>
       </div>
     </div>

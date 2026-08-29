@@ -182,7 +182,7 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
             placeholder="Search branch products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 bg-background rounded-lg"
+            className="pl-9 h-9 bg-white dark:bg-[#141414] rounded-lg"
           />
         </div>
         
@@ -208,7 +208,7 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
                     placeholder="Search global products..."
                     value={globalSearch}
                     onChange={(e) => setGlobalSearch(e.target.value)}
-                    className="pl-9 h-9 bg-background rounded-lg"
+                    className="pl-9 h-9 bg-white dark:bg-[#141414] rounded-lg"
                   />
                 </div>
                 {productsLoading ? (
@@ -273,112 +273,112 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          <div className="border rounded-lg bg-background overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Product</TableHead>
-                  <TableHead>Variants & Prices</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.branchProductId}>
-                    <TableCell className="align-top py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                          {product.overridePosImage?.[0] || product.posImage?.[0] ? (
-                            <img src={product.overridePosImage?.[0] || product.posImage?.[0]} alt={product.productName} className="object-cover h-full w-full" />
-                          ) : (
-                            <Package className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{product.productName}</p>
-                          <p className="text-caption text-muted-foreground">ID: {product.productId.slice(0, 8)}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="align-top py-4">
-                      <div className="space-y-1.5">
-                        {product.variants?.map((variant) => (
-                          <div key={variant.branchProductVariantId} className="flex items-center gap-2 text-body">
-                            <span className="text-muted-foreground">{variant.sizeName || variant.variantName || "Standard"}:</span>
-                            <span className="font-medium">{formatCurrency(variant.priceOverride ?? variant.price)}</span>
-                            {!variant.isAvailable && (
-                              <Badge variant="outline" className="text-detail h-4 px-1 py-0 border-destructive text-destructive">
-                                Unavailable
-                              </Badge>
-                            )}
-                          </div>
-                        )) || (
-                          <span className="text-body text-muted-foreground italic">No variants</span>
+        <Card className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-b">
+                <TableHead>Product</TableHead>
+                <TableHead>Variants & Prices</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProducts.map((product) => (
+                <TableRow key={product.branchProductId}>
+                  <TableCell className="align-top py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
+                        {product.overridePosImage?.[0] || product.posImage?.[0] ? (
+                          <img src={product.overridePosImage?.[0] || product.posImage?.[0]} alt={product.productName} className="object-cover h-full w-full" />
+                        ) : (
+                          <Package className="h-5 w-5 text-muted-foreground" />
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell className="align-top py-4">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={product.isAvailable}
-                          disabled={!canEdit || isUpdating}
-                          onCheckedChange={() => handleToggleAvailability(product.branchProductId, product.isAvailable)}
-                        />
-                        <span className="text-body font-medium">
-                          {product.isAvailable ? "Available" : "Hidden"}
-                        </span>
+                      <div>
+                        <p className="font-medium">{product.productName}</p>
+                        <p className="text-caption text-muted-foreground">ID: {product.productId.slice(0, 8)}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right align-top py-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            disabled={!canEdit || isDeleting}
-                            onClick={() => handleDelete(product.branchProductId)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Remove from Branch
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="align-top py-4">
+                    <div className="space-y-1.5">
+                      {product.variants?.map((variant) => (
+                        <div key={variant.branchProductVariantId} className="flex items-center gap-2 text-body">
+                          <span className="text-muted-foreground">{variant.sizeName || variant.variantName || "Standard"}:</span>
+                          <span className="font-medium">{formatCurrency(variant.priceOverride ?? variant.price)}</span>
+                          {!variant.isAvailable && (
+                            <Badge variant="outline" className="text-detail h-4 px-1 py-0 border-destructive text-destructive">
+                              Unavailable
+                            </Badge>
+                          )}
+                        </div>
+                      )) || (
+                        <span className="text-body text-muted-foreground italic">No variants</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="align-top py-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={product.isAvailable}
+                        disabled={!canEdit || isUpdating}
+                        onCheckedChange={() => handleToggleAvailability(product.branchProductId, product.isAvailable)}
+                      />
+                      <span className="text-body font-medium">
+                        {product.isAvailable ? "Available" : "Hidden"}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right align-top py-4">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          disabled={!canEdit || isDeleting}
+                          onClick={() => handleDelete(product.branchProductId)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove from Branch
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           {/* Pagination */}
           {data && data.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <Button
-                variant="outline" size="sm" className="h-8 w-8 p-0"
-                onClick={() => setPage((p) => p - 1)}
-                disabled={page <= 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-body text-muted-foreground">
-                Page {page} of {data.totalPages}
-              </span>
-              <Button
-                variant="outline" size="sm" className="h-8 w-8 p-0"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={page >= data.totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center justify-between border-t px-6 py-4">
+              <p className="text-body text-muted-foreground">
+                Showing page <span className="font-medium text-foreground">{page}</span> of <span className="font-medium text-foreground">{data.totalPages}</span>
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline" size="sm" className="h-8 w-8 p-0"
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={page <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline" size="sm" className="h-8 w-8 p-0"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page >= data.totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Menu, Search, Filter, Calendar } from "lucide-react";
-import { TbHome, TbChevronRight, TbBuildingStore } from "react-icons/tb";
+import { Menu, Search, Filter, Calendar, Store } from "lucide-react";
+import { LuHouse } from "react-icons/lu";
+import { TbChevronRight } from "react-icons/tb";
 import { ThemeToggleSimple } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,7 +157,7 @@ export function Header() {
   };
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 lg:px-6">
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-white dark:bg-[#141414] px-4 lg:px-6">
       {/* Mobile Menu Button */}
       <Button
         variant="ghost"
@@ -171,7 +172,7 @@ export function Header() {
       <div className="flex flex-1 items-center gap-2 overflow-hidden select-none">
         <div className="hidden lg:flex items-center gap-2 text-muted-foreground">
           {/* Home Icon */}
-          <TbHome className="w-[17px] h-[17px] text-slate-400 shrink-0" strokeWidth={1.5} />
+          <LuHouse className="w-4 h-4 text-slate-400 shrink-0" />
           
           {breadcrumbs.map((crumb, idx) => (
             <div key={idx} className="flex items-center gap-2">
@@ -202,8 +203,8 @@ export function Header() {
               value={selectedBranchId || "all"}
               onValueChange={handleBranchChange}
             >
-              <SelectTrigger className="w-[160px] md:w-[180px] h-10 bg-background border border-input shadow-none hover:bg-muted/50 cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                <TbBuildingStore className="w-[17px] h-[17px] text-slate-400 shrink-0" strokeWidth={1.5} />
+              <SelectTrigger className="w-[160px] md:w-[180px] h-10 bg-white dark:bg-[#141414] border border-input shadow-none hover:bg-muted/50 cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                <Store className="w-4 h-4 text-slate-400 shrink-0" />
                 <span className="truncate text-[13px] font-semibold text-foreground flex-1 text-left">
                   {selectedBranchId 
                     ? branches.find(b => b.branchId === selectedBranchId)?.branchName.replace("Caffissimo", "").trim() || "Store"
@@ -232,7 +233,7 @@ export function Header() {
                 className={cn(
                   "inline-flex items-center justify-center h-8 whitespace-nowrap rounded-sm px-4 text-caption font-normal ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
                   dateRangePreset === preset
-                    ? "bg-background text-foreground font-medium border border-border"
+                    ? "bg-white dark:bg-[#141414] text-foreground font-medium border border-border"
                     : "hover:text-foreground text-muted-foreground"
                 )}
               >
@@ -242,7 +243,7 @@ export function Header() {
           </div>
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 text-caption font-medium rounded-md border border-input text-foreground px-4 hover:bg-muted/50 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background shadow-none">
+              <Button variant="outline" size="sm" className="h-10 text-caption font-medium rounded-md border border-input text-foreground px-4 hover:bg-muted/50 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white dark:bg-[#141414] shadow-none">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span>{format(dateRange.from, "MMM dd, yyyy")} – {format(dateRange.to, "MMM dd, yyyy")}</span>
               </Button>

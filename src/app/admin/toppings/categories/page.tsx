@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, MoreVertical, Edit, Trash2, Layers } from "lucide-react";
+import { ArrowLeft, Plus, MoreVertical, Trash2, Layers } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -151,7 +153,7 @@ export default function ToppingCategoriesPage() {
         />
       </div>
 
-      <div className="border rounded-lg bg-background overflow-hidden">
+      <Card className="overflow-hidden">
         {isLoading ? (
           <div className="p-4 space-y-4">
             <Skeleton className="h-10 w-full" />
@@ -200,7 +202,7 @@ export default function ToppingCategoriesPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleEditClick(category)}>
-                            <Edit className="h-4 w-4 mr-2" />
+                            <TbEdit className="h-4 w-4 mr-2" />
                             Edit Category
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -219,7 +221,7 @@ export default function ToppingCategoriesPage() {
             </TableBody>
           </Table>
         )}
-      </div>
+      </Card>
 
       {/* Create Topping Category Modal */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

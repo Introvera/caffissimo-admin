@@ -285,7 +285,7 @@ export default function NewBranchPage() {
         {/* Left Column (2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Core Config */}
-          <Card className="border border-border/60 shadow-sm">
+          <Card>
             <CardHeader>
               <CardTitle className="text-h3 flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" /> Core Configuration
@@ -346,7 +346,7 @@ export default function NewBranchPage() {
           </Card>
 
           {/* Location */}
-          <Card className="border border-border/60 shadow-sm">
+          <Card>
             <CardHeader>
               <CardTitle className="text-h3 flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" /> Location
@@ -415,7 +415,7 @@ export default function NewBranchPage() {
 
           {/* Marketing / Listed for Sale Sub-Form (Conditional) */}
           {purpose === BranchPurpose.ListedForSale && (
-            <Card className="border border-border/60 shadow-sm transition-all duration-300">
+            <Card className="transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-h3 flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" /> Listing Details
@@ -492,7 +492,7 @@ export default function NewBranchPage() {
 
           {/* Operating Hours (Operational Only) */}
           {purpose === BranchPurpose.Operational && (
-            <Card className="border border-border/60 shadow-sm transition-all duration-300">
+            <Card className="transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-h3">Operating Hours</CardTitle>
                 <CardDescription>Set the opening hours for each day</CardDescription>
@@ -539,7 +539,7 @@ export default function NewBranchPage() {
 
           {/* Platform Connections (Operational Only) */}
           {purpose === BranchPurpose.Operational && isSuper && (
-            <Card className="border border-border/60 shadow-sm transition-all duration-300">
+            <Card className="transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-h3">Platform Connections</CardTitle>
                 <CardDescription>Configure delivery partner storefront links and API credentials</CardDescription>
@@ -794,7 +794,7 @@ export default function NewBranchPage() {
         {/* Right Sidebar Column (1/3 width) */}
         <div className="space-y-6">
           {/* Contact Info Card */}
-          <Card className="border border-border/60 shadow-sm">
+          <Card>
             <CardHeader>
               <CardTitle className="text-h3 flex items-center gap-2">
                 <Phone className="h-5 w-5 text-primary" /> Contact Details
@@ -848,7 +848,7 @@ export default function NewBranchPage() {
           </Card>
 
           {/* Global Controls */}
-          <Card className="border border-border/60 shadow-sm">
+          <Card>
             <CardHeader>
               <CardTitle className="text-h3">Publish Status</CardTitle>
             </CardHeader>

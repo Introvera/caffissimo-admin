@@ -35,7 +35,7 @@ export default function LoginPage() {
       } else if (loginWithFirebase.rejected.match(resultAction)) {
         toast.error(
           (resultAction.payload as string) ??
-            "Something went wrong. Please try again.",
+          "Something went wrong. Please try again.",
         );
       }
     } catch {
@@ -180,7 +180,7 @@ export default function LoginPage() {
 
           <p className="text-white/70 text-body leading-relaxed max-w-xs">
             Track orders, manage your menu, monitor branches and keep your team
-            in sync — all in one place.
+            in sync all in one place.
           </p>
         </div>
       </div>

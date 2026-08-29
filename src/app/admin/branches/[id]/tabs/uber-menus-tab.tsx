@@ -129,10 +129,10 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="border rounded-lg bg-background overflow-hidden">
+        <Card className="overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent">
+              <TableRow className="hover:bg-transparent border-b">
                 <TableHead>Menu Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Last Sync</TableHead>
@@ -197,7 +197,7 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       )}
     </div>
   );

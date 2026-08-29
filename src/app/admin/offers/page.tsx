@@ -9,9 +9,9 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Edit,
   Trash2,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -129,7 +129,7 @@ export default function OffersPage() {
               const isExpired = new Date(offer.endDateTime) < new Date();
               const discountLabel = getOfferDiscountLabel(offer);
               return (
-                <Card key={offer.offerId} className="flex flex-col hover:shadow-md transition-shadow">
+                <Card key={offer.offerId} className="flex flex-col">
                   <CardContent className="p-5 flex flex-col gap-3 flex-1">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
@@ -193,7 +193,7 @@ export default function OffersPage() {
                           className="h-8 px-2 text-muted-foreground hover:text-foreground"
                           onClick={() => router.push(`/admin/offers/edit/${offer.offerId}`)}
                         >
-                          <Edit className="h-4 w-4 mr-1.5" />
+                          <TbEdit className="h-4 w-4 mr-1.5" />
                           Edit
                         </Button>
                         <Button

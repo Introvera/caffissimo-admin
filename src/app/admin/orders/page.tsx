@@ -15,6 +15,7 @@ import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -43,7 +44,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/stores/store";
 import { useGetOrdersQuery } from "@/stores/api/orderApi";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { OrderStatus, OrderType, PaymentType } from "@/types";
 import { MoreVertical } from "lucide-react";
 
@@ -143,12 +144,25 @@ export default function OrdersPage() {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by order number..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+          />
+        </div>
+
         <div className="flex flex-wrap items-center gap-2.5">
           <Select
             value={orderTypeFilter}
             onValueChange={handleFilterChange(setOrderTypeFilter)}
           >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -164,7 +178,7 @@ export default function OrdersPage() {
             value={statusFilter}
             onValueChange={handleFilterChange(setStatusFilter)}
           >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -193,24 +207,11 @@ export default function OrdersPage() {
             {sortDescending ? "Newest" : "Oldest"}
           </Button>
         </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by order number..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
       </div>
 
-      <div>
+      <Card className="overflow-hidden">
         {loading ? (
-          <div className="space-y-2">
+          <div className="space-y-2 p-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <Skeleton key={i} className="h-14 w-full rounded-lg" />
             ))}
@@ -231,7 +232,7 @@ export default function OrdersPage() {
           <>
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-border/60">
+                <TableRow className="hover:bg-transparent border-b">
                   <TableHead>Order</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
@@ -309,7 +310,7 @@ export default function OrdersPage() {
             </Table>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
+            <div className="flex items-center justify-between border-t px-6 py-4">
               <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
@@ -349,7 +350,10 @@ export default function OrdersPage() {
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0 text-caption"
+                      className={cn(
+                        "h-8 w-8 p-0 text-caption font-medium",
+                        page === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      )}
                       onClick={() => setPage(pageNum)}
                     >
                       {pageNum}
@@ -369,7 +373,7 @@ export default function OrdersPage() {
             </div>
           </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Save, Edit, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -352,18 +353,19 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex-1 flex justify-between items-center">
-          <PageHeader
-            title={topping.toppingName}
-            description={isEditing ? "Edit topping details and branch configurations" : "Topping details"}
-          />
-          {canEdit && !isEditing && (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Topping
-            </Button>
-          )}
-        </div>
+        <PageHeader
+          className="flex-1"
+          title={topping.toppingName}
+          description={isEditing ? "Edit topping details and branch configurations" : "Topping details"}
+          actions={
+            canEdit && !isEditing ? (
+              <Button onClick={() => setIsEditing(true)}>
+                <TbEdit className="h-4 w-4 mr-2" />
+                Edit Topping
+              </Button>
+            ) : null
+          }
+        />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">

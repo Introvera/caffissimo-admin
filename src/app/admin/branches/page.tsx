@@ -30,6 +30,7 @@ import { useAppSelector } from "@/stores/store";
 import { useGetBranchesQuery, useUpdateBranchMutation } from "@/stores/api/branchApi";
 import { canManageBranch, canAccessAllBranches, canCreateBranch } from "@/lib/rbac";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { Branch, UserRole } from "@/types";
 import { toast } from "sonner";
 
@@ -159,7 +160,7 @@ export default function BranchesPage() {
               >
                 <Card className="h-full flex flex-col overflow-hidden">
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
                           <Store className="h-6 w-6 text-primary" />
@@ -182,7 +183,7 @@ export default function BranchesPage() {
                             <TbDotsVertical className="h-5 w-5" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40 bg-background border shadow-md rounded-lg">
+                        <DropdownMenuContent align="end" className="w-40 bg-white dark:bg-[#141414] border shadow-md rounded-lg">
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/branches/${branch.branchId}`} className="cursor-pointer">
                               View Branch
@@ -274,7 +275,10 @@ export default function BranchesPage() {
                     key={p}
                     variant={p === page ? "default" : "outline"}
                     size="sm"
-                    className="w-9"
+                    className={cn(
+                      "w-9",
+                      p === page && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
                     onClick={() => setPage(p)}
                   >
                     {p}

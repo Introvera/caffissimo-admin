@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   Plus,
   Search,
-  Edit,
   Trash2,
   ChevronLeft,
   ChevronRight,
@@ -17,6 +16,8 @@ import {
   MoreVertical,
   ArrowLeft,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
+import { Card } from "@/components/ui/card";
 import {
   useReactTable,
   getCoreRowModel,
@@ -65,6 +66,7 @@ import {
 } from "@/stores/api/productApi";
 import { canManageProducts, isSuperAdmin } from "@/lib/rbac";
 import { Category, UserRole } from "@/types";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const columnHelper = createColumnHelper<Category>();
@@ -223,7 +225,7 @@ export default function ProductCategoriesPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleEditClick(row)}>
-                  <Edit className="h-4 w-4 mr-2" />
+                  <TbEdit className="h-4 w-4 mr-2" />
                   Edit Category
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -278,10 +280,6 @@ export default function ProductCategoriesPage() {
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Placeholder/spacing for future status filtering */}
-        </div>
-
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -291,13 +289,17 @@ export default function ProductCategoriesPage() {
               setGlobalFilter(e.target.value);
               setPagination((prev) => ({ ...prev, pageIndex: 0 }));
             }}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
+            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
           />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Placeholder/spacing for future status filtering */}
         </div>
       </div>
 
       {/* Data Table */}
-      <div>
+      <Card className="overflow-hidden">
         {categoriesLoading ? (
           <div className="space-y-2 p-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -314,11 +316,11 @@ export default function ProductCategoriesPage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto border rounded-lg bg-background">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border/60">
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
                       {headerGroup.headers.map((header) => (
                         <TableHead
                           key={header.id}
@@ -361,19 +363,19 @@ export default function ProductCategoriesPage() {
             </div>
 
             {/* Pagination Controls */}
-            <div className="flex items-center justify-between border-t border-border/60 px-6 py-4 bg-muted/5 mt-4">
+            <div className="flex items-center justify-between border-t px-6 py-4">
               <p className="text-body text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {pagination.pageIndex * pagination.pageSize + 1}
-                </span>
-                {" "}to{" "}
+                </span>{" "}
+                to{" "}
                 <span className="font-medium text-foreground">
                   {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
-                </span>
-                {" "}of{" "}
-                <span className="font-medium text-foreground">{totalCount}</span>
-                {" "}categories
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-foreground">{totalCount}</span>{" "}
+                categories
               </p>
               <div className="flex items-center gap-1.5">
                 <Button
@@ -405,7 +407,10 @@ export default function ProductCategoriesPage() {
                       key={pageNum}
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0 text-caption"
+                      className={cn(
+                        "h-8 w-8 p-0 text-caption font-medium",
+                        currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      )}
                       onClick={() => table.setPageIndex(pageNum)}
                     >
                       {pageNum + 1}
@@ -425,7 +430,7 @@ export default function ProductCategoriesPage() {
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Create Dialog Modal */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

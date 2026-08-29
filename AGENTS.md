@@ -11,11 +11,11 @@ This file defines the standardized frontend guidelines, layout design rules, and
 ---
 
 ## 2. Colors & Surfaces
-- **Sidebar Background**: Smooth light grey (`#F7F6F9` in light mode, `#232323` in dark mode).
+- **Sidebar Background**: Pure white (`#FFFFFF` in light mode, `#232323` in dark mode).
 - **Sidebar Dividing Border**: Vertical right border of `border-r border-border/40`.
-- **Sidebar Logo Header**: Background is white (`bg-background`), height `h-16`, bottom border `border-b border-border/30`. No top margin/padding.
-- **Main/Right Page Content Area Background**: Pure white (`#FFFFFF` in light mode, `#1A1A1A` in dark mode).
-- **Navbar/Header Background**: White (`bg-background`), height `h-16`.
+- **Sidebar Logo Header**: Background matches sidebar (`bg-sidebar`), height `h-16`, bottom border `border-b border-border/30`. No top margin/padding.
+- **Main/Right Page Content Area Background**: Light neutral (`#F8FAFB` in light mode, `#1A1A1A` in dark mode).
+- **Navbar/Header Background**: White (`bg-white dark:bg-background`), height `h-16`.
 
 ---
 

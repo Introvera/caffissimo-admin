@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { cn } from "@/lib/utils";
 import { trainingApi } from "@/lib/training-api";
 import { useAppSelector } from "@/stores/store";
 import { canAccessAllBranches } from "@/lib/rbac";
@@ -259,7 +260,7 @@ export default function AcademyProgressPage() {
                 <Card
                   key={s}
                   className={`cursor-pointer border transition-all ${
-                    statusFilter === s ? "ring-2 ring-primary" : "hover:shadow-sm"
+                    statusFilter === s ? "ring-2 ring-primary" : ""
                   }`}
                   onClick={() =>
                     setStatusFilter((prev) => (prev === s ? "all" : s))
@@ -283,6 +284,16 @@ export default function AcademyProgressPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="progress-search"
+            placeholder="Search module or employee..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 h-9 w-[240px]"
+          />
+        </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <Select
             value={statusFilter}
@@ -298,16 +309,6 @@ export default function AcademyProgressPage() {
               <SelectItem value="NotStarted">Not Started</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="progress-search"
-            placeholder="Search module or employee..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 w-[240px]"
-          />
         </div>
       </div>
 
@@ -424,7 +425,10 @@ export default function AcademyProgressPage() {
                         key={pg}
                         variant={page === pg ? "default" : "outline"}
                         size="sm"
-                        className="h-8 w-8 p-0 text-caption"
+                        className={cn(
+                          "h-8 w-8 p-0 text-caption font-medium",
+                          page === pg && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                        )}
                         onClick={() => setPage(pg)}
                         id={`progress-page-${pg}`}
                       >
@@ -471,7 +475,7 @@ export default function AcademyProgressPage() {
             ) : (
               <div className="space-y-3">
                 {certsList.map((cert) => (
-                  <Card key={cert.employeeTrainingCertificateId} className="border border-border/80 shadow-none">
+                  <Card key={cert.employeeTrainingCertificateId}>
                     <CardContent className="p-3 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-body font-medium truncate" title={cert.originalFileName}>

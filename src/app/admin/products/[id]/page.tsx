@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Upload, Plus, X, Save, Edit } from "lucide-react";
+import { ArrowLeft, Upload, Plus, X, Save } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -464,18 +465,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex-1 flex justify-between items-center">
-          <PageHeader
-            title={product.productName}
-            description={isEditing ? "Edit product details and pricing" : "Product details and pricing"}
-          />
-          {canEdit && !isEditing && (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Product
-            </Button>
-          )}
-        </div>
+        <PageHeader
+          className="flex-1"
+          title={product.productName}
+          description={isEditing ? "Edit product details and pricing" : "Product details and pricing"}
+          actions={
+            canEdit && !isEditing ? (
+              <Button onClick={() => setIsEditing(true)}>
+                <TbEdit className="h-4 w-4 mr-2" />
+                Edit Product
+              </Button>
+            ) : null
+          }
+        />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">

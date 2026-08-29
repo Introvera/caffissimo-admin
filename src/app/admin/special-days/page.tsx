@@ -6,7 +6,6 @@ import {
   Calendar,
   Plus,
   Trash2,
-  Edit2,
   Sparkles,
   Filter,
   RefreshCw,
@@ -21,6 +20,7 @@ import {
   HelpCircle,
   MoreVertical,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -403,7 +403,7 @@ export default function SpecialDaysPage() {
                   transition={{ duration: 0.15 }}
                   className="h-full"
                 >
-                  <Card className={`relative overflow-hidden flex flex-col h-64 border rounded-xl bg-card transition-all duration-200 hover:shadow-sm ${config.border}`}>
+                  <Card className={`relative overflow-hidden flex flex-col h-64 border rounded-xl bg-card transition-all duration-200 ${config.border}`}>
                     
                     {/* Header Image / Gradient Block */}
                     <div className="relative h-28 overflow-hidden shrink-0 bg-muted">
@@ -486,7 +486,7 @@ export default function SpecialDaysPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleOpenEdit(day)}>
-                                <Edit2 className="h-4 w-4 mr-2" />
+                                <TbEdit className="h-4 w-4 mr-2" />
                                 Edit Seasonal Event
                               </DropdownMenuItem>
                               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(day.specialDayId)}>

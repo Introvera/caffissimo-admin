@@ -69,7 +69,7 @@ import { useAppSelector } from "@/stores/store";
 import { canManageUsers, canAccessAllBranches, isSuperAdmin } from "@/lib/rbac";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { getInitials, formatDate } from "@/lib/utils";
+import { getInitials, formatDate, cn } from "@/lib/utils";
 import { User, UserRole } from "@/types";
 import {
   useGetUsersQuery,
@@ -136,10 +136,10 @@ export default function UsersPage() {
   const [updateUserRole] = useUpdateUserRoleMutation();
   const [resetUserPassword] = useResetUserPasswordMutation();
   const [deleteUser] = useDeleteUserMutation();
-  
+
   const { data: branchesData } = useGetBranchesQuery({ pageSize: 100 });
   const branches = branchesData?.items || [];
-  
+
   const { data: usersData, isLoading: isUsersLoading } = useGetUsersQuery({
     page: 1,
     pageSize: 100,
@@ -372,7 +372,7 @@ export default function UsersPage() {
                     Reset Password
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => handleDeleteUser(info.row.original.id)}
                   >
@@ -451,9 +451,9 @@ export default function UsersPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input 
-                      id="firstName" 
-                      placeholder="John" 
+                    <Input
+                      id="firstName"
+                      placeholder="John"
                       value={formData.firstName}
                       className={formErrors.firstName ? "border-destructive focus-visible:ring-destructive" : ""}
                       onChange={(e) => {
@@ -467,9 +467,9 @@ export default function UsersPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input 
-                      id="lastName" 
-                      placeholder="Doe" 
+                    <Input
+                      id="lastName"
+                      placeholder="Doe"
                       value={formData.lastName}
                       className={formErrors.lastName ? "border-destructive focus-visible:ring-destructive" : ""}
                       onChange={(e) => {
@@ -484,10 +484,10 @@ export default function UsersPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="john@caffissimo.com" 
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@caffissimo.com"
                     value={formData.email}
                     className={formErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}
                     onChange={(e) => {
@@ -501,10 +501,10 @@ export default function UsersPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Temporary Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
                     value={formData.password}
                     className={formErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}
                     onChange={(e) => {
@@ -518,8 +518,8 @@ export default function UsersPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
-                  <Select 
-                    value={formData.role} 
+                  <Select
+                    value={formData.role}
                     onValueChange={(v) => {
                       const isGlobalRole = v === UserRole.SuperAdmin || v === UserRole.SuperAdminDeveloper;
                       setFormData({ ...formData, role: v as UserRole, branchId: isGlobalRole ? "" : formData.branchId });
@@ -558,8 +558,8 @@ export default function UsersPage() {
                   <div className="space-y-2">
                     <Label htmlFor="branch">Branch Assignment</Label>
                     {canAccessAllBranches(currentRole) ? (
-                      <Select 
-                        value={formData.branchId} 
+                      <Select
+                        value={formData.branchId}
                         onValueChange={(v) => setFormData({ ...formData, branchId: v })}
                       >
                         <SelectTrigger id="branch">
@@ -574,10 +574,10 @@ export default function UsersPage() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Input 
-                        id="branch" 
-                        value={getBranchName(displayedBranchId)} 
-                        disabled 
+                      <Input
+                        id="branch"
+                        value={getBranchName(displayedBranchId)}
+                        disabled
                         className="bg-muted text-muted-foreground"
                       />
                     )}
@@ -597,11 +597,21 @@ export default function UsersPage() {
         }
       />
 
-      {/* Filter Bar - same layout as Orders */}
+      {/* Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search users..."
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+          />
+        </div>
+
         <div className="flex flex-wrap items-center gap-2.5">
           <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
@@ -630,165 +640,156 @@ export default function UsersPage() {
             </SelectContent>
           </Select>
         </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users..."
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
       </div>
 
-      <div>
-        <div className="p-0">
-          {isUsersLoading ? (
-            <div className="border border-border/60 rounded-xl overflow-hidden bg-background shadow-sm">
-              <div className="p-4 border-b border-border/60 flex justify-between bg-muted/20">
-                <Skeleton className="h-4 w-1/4" />
-                <Skeleton className="h-4 w-1/6" />
-                <Skeleton className="h-4 w-1/6" />
-                <Skeleton className="h-4 w-1/6" />
-              </div>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="p-4 border-b border-border/60 flex items-center justify-between last:border-b-0">
-                  <div className="flex items-center gap-3 w-1/4">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
+      <Card className="overflow-hidden">
+        {isUsersLoading ? (
+          <div className="p-0">
+            <div className="p-4 border-b flex justify-between bg-muted/20">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-4 w-1/6" />
+              <Skeleton className="h-4 w-1/6" />
+              <Skeleton className="h-4 w-1/6" />
+            </div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="p-4 border-b flex items-center justify-between last:border-b-0">
+                <div className="flex items-center gap-3 w-1/4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32" />
                   </div>
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
                 </div>
-              ))}
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="p-6">
-              <EmptyState
-                icon={Users}
-                title="No users found"
-                description="Try adjusting your search or filters"
-              />
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow
-                      key={headerGroup.id}
-                      className="hover:bg-transparent border-b border-border/60"
-                    >
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          className={
-                            header.column.getCanSort()
-                              ? "cursor-pointer select-none"
-                              : ""
-                          }
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          <span className="inline-flex items-center">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            <SortIcon header={header} />
-                          </span>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination - same as Orders */}
-              <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-                <p className="text-body text-muted-foreground">
-                  Showing{" "}
-                  <span className="font-medium text-foreground">
-                    {pageIndex * pageSize + 1}
-                  </span>
-                  {" "}to{" "}
-                  <span className="font-medium text-foreground">
-                    {Math.min((pageIndex + 1) * pageSize, totalRows)}
-                  </span>
-                  {" "}of{" "}
-                  <span className="font-medium text-foreground">{totalRows}</span>
-                  {" "}users
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
-                    let pageNum: number;
-                    const totalPages = table.getPageCount();
-                    if (totalPages <= 5) {
-                      pageNum = i;
-                    } else if (pageIndex < 3) {
-                      pageNum = i;
-                    } else if (pageIndex > totalPages - 4) {
-                      pageNum = totalPages - 5 + i;
-                    } else {
-                      pageNum = pageIndex - 2 + i;
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageIndex === pageNum ? "default" : "outline"}
-                        size="sm"
-                        className="h-8 w-8 p-0 text-caption"
-                        onClick={() => table.setPageIndex(pageNum)}
-                      >
-                        {pageNum + 1}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full" />
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="p-12">
+            <EmptyState
+              icon={Users}
+              title="No users found"
+              description="Try adjusting your search or filters"
+            />
+          </div>
+        ) : (
+          <>
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow
+                    key={headerGroup.id}
+                    className="hover:bg-transparent border-b"
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={
+                          header.column.getCanSort()
+                            ? "cursor-pointer select-none"
+                            : ""
+                        }
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <span className="inline-flex items-center">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                          <SortIcon header={header} />
+                        </span>
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between border-t px-6 py-4">
+              <p className="text-body text-muted-foreground">
+                Showing{" "}
+                <span className="font-medium text-foreground">
+                  {pageIndex * pageSize + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium text-foreground">
+                  {Math.min((pageIndex + 1) * pageSize, totalRows)}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-foreground">{totalRows}</span>{" "}
+                users
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                  let pageNum: number;
+                  const totalPages = table.getPageCount();
+                  if (totalPages <= 5) {
+                    pageNum = i;
+                  } else if (pageIndex < 3) {
+                    pageNum = i;
+                  } else if (pageIndex > totalPages - 4) {
+                    pageNum = totalPages - 5 + i;
+                  } else {
+                    pageNum = pageIndex - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pageIndex === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className={cn(
+                        "h-8 w-8 p-0 text-caption font-medium",
+                        pageIndex === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      )}
+                      onClick={() => table.setPageIndex(pageNum)}
+                    >
+                      {pageNum + 1}
+                    </Button>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </Card>
     </div>
   );
 }

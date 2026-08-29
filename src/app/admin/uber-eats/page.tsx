@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Clock,
   DollarSign,
-  Edit,
   Eye,
   EyeOff,
   Loader2,
@@ -22,6 +21,7 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/empty-state";
 import { KPICard } from "@/components/shared/kpi-card";
@@ -839,7 +839,7 @@ export default function UberEatsPage() {
                                 <ActionButton
                                   onClick={() => openEditMenuDialog(menu)}
                                 >
-                                  <Edit className="mr-1.5 h-3.5 w-3.5" />
+                                  <TbEdit className="mr-1.5 h-3.5 w-3.5" />
                                   Edit
                                 </ActionButton>
                                 <ActionButton
