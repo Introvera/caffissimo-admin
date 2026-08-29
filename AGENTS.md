@@ -54,3 +54,9 @@ This file defines the standardized frontend guidelines, layout design rules, and
   - Do **NOT** render inline platform buttons (Uber Eats, DoorDash) or "Manage Branch" settings links inside the card body.
   - Render a vertical three-dot icon (`TbDotsVertical`) in the top-right corner. Clicking it reveals a dropdown menu containing **View Branch**, **Uber Eats**, and **Door Dash** actions.
 - **Active Status Toggle**: The branch status Switch toggle must be positioned at the bottom of the card content inside a dedicated status row labeled "Active Status".
+
+---
+
+## 8. Chips & Badges Standard
+- **Typography**: All status chips, category chips, and badges must use **`text-chip`** (`0.8125rem` / `13px`, `font-medium`).
+- **Dimensions & Sizing**: Maintain standard table chip sizing (`px-2.5 py-1 rounded-md border`) consistently across all components and pages (including table badges, branch card open/closed chips, and status badges). Avoid custom overrides that shrink the chip container.

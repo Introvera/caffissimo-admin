@@ -130,7 +130,7 @@ export default function POSLoginReportPage() {
                 placeholder="Search by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 w-[200px] h-9"
+                className="pl-8 w-[280px] h-9"
               />
             </div>
             <Button variant="outline" size="sm" className="h-9">
@@ -160,50 +160,52 @@ export default function POSLoginReportPage() {
       ) : (
         <div className="space-y-6">
           {groupedByDate.map(([date, dateRecords]) => (
-            <div key={date}>
-              <h3 className="text-body font-medium text-muted-foreground mb-3 flex items-center gap-2">
+            <Card key={date} className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+              <h3 className="text-body font-medium text-muted-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 {formatDate(date)}
               </h3>
-              <Table className="table-fixed">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-auto">Employee</TableHead>
-                    {canAccessAllBranches(currentRole) && <TableHead className="w-auto">Branch</TableHead>}
-                    <TableHead className="w-[120px]">First login</TableHead>
-                    <TableHead className="w-[120px]">Last logout</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dateRecords.map((record) => (
-                    <TableRow
-                      key={record.attendanceId}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedRecord(record)}
-                    >
-                      <TableCell className="font-medium">
-                        {record.userDisplayName}
-                      </TableCell>
-                      {canAccessAllBranches(currentRole) && (
-                        <TableCell>{getBranchName(record.branchId)}</TableCell>
-                      )}
-                      <TableCell className="whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5">
-                          <DoorOpen className="h-4 w-4 text-muted-foreground shrink-0" />
-                          {formatTime(record.firstLogin)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5">
-                          <DoorClosed className="h-4 w-4 text-muted-foreground shrink-0" />
-                          {formatTime(record.lastLogout)}
-                        </span>
-                      </TableCell>
+              <div className="overflow-hidden rounded-lg">
+                <Table className="table-fixed">
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent border-0">
+                      <TableHead className="w-auto">Employee</TableHead>
+                      {canAccessAllBranches(currentRole) && <TableHead className="w-auto">Branch</TableHead>}
+                      <TableHead className="w-[120px]">First login</TableHead>
+                      <TableHead className="w-[120px]">Last logout</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {dateRecords.map((record) => (
+                      <TableRow
+                        key={record.attendanceId}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => setSelectedRecord(record)}
+                      >
+                        <TableCell className="font-medium">
+                          {record.userDisplayName}
+                        </TableCell>
+                        {canAccessAllBranches(currentRole) && (
+                          <TableCell>{getBranchName(record.branchId)}</TableCell>
+                        )}
+                        <TableCell className="whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5">
+                            <DoorOpen className="h-4 w-4 text-muted-foreground shrink-0" />
+                            {formatTime(record.firstLogin)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5">
+                            <DoorClosed className="h-4 w-4 text-muted-foreground shrink-0" />
+                            {formatTime(record.lastLogout)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
           ))}
         </div>
       )}

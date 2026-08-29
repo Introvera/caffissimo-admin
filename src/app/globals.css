@@ -209,6 +209,8 @@ body {
   --radius-xl: var(--radius-xl);
   --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
+  --text-chip: 0.8125rem;
+  --text-chip--line-height: 1.4;
 
   /* Standardized font weights: only 500 (default) and 600 (bold) */
   --font-weight-thin: 500;
@@ -537,6 +539,13 @@ input[type="reset"]:disabled,
 @utility text-detail {
   font-size: 0.625rem; /* 10px */
   line-height: 1.4;
+}
+
+.text-chip,
+@utility text-chip {
+  font-size: 0.8125rem !important; /* 13px */
+  line-height: 1.4 !important;
+  font-weight: 500;
 }
 
 

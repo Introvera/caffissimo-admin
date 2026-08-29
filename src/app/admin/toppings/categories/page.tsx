@@ -153,74 +153,76 @@ export default function ToppingCategoriesPage() {
         />
       </div>
 
-      <Card className="overflow-hidden">
-        {isLoading ? (
-          <div className="p-4 space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : categories.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              icon={Layers}
-              title="No categories found"
-              description="Click the Add Category button to create your first customization group."
-            />
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Category Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[80px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.toppingCategoryId}>
-                  <TableCell className="font-semibold text-foreground">
-                    {category.categoryName}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={category.isActive ? "success" : "secondary"}>
-                      {category.isActive ? "Active" : "Archived"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {canEdit && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditClick(category)}>
-                            <TbEdit className="h-4 w-4 mr-2" />
-                            Edit Category
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDeleteCategory(category.toppingCategoryId, category.categoryName)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Category
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </TableCell>
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        <div className="overflow-hidden rounded-lg">
+          {isLoading ? (
+            <div className="p-4 space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={Layers}
+                title="No categories found"
+                description="Click the Add Category button to create your first customization group."
+              />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-0">
+                  <TableHead>Category Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {categories.map((category) => (
+                  <TableRow key={category.toppingCategoryId}>
+                    <TableCell className="font-semibold text-foreground">
+                      {category.categoryName}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={category.isActive ? "success" : "secondary"}>
+                        {category.isActive ? "Active" : "Archived"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {canEdit && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditClick(category)}>
+                              <TbEdit className="h-4 w-4 mr-2" />
+                              Edit Category
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeleteCategory(category.toppingCategoryId, category.categoryName)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Category
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
       </Card>
 
       {/* Create Topping Category Modal */}

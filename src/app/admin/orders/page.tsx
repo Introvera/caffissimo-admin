@@ -142,97 +142,98 @@ export default function OrdersPage() {
         description="Manage orders from all branches"
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by order number..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select
-            value={orderTypeFilter}
-            onValueChange={handleFilterChange(setOrderTypeFilter)}
-          >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              {ORDER_TYPE_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={statusFilter}
-            onValueChange={handleFilterChange(setStatusFilter)}
-          >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 gap-1.5"
-            onClick={() => {
-              setSortDescending((d) => !d);
-              setPage(1);
-            }}
-          >
-            {sortDescending ? (
-              <ArrowDown className="h-3.5 w-3.5" />
-            ) : (
-              <ArrowUp className="h-3.5 w-3.5" />
-            )}
-            {sortDescending ? "Newest" : "Oldest"}
-          </Button>
-        </div>
-      </div>
-
-      <Card className="overflow-hidden">
-        {loading ? (
-          <div className="space-y-2 p-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-lg" />
-            ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              icon={ShoppingCart}
-              title="No orders found"
-              description={
-                search || statusFilter !== "all" || orderTypeFilter !== "all"
-                  ? "No orders match your current filters."
-                  : "No orders found for the selected date range and branch."
-              }
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by order number..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
             />
           </div>
-        ) : (
-          <>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select
+              value={orderTypeFilter}
+              onValueChange={handleFilterChange(setOrderTypeFilter)}
+            >
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {ORDER_TYPE_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={statusFilter}
+              onValueChange={handleFilterChange(setStatusFilter)}
+            >
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5"
+              onClick={() => {
+                setSortDescending((d) => !d);
+                setPage(1);
+              }}
+            >
+              {sortDescending ? (
+                <ArrowDown className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowUp className="h-3.5 w-3.5" />
+              )}
+              {sortDescending ? "Newest" : "Oldest"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {loading ? (
+            <div className="space-y-2 p-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={ShoppingCart}
+                title="No orders found"
+                description={
+                  search || statusFilter !== "all" || orderTypeFilter !== "all"
+                    ? "No orders match your current filters."
+                    : "No orders found for the selected date range and branch."
+                }
+              />
+            </div>
+          ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b">
+                <TableRow className="hover:bg-transparent border-0">
                   <TableHead>Order</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
@@ -308,70 +309,72 @@ export default function OrdersPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+        </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between border-t px-6 py-4">
-              <p className="text-body text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {(page - 1) * PAGE_SIZE + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium text-foreground">
-                  {Math.min(page * PAGE_SIZE, totalCount)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">
-                  {totalCount}
-                </span>{" "}
-                orders
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => setPage((p) => p - 1)}
-                  disabled={page <= 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const pageNum =
-                    totalPages <= 5
+        {/* Pagination */}
+        {!loading && orders.length > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {(page - 1) * PAGE_SIZE + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min(page * PAGE_SIZE, totalCount)}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">
+                {totalCount}
+              </span>{" "}
+              orders
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const pageNum =
+                  totalPages <= 5
+                    ? i + 1
+                    : page <= 3
                       ? i + 1
-                      : page <= 3
-                        ? i + 1
-                        : page > totalPages - 3
-                          ? totalPages - 4 + i
-                          : page - 2 + i;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={page === pageNum ? "default" : "outline"}
-                      size="sm"
-                      className={cn(
-                        "h-8 w-8 p-0 text-caption font-medium",
-                        page === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
-                      )}
-                      onClick={() => setPage(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page >= totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+                      : page > totalPages - 3
+                        ? totalPages - 4 + i
+                        : page - 2 + i;
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={page === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      page === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => setPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          </>
+          </div>
         )}
       </Card>
     </div>

@@ -597,92 +597,93 @@ export default function UsersPage() {
         }
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users..."
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              {canAccessAllBranches(currentRole) ? (
-                <>
-                  <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
-                  <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
-                  <SelectItem value={UserRole.Customer}>Customer</SelectItem>
-                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
-                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
-                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
-                </>
-              ) : (
-                <>
-                  <SelectItem value={UserRole.Customer}>Customer</SelectItem>
-                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
-                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
-                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Card className="overflow-hidden">
-        {isUsersLoading ? (
-          <div className="p-0">
-            <div className="p-4 border-b flex justify-between bg-muted/20">
-              <Skeleton className="h-4 w-1/4" />
-              <Skeleton className="h-4 w-1/6" />
-              <Skeleton className="h-4 w-1/6" />
-              <Skeleton className="h-4 w-1/6" />
-            </div>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="p-4 border-b flex items-center justify-between last:border-b-0">
-                <div className="flex items-center gap-3 w-1/4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-32" />
-                  </div>
-                </div>
-                <Skeleton className="h-6 w-20 rounded-full" />
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-6 w-16 rounded-full" />
-                <Skeleton className="h-8 w-8 rounded-full" />
-              </div>
-            ))}
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              icon={Users}
-              title="No users found"
-              description="Try adjusting your search or filters"
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
             />
           </div>
-        ) : (
-          <>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                {canAccessAllBranches(currentRole) ? (
+                  <>
+                    <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
+                    <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
+                    <SelectItem value={UserRole.Customer}>Customer</SelectItem>
+                    <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                    <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                    <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                    <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                    <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value={UserRole.Customer}>Customer</SelectItem>
+                    <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                    <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                    <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                    <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                    <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {isUsersLoading ? (
+            <div className="p-0">
+              <div className="p-4 border-b flex justify-between bg-muted/20">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-4 w-1/6" />
+                <Skeleton className="h-4 w-1/6" />
+                <Skeleton className="h-4 w-1/6" />
+              </div>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="p-4 border-b flex items-center justify-between last:border-b-0">
+                  <div className="flex items-center gap-3 w-1/4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+              ))}
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={Users}
+                title="No users found"
+                description="Try adjusting your search or filters"
+              />
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow
                     key={headerGroup.id}
-                    className="hover:bg-transparent border-b"
+                    className="hover:bg-transparent border-0"
                   >
                     {headerGroup.headers.map((header) => (
                       <TableHead
@@ -723,71 +724,73 @@ export default function UsersPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+        </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between border-t px-6 py-4">
-              <p className="text-body text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {pageIndex * pageSize + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium text-foreground">
-                  {Math.min((pageIndex + 1) * pageSize, totalRows)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">{totalRows}</span>{" "}
-                users
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
-                  let pageNum: number;
-                  const totalPages = table.getPageCount();
-                  if (totalPages <= 5) {
-                    pageNum = i;
-                  } else if (pageIndex < 3) {
-                    pageNum = i;
-                  } else if (pageIndex > totalPages - 4) {
-                    pageNum = totalPages - 5 + i;
-                  } else {
-                    pageNum = pageIndex - 2 + i;
-                  }
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={pageIndex === pageNum ? "default" : "outline"}
-                      size="sm"
-                      className={cn(
-                        "h-8 w-8 p-0 text-caption font-medium",
-                        pageIndex === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
-                      )}
-                      onClick={() => table.setPageIndex(pageNum)}
-                    >
-                      {pageNum + 1}
-                    </Button>
-                  );
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+        {/* Pagination */}
+        {!isUsersLoading && filteredUsers.length > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {pageIndex * pageSize + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min((pageIndex + 1) * pageSize, totalRows)}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">{totalRows}</span>{" "}
+              users
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                let pageNum: number;
+                const totalPages = table.getPageCount();
+                if (totalPages <= 5) {
+                  pageNum = i;
+                } else if (pageIndex < 3) {
+                  pageNum = i;
+                } else if (pageIndex > totalPages - 4) {
+                  pageNum = totalPages - 5 + i;
+                } else {
+                  pageNum = pageIndex - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={pageIndex === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      pageIndex === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => table.setPageIndex(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          </>
+          </div>
         )}
       </Card>
     </div>

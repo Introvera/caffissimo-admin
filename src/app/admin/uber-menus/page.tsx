@@ -103,54 +103,56 @@ export default function UberMenusPage() {
         description="Unified management of Uber Eats menus across branches"
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search menus..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          {showBranchFilter && (
-            <Select value={branchFilter} onValueChange={(v) => { setBranchFilter(v); setPage(1); }}>
-              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
-                <SelectValue placeholder="Branch" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                {branchesData?.items.map((b) => (
-                  <SelectItem key={b.branchId} value={b.branchId}>{b.branchName.replace("Caffissimo", "").trim()}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-      </div>
-
-      <Card className="overflow-hidden">
-        {isLoading ? (
-          <div className="space-y-2 p-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-lg" />
-            ))}
-          </div>
-        ) : menus.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              icon={ExternalLink}
-              title="No Uber Menus found"
-              description="Try adjusting your filters or create a new menu from a branch detail page."
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search menus..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
             />
           </div>
-        ) : (
-          <>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            {showBranchFilter && (
+              <Select value={branchFilter} onValueChange={(v) => { setBranchFilter(v); setPage(1); }}>
+                <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                  <SelectValue placeholder="Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  {branchesData?.items.map((b) => (
+                    <SelectItem key={b.branchId} value={b.branchId}>{b.branchName.replace("Caffissimo", "").trim()}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {isLoading ? (
+            <div className="space-y-2 p-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : menus.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={ExternalLink}
+                title="No Uber Menus found"
+                description="Try adjusting your filters or create a new menu from a branch detail page."
+              />
+            </div>
+          ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b">
+                <TableRow className="hover:bg-transparent border-0">
                   <TableHead>Menu</TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead>Status</TableHead>
@@ -203,40 +205,42 @@ export default function UberMenusPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+        </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between border-t px-6 py-4">
-              <p className="text-body text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {(page - 1) * PAGE_SIZE + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium text-foreground">
-                  {Math.min(page * PAGE_SIZE, totalCount)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">{totalCount}</span>{" "}
-                menus
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline" size="sm" className="h-8 w-8 p-0"
-                  onClick={() => setPage((p) => p - 1)}
-                  disabled={page <= 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline" size="sm" className="h-8 w-8 p-0"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page >= totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+        {/* Pagination */}
+        {!isLoading && menus.length > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {(page - 1) * PAGE_SIZE + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min(page * PAGE_SIZE, totalCount)}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">{totalCount}</span>{" "}
+              menus
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline" size="sm" className="h-8 w-8 p-0"
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline" size="sm" className="h-8 w-8 p-0"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          </>
+          </div>
         )}
       </Card>
     </div>

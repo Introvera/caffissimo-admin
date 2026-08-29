@@ -381,78 +381,79 @@ export default function ProductsPage() {
         }
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products..."
-            value={globalFilter}
-            onChange={(e) => {
-              setGlobalFilter(e.target.value);
-              setPagination(prev => ({ ...prev, pageIndex: 0 }));
-            }}
-            className="pl-9 w-[220px] h-9 bg-white dark:bg-[#141414] rounded-lg"
-          />
-        </div>
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value);
+                setPagination(prev => ({ ...prev, pageIndex: 0 }));
+              }}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+            />
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={categoryFilter} onValueChange={(val) => {
-            setCategoryFilter(val);
-            setPagination(prev => ({ ...prev, pageIndex: 0 }));
-          }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.productCategoryId} value={cat.productCategoryId}>
-                  {cat.categoryName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {isBranchManager && (
-            <Select value={branchFilter} onValueChange={(val: "all" | "branch") => {
-              setBranchFilter(val);
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={categoryFilter} onValueChange={(val) => {
+              setCategoryFilter(val);
               setPagination(prev => ({ ...prev, pageIndex: 0 }));
             }}>
               <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
-                <SelectValue placeholder="Availability" />
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Products</SelectItem>
-                <SelectItem value="branch">My Branch Products</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.productCategoryId} value={cat.productCategoryId}>
+                    {cat.categoryName}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-          )}
-        </div>
-      </div>
 
-      <Card className="overflow-hidden">
-        {productsLoading ? (
-          <div className="space-y-2 p-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
+            {isBranchManager && (
+              <Select value={branchFilter} onValueChange={(val: "all" | "branch") => {
+                setBranchFilter(val);
+                setPagination(prev => ({ ...prev, pageIndex: 0 }));
+              }}>
+                <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                  <SelectValue placeholder="Availability" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Products</SelectItem>
+                  <SelectItem value="branch">My Branch Products</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
-        ) : products.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              icon={Package}
-              title="No products found"
-              description="Try adjusting your search or filters"
-            />
-          </div>
-        ) : (
-          <>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {productsLoading ? (
+            <div className="space-y-2 p-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={Package}
+                title="No products found"
+                description="Try adjusting your search or filters"
+              />
+            </div>
+          ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-0">
                       {headerGroup.headers.map((header) => (
                         <TableHead
                           key={header.id}
@@ -493,74 +494,76 @@ export default function ProductsPage() {
                 </TableBody>
               </Table>
             </div>
+          )}
+        </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between border-t px-6 py-4">
-              <p className="text-body text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {pagination.pageIndex * pagination.pageSize + 1}
-                </span>
-                {" "}to{" "}
-                <span className="font-medium text-foreground">
-                  {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
-                </span>
-                {" "}of{" "}
-                <span className="font-medium text-foreground">{totalCount}</span>
-                {" "}products
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
-                  let pageNum: number;
-                  const totalPages = table.getPageCount();
-                  const currentPage = pagination.pageIndex;
+        {/* Pagination */}
+        {!productsLoading && products.length > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {pagination.pageIndex * pagination.pageSize + 1}
+              </span>
+              {" "}to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
+              </span>
+              {" "}of{" "}
+              <span className="font-medium text-foreground">{totalCount}</span>
+              {" "}products
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                let pageNum: number;
+                const totalPages = table.getPageCount();
+                const currentPage = pagination.pageIndex;
 
-                  if (totalPages <= 5) {
-                    pageNum = i;
-                  } else if (currentPage < 3) {
-                    pageNum = i;
-                  } else if (currentPage > totalPages - 4) {
-                    pageNum = totalPages - 5 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      className={cn(
-                        "h-8 w-8 p-0 text-caption font-medium",
-                        currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
-                      )}
-                      onClick={() => table.setPageIndex(pageNum)}
-                    >
-                      {pageNum + 1}
-                    </Button>
-                  );
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+                if (totalPages <= 5) {
+                  pageNum = i;
+                } else if (currentPage < 3) {
+                  pageNum = i;
+                } else if (currentPage > totalPages - 4) {
+                  pageNum = totalPages - 5 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => table.setPageIndex(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          </>
+          </div>
         )}
       </Card>
     </div>

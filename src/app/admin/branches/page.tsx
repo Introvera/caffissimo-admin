@@ -166,15 +166,14 @@ export default function BranchesPage() {
                           <Store className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <CardTitle className="text-h3 flex items-center gap-2">
-                            <span>{branch.branchName}</span>
-                            <Badge
-                              variant={branch.isOpen ? "success" : "secondary"}
-                              className="px-2 py-0 h-5 text-[11px] font-semibold"
-                            >
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-h3 leading-normal">
+                              {branch.branchName}
+                            </CardTitle>
+                            <Badge variant={branch.isOpen ? "success" : "secondary"}>
                               {branch.isOpen ? "Open" : "Closed"}
                             </Badge>
-                          </CardTitle>
+                          </div>
                         </div>
                       </div>
                       <DropdownMenu>

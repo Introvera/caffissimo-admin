@@ -93,7 +93,7 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
       <div className="flex justify-between items-center">
         <h3 className="text-h3 font-medium">Uber Eats Menus</h3>
         <div className="flex gap-2">
@@ -110,9 +110,9 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
         </div>
       </div>
 
-      {menus.length === 0 ? (
-        <Card>
-          <CardContent className="py-12">
+      <div className="overflow-hidden rounded-lg">
+        {menus.length === 0 ? (
+          <div className="py-12">
             <EmptyState
               icon={ExternalLink}
               title="No Uber Menus found"
@@ -126,13 +126,11 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
                 ) : undefined
               }
             />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="overflow-hidden">
+          </div>
+        ) : (
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent border-b">
+              <TableRow className="hover:bg-transparent border-0">
                 <TableHead>Menu Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Last Sync</TableHead>
@@ -197,8 +195,8 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
               ))}
             </TableBody>
           </Table>
-        </Card>
-      )}
-    </div>
+        )}
+      </div>
+    </Card>
   );
 }
