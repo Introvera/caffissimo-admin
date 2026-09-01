@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Tag, Plus, Trash2, RefreshCw, Percent, DollarSign, Truck, Gift, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
@@ -227,14 +228,20 @@ export default function UberPromotionsPage() {
     }
   };
 
-  const handleDelete = async (promotionId: string) => {
-    if (!branchId || !promotionId) return;
-    if (!confirm("Revoke this promotion on Uber Eats?")) return;
+  const [promoToDelete, setPromoToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!branchId || !promoToDelete) return;
+    setIsDeleting(true);
     try {
-      await deletePromotion({ branchId, promotionId }).unwrap();
+      await deletePromotion({ branchId, promotionId: promoToDelete }).unwrap();
       toast.success("Promotion revoked");
+      setPromoToDelete(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to revoke promotion");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -318,7 +325,7 @@ export default function UberPromotionsPage() {
             <PromotionCard
               key={promo.promotionId ?? idx}
               promo={promo}
-              onDelete={() => promo.promotionId && handleDelete(promo.promotionId)}
+              onDelete={() => promo.promotionId && setPromoToDelete(promo.promotionId)}
             />
           ))}
         </div>
@@ -555,6 +562,19 @@ export default function UberPromotionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!promoToDelete}
+        onOpenChange={(open) => {
+          if (!open) setPromoToDelete(null);
+        }}
+        title="Revoke Uber Promotion"
+        description="Are you sure you want to revoke this promotion on your Uber Eats store? This action cannot be undone."
+        confirmText="Revoke Promotion"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

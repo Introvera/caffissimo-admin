@@ -54,7 +54,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/stores/store";
 import { useGetToppingsQuery, useGetToppingCategoriesQuery } from "@/stores/api/toppingApi";
-import { canManageProducts } from "@/lib/rbac";
+import { canManageBaseCatalog } from "@/lib/rbac";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Topping, UserRole } from "@/types";
 
@@ -189,7 +189,7 @@ export default function ToppingsPage() {
         title="Toppings"
         description="Manage your topping catalog and customizations"
         actions={
-          canManageProducts(currentRole as UserRole) && (
+          canManageBaseCatalog(currentRole as UserRole) && (
             <div className="flex gap-2">
               <Link href="/admin/toppings/categories">
                 <Button variant="outline">

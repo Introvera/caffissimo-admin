@@ -34,6 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import {
   useGetUberMenusQuery,
   useSyncUberMenuMutation,
@@ -71,12 +72,15 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
     }
   };
 
-  const handleDelete = async (menuId: string) => {
-    if (!confirm("Are you sure you want to delete this Uber Menu?")) return;
+  const [menuToDelete, setMenuToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  const handleConfirmDelete = async () => {
+    if (!menuToDelete) return;
 
     try {
-      await deleteMenu({ id: menuId, branchId }).unwrap();
+      await deleteMenu({ id: menuToDelete.id, branchId }).unwrap();
       toast.success("Uber Menu deleted");
+      setMenuToDelete(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete menu");
     }
@@ -182,7 +186,7 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
                           <DropdownMenuItem
                             className="text-destructive"
                             disabled={!canEdit || isDeleting}
-                            onClick={() => handleDelete(menu.uberMenuId)}
+                            onClick={() => setMenuToDelete({ id: menu.uberMenuId, name: menu.menuName })}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete Menu
@@ -197,6 +201,19 @@ export function UberMenusTab({ branchId, canEdit }: UberMenusTabProps) {
           </Table>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!menuToDelete}
+        onOpenChange={(open) => {
+          if (!open) setMenuToDelete(null);
+        }}
+        title="Delete Uber Menu"
+        description={`Are you sure you want to delete "${menuToDelete?.name || "this menu"}"? This will remove the menu from Caffissimo and Uber Eats.`}
+        confirmText="Delete Menu"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </Card>
   );
 }

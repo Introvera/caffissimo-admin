@@ -49,6 +49,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import {
   useGetBranchProductsQuery,
   useUpdateBranchProductMutation,
@@ -116,12 +117,15 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
     }
   };
 
-  const handleDelete = async (productId: string) => {
-    if (!confirm("Are you sure you want to remove this product from the branch?")) return;
+  const [productToDelete, setProductToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
 
     try {
-      await deleteBranchProduct(productId).unwrap();
+      await deleteBranchProduct(productToDelete.id).unwrap();
       toast.success("Product removed from branch");
+      setProductToDelete(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to remove product");
     }
@@ -339,7 +343,7 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
                         <DropdownMenuItem
                           className="text-destructive"
                           disabled={!canEdit || isDeleting}
-                          onClick={() => handleDelete(product.branchProductId)}
+                          onClick={() => setProductToDelete({ id: product.branchProductId, name: product.productName })}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Remove from Branch
@@ -378,6 +382,19 @@ export function ProductsTab({ branchId, canEdit }: ProductsTabProps) {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!productToDelete}
+        onOpenChange={(open) => {
+          if (!open) setProductToDelete(null);
+        }}
+        title="Remove Product from Branch"
+        description={`Are you sure you want to remove "${productToDelete?.name || "this product"}" from this branch?`}
+        confirmText="Remove Product"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </Card>
   );
 }

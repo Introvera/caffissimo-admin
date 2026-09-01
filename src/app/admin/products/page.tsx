@@ -56,6 +56,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useAppSelector } from "@/stores/store";
 import { useGetProductsQuery, useGetCategoriesQuery, useUpdateProductMutation } from "@/stores/api/productApi";
 import { useGetBranchProductsQuery, useCreateBranchProductMutation, useDeleteBranchProductMutation } from "@/stores/api/branchProductApi";
@@ -119,6 +120,9 @@ export default function ProductsPage() {
     skip: shouldShowAll || !assignedBranchId
   });
 
+  const [productToRemove, setProductToRemove] = useState<{ id: string; name: string } | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
   const handleAddProduct = async (globalProduct: Product) => {
     try {
       const mappedVariants =
@@ -148,14 +152,17 @@ export default function ProductsPage() {
     }
   };
 
-  const handleRemoveProductFromBranch = async (branchProductId: string) => {
-    if (!confirm("Are you sure you want to remove this product from your branch?")) return;
-
+  const handleConfirmRemoveProduct = async () => {
+    if (!productToRemove) return;
+    setIsRemoving(true);
     try {
-      await deleteBranchProduct(branchProductId).unwrap();
+      await deleteBranchProduct(productToRemove.id).unwrap();
       toast.success("Product removed from branch successfully");
+      setProductToRemove(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to remove product from branch");
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -317,7 +324,7 @@ export default function ProductsPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive focus:text-destructive"
-                          onClick={() => handleRemoveProductFromBranch(actualBpId)}
+                          onClick={() => setProductToRemove({ id: actualBpId, name: row.productName || "this product" })}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Remove from Branch
@@ -566,6 +573,19 @@ export default function ProductsPage() {
           </div>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={!!productToRemove}
+        onOpenChange={(open) => {
+          if (!open) setProductToRemove(null);
+        }}
+        title="Remove Product from Branch"
+        description={`Are you sure you want to remove ${productToRemove?.name || "this product"} from your branch? This will remove branch overrides and availability for this branch.`}
+        confirmText="Remove Product"
+        variant="destructive"
+        isLoading={isRemoving}
+        onConfirm={handleConfirmRemoveProduct}
+      />
     </div>
   );
 }

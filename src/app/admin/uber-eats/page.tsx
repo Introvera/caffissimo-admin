@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/empty-state";
 import { KPICard } from "@/components/shared/kpi-card";
 import { PageHeader } from "@/components/shared/page-header";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -585,21 +586,24 @@ export default function UberEatsPage() {
     }
   };
 
-  const handleMenuDelete = async (menu: UberMenuSummary) => {
-    const confirmed = window.confirm(`Delete ${menu.menuName}?`);
-    if (!confirmed) return;
+  const [menuToDelete, setMenuToDelete] = useState<UberMenuSummary | null>(null);
+  const [isDeletingMenu, setIsDeletingMenu] = useState(false);
 
-    setWorkingActionId(`menu-delete-${menu.uberMenuId}`);
+  const handleConfirmMenuDelete = async () => {
+    if (!menuToDelete) return;
+    setIsDeletingMenu(true);
+    setWorkingActionId(`menu-delete-${menuToDelete.uberMenuId}`);
     try {
       await deleteUberMenu({
-        id: menu.uberMenuId,
-        branchId: menu.branchId,
+        id: menuToDelete.uberMenuId,
+        branchId: menuToDelete.branchId,
       }).unwrap();
       setNotice({
         kind: "success",
         title: "Menu deleted",
-        message: menu.menuName,
+        message: menuToDelete.menuName,
       });
+      setMenuToDelete(null);
     } catch (error) {
       setNotice({
         kind: "error",
@@ -607,6 +611,7 @@ export default function UberEatsPage() {
         message: getApiErrorMessage(error),
       });
     } finally {
+      setIsDeletingMenu(false);
       setWorkingActionId(null);
     }
   };
@@ -858,7 +863,7 @@ export default function UberEatsPage() {
                                     workingActionId ===
                                     `menu-delete-${menu.uberMenuId}`
                                   }
-                                  onClick={() => handleMenuDelete(menu)}
+                                  onClick={() => setMenuToDelete(menu)}
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </ActionButton>
@@ -1330,6 +1335,19 @@ export default function UberEatsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!menuToDelete}
+        onOpenChange={(open) => {
+          if (!open) setMenuToDelete(null);
+        }}
+        title="Delete Uber Menu"
+        description={`Are you sure you want to delete "${menuToDelete?.menuName || "this menu"}"? This will remove the menu from Caffissimo and Uber Eats.`}
+        confirmText="Delete Menu"
+        variant="destructive"
+        isLoading={isDeletingMenu}
+        onConfirm={handleConfirmMenuDelete}
+      />
     </div>
   );
 }

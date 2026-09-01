@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useAppSelector } from "@/stores/store";
 import { useGetOffersQuery, useDeleteOfferMutation } from "@/stores/api/offerApi";
 import { canManageOffers } from "@/lib/rbac";
@@ -47,20 +48,24 @@ export default function OffersPage() {
   const PAGE_SIZE = 10;
   const { data, isLoading } = useGetOffersQuery({ page, pageSize: PAGE_SIZE });
   const [deleteOffer] = useDeleteOfferMutation();
+  const [offerToDelete, setOfferToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const canManage = canManageOffers(currentRole);
   const offers = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete the offer "${name}"?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!offerToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteOffer(id).unwrap();
+      await deleteOffer(offerToDelete.id).unwrap();
       toast.success("Offer deleted successfully");
+      setOfferToDelete(null);
     } catch (err: any) {
       toast.error(err?.message || "Failed to delete offer");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -200,7 +205,7 @@ export default function OffersPage() {
                           variant="ghost"
                           size="sm"
                           className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDelete(offer.offerId, offer.offerName)}
+                          onClick={() => setOfferToDelete({ id: offer.offerId, name: offer.offerName })}
                         >
                           <Trash2 className="h-4 w-4 mr-1.5" />
                           Delete
@@ -237,6 +242,19 @@ export default function OffersPage() {
           )}
         </>
       )}
+
+      <ConfirmDialog
+        open={!!offerToDelete}
+        onOpenChange={(open) => {
+          if (!open) setOfferToDelete(null);
+        }}
+        title="Delete Offer"
+        description={`Are you sure you want to delete the offer "${offerToDelete?.name || ""}"? This action cannot be undone.`}
+        confirmText="Delete Offer"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

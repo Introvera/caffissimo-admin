@@ -27,7 +27,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { useAppSelector } from "@/stores/store";
-import { isSuperAdmin, canManageProducts } from "@/lib/rbac";
+import { isSuperAdmin, canManageBaseCatalog } from "@/lib/rbac";
 import { 
   useGetToppingCategoriesQuery, 
   useCreateToppingMutation,
@@ -37,6 +37,7 @@ import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { Category, Branch, UserRole, ToppingCategory } from "@/types";
 import { toast } from "sonner";
 import { ImageUploader } from "@/components/ui/image-uploader";
+import { CharacterCounter } from "@/components/ui/character-counter";
 import { EditBar } from "@/components/shared/edit-bar";
 
 interface ToppingFormData {
@@ -47,7 +48,7 @@ interface ToppingFormData {
 }
 
 const toppingSchema = z.object({
-  toppingName: z.string().min(2, "Name must be at least 2 characters"),
+  toppingName: z.string().min(2, "Name must be at least 2 characters").max(100, "Name must not exceed 100 characters"),
   toppingCategoryId: z.string().min(1, "Please select a category"),
   price: z.number().min(0, "Price must be positive"),
   isActive: z.boolean(),
@@ -65,6 +66,13 @@ export default function NewToppingPage() {
   const currentRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const assignedBranchId = useAppSelector((state) => state.auth.user?.branchId);
   const isSuper = isSuperAdmin(currentRole as UserRole);
+
+  useEffect(() => {
+    if (currentRole && !canManageBaseCatalog(currentRole as UserRole)) {
+      toast.error("You are not authorized to create toppings.");
+      router.push("/admin/toppings");
+    }
+  }, [currentRole, router]);
   
   const { data: categoriesData } = useGetToppingCategoriesQuery();
   const categories = categoriesData?.items || [];
@@ -179,7 +187,7 @@ export default function NewToppingPage() {
     toast.error(`Please fix validation errors: ${errorMessages || "Check all fields"}`);
   };
 
-  const canEdit = canManageProducts(currentRole);
+  const canEdit = canManageBaseCatalog(currentRole);
   const unconfiguredBranches = branches.filter(b => !branchConfigs.find(c => c.branchId === b.branchId));
   const basePriceValue = watch("price") || 0;
 
@@ -268,10 +276,14 @@ export default function NewToppingPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="toppingName">Topping Name</Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="toppingName">Topping Name</Label>
+                        <CharacterCounter current={(watch("toppingName") || "").length} max={100} />
+                      </div>
                       <Input
                         id="toppingName"
                         placeholder="e.g. Soy Milk, Vanilla Syrup"
+                        maxLength={100}
                         {...register("toppingName")}
                       />
                       {errors.toppingName && (

@@ -94,6 +94,7 @@ export const productApi = baseApi.injectEndpoints({
       providesTags: ["Product"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const {

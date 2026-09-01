@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { trainingApi } from "@/lib/training-api";
 import {
   TrainingModuleType,
@@ -192,15 +193,36 @@ export default function ModuleDetailPage() {
     }
   };
 
-  const handleDeleteVideo = async (videoId: string) => {
-    if (!window.confirm("Are you sure you want to delete this video?")) return;
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    title: string;
+    description: string;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
+  const [isDeletingItem, setIsDeletingItem] = useState(false);
+
+  const handleExecuteDelete = async () => {
+    if (!deleteConfirm) return;
+    setIsDeletingItem(true);
     try {
-      await trainingApi.deleteVideo(moduleId, videoId);
-      toast.success("Video deleted successfully");
-      await loadModule();
+      await deleteConfirm.onConfirm();
+      setDeleteConfirm(null);
     } catch (e: any) {
-      toast.error(e?.message || "Failed to delete video");
+      toast.error(e?.message || "Failed to delete item");
+    } finally {
+      setIsDeletingItem(false);
     }
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    setDeleteConfirm({
+      title: "Delete Video",
+      description: "Are you sure you want to delete this video? This action cannot be undone.",
+      onConfirm: async () => {
+        await trainingApi.deleteVideo(moduleId, videoId);
+        toast.success("Video deleted successfully");
+        await loadModule();
+      },
+    });
   };
 
   // ── Question Actions ─────────────────────────────────────────────────────
@@ -277,15 +299,16 @@ export default function ModuleDetailPage() {
     }
   };
 
-  const handleDeleteQuestion = async (questionId: string) => {
-    if (!window.confirm("Are you sure you want to delete this quiz question?")) return;
-    try {
-      await trainingApi.deleteQuestion(moduleId, questionId);
-      toast.success("Question deleted successfully");
-      await loadModule();
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to delete question");
-    }
+  const handleDeleteQuestion = (questionId: string) => {
+    setDeleteConfirm({
+      title: "Delete Quiz Question",
+      description: "Are you sure you want to delete this quiz question? This action cannot be undone.",
+      onConfirm: async () => {
+        await trainingApi.deleteQuestion(moduleId, questionId);
+        toast.success("Question deleted successfully");
+        await loadModule();
+      },
+    });
   };
 
   const updateOption = (
@@ -397,15 +420,16 @@ export default function ModuleDetailPage() {
     setCourseDialogOpen(true);
   };
 
-  const handleDeleteExternalCourse = async (courseId: string) => {
-    if (!window.confirm("Are you sure you want to delete this external course?")) return;
-    try {
-      await trainingApi.deleteExternalCourse(moduleId, courseId);
-      toast.success("External course deleted");
-      await loadModule();
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to delete external course");
-    }
+  const handleDeleteExternalCourse = (courseId: string) => {
+    setDeleteConfirm({
+      title: "Delete External Course",
+      description: "Are you sure you want to delete this external course? This action cannot be undone.",
+      onConfirm: async () => {
+        await trainingApi.deleteExternalCourse(moduleId, courseId);
+        toast.success("External course deleted");
+        await loadModule();
+      },
+    });
   };
 
   // ── Loading ────────────────────────────────────────────────────────────────
@@ -1416,6 +1440,19 @@ export default function ModuleDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        onOpenChange={(open) => {
+          if (!open) setDeleteConfirm(null);
+        }}
+        title={deleteConfirm?.title || "Delete Item"}
+        description={deleteConfirm?.description || "Are you sure you want to delete this item? This action cannot be undone."}
+        confirmText="Delete"
+        variant="destructive"
+        isLoading={isDeletingItem}
+        onConfirm={handleExecuteDelete}
+      />
     </div>
   );
 }

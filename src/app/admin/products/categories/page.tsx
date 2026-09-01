@@ -64,8 +64,10 @@ import {
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
 } from "@/stores/api/productApi";
-import { canManageProducts, isSuperAdmin } from "@/lib/rbac";
+import { isSuperAdmin } from "@/lib/rbac";
 import { Category, UserRole } from "@/types";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { CharacterCounter } from "@/components/ui/character-counter";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -84,7 +86,6 @@ export default function ProductCategoriesPage() {
   const router = useRouter();
   const currentRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const isSuper = isSuperAdmin(currentRole);
-  const canManage = canManageProducts(currentRole);
 
   useEffect(() => {
     if (currentRole && !isSuper) {
@@ -103,6 +104,8 @@ export default function ProductCategoriesPage() {
   // Modal Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   
   // Edit form states
@@ -176,16 +179,17 @@ export default function ProductCategoriesPage() {
     }
   };
 
-  const handleDeleteCategory = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete the category "${name}"? This action cannot be undone.`)) {
-      return;
-    }
-
+  const handleConfirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteCategory(id).unwrap();
+      await deleteCategory(categoryToDelete.productCategoryId).unwrap();
       toast.success("Product category deleted successfully");
+      setCategoryToDelete(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete product category");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -209,17 +213,13 @@ export default function ProductCategoriesPage() {
       }),
       columnHelper.display({
         id: "actions",
+        header: "",
         cell: (info) => {
           const row = info.row.original;
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  disabled={!canManage}
-                >
+                <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -230,7 +230,7 @@ export default function ProductCategoriesPage() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive"
-                  onClick={() => handleDeleteCategory(row.productCategoryId, row.categoryName)}
+                  onClick={() => setCategoryToDelete(row)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Category
@@ -241,7 +241,7 @@ export default function ProductCategoriesPage() {
         },
       }),
     ],
-    [canManage]
+    []
   );
 
   const table = useReactTable({
@@ -268,7 +268,7 @@ export default function ProductCategoriesPage() {
           title="Product Categories"
           description="Manage product catalog grouping and organization"
           actions={
-            canManage && (
+            isSuper && (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Category
@@ -445,10 +445,14 @@ export default function ProductCategoriesPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="categoryName">Category Name</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="categoryName">Category Name</Label>
+                <CharacterCounter current={newCategoryName.length} max={100} />
+              </div>
               <Input
                 id="categoryName"
                 placeholder="e.g. Espresso Drinks, Snacks"
+                maxLength={100}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => {
@@ -481,10 +485,14 @@ export default function ProductCategoriesPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="editCategoryName">Category Name</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="editCategoryName">Category Name</Label>
+                <CharacterCounter current={editCategoryName.length} max={100} />
+              </div>
               <Input
                 id="editCategoryName"
                 placeholder="e.g. Espresso Drinks"
+                maxLength={100}
                 value={editCategoryName}
                 onChange={(e) => setEditCategoryName(e.target.value)}
                 onKeyDown={(e) => {
@@ -518,6 +526,19 @@ export default function ProductCategoriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!categoryToDelete}
+        onOpenChange={(open) => {
+          if (!open) setCategoryToDelete(null);
+        }}
+        title="Delete Product Category"
+        description={`Are you sure you want to delete the category "${categoryToDelete?.categoryName || ""}"? This action cannot be undone.`}
+        confirmText="Delete Category"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDeleteCategory}
+      />
     </div>
   );
 }

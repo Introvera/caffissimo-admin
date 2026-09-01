@@ -44,11 +44,25 @@ import {
 import { canManageProducts } from "@/lib/rbac";
 import { useAppSelector } from "@/stores/store";
 import { UserRole, ToppingCategory } from "@/types";
+import { isSuperAdmin } from "@/lib/rbac";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { CharacterCounter } from "@/components/ui/character-counter";
 import { toast } from "sonner";
 
 export default function ToppingCategoriesPage() {
+  const router = useRouter();
   const currentRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
-  const canEdit = canManageProducts(currentRole);
+  const isSuper = isSuperAdmin(currentRole as UserRole);
+  const canEdit = isSuper;
+
+  useEffect(() => {
+    if (currentRole && !isSuper) {
+      toast.error("You are not authorized to manage topping categories.");
+      router.push("/admin/toppings");
+    }
+  }, [currentRole, isSuper, router]);
 
   const { data: categoriesData, isLoading } = useGetToppingCategoriesQuery();
   const categories = categoriesData?.items || [];
@@ -67,6 +81,10 @@ export default function ToppingCategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<ToppingCategory | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
   const [editCategoryActive, setEditCategoryActive] = useState(true);
+
+  // Delete Dialog States
+  const [categoryToDelete, setCategoryToDelete] = useState<ToppingCategory | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
@@ -117,16 +135,17 @@ export default function ToppingCategoriesPage() {
     }
   };
 
-  const handleDeleteCategory = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete the topping category "${name}"? This action cannot be undone.`)) {
-      return;
-    }
-
+  const handleConfirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteCategory(id).unwrap();
+      await deleteCategory(categoryToDelete.toppingCategoryId).unwrap();
       toast.success("Topping category deleted successfully");
+      setCategoryToDelete(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete topping category");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -143,7 +162,7 @@ export default function ToppingCategoriesPage() {
           title="Topping Categories"
           description="Manage grouping for customizations"
           actions={
-            canEdit && (
+            isSuper && (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Category
@@ -208,7 +227,7 @@ export default function ToppingCategoriesPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => handleDeleteCategory(category.toppingCategoryId, category.categoryName)}
+                              onClick={() => setCategoryToDelete(category)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete Category
@@ -236,10 +255,14 @@ export default function ToppingCategoriesPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="categoryName">Category Name</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="categoryName">Category Name</Label>
+                <CharacterCounter current={newCategoryName.length} max={100} />
+              </div>
               <Input
                 id="categoryName"
                 placeholder="e.g. Milk Options, Sweeteners"
+                maxLength={100}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => {
@@ -272,10 +295,14 @@ export default function ToppingCategoriesPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="editCategoryName">Category Name</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="editCategoryName">Category Name</Label>
+                <CharacterCounter current={editCategoryName.length} max={100} />
+              </div>
               <Input
                 id="editCategoryName"
                 placeholder="e.g. Milk Options"
+                maxLength={100}
                 value={editCategoryName}
                 onChange={(e) => setEditCategoryName(e.target.value)}
                 onKeyDown={(e) => {
@@ -309,6 +336,19 @@ export default function ToppingCategoriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!categoryToDelete}
+        onOpenChange={(open) => {
+          if (!open) setCategoryToDelete(null);
+        }}
+        title="Delete Topping Category"
+        description={`Are you sure you want to delete the topping category "${categoryToDelete?.categoryName || ""}"? This action cannot be undone.`}
+        confirmText="Delete Category"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDeleteCategory}
+      />
     </div>
   );
 }
