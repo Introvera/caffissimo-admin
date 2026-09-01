@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   Package,
-  Edit,
   Eye,
   EyeOff,
   DollarSign,
@@ -18,6 +17,7 @@ import {
   MoreVertical,
   Trash2,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import {
   useReactTable,
   getCoreRowModel,
@@ -28,6 +28,7 @@ import {
   PaginationState,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -55,11 +56,12 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useAppSelector } from "@/stores/store";
 import { useGetProductsQuery, useGetCategoriesQuery, useUpdateProductMutation } from "@/stores/api/productApi";
 import { useGetBranchProductsQuery, useCreateBranchProductMutation, useDeleteBranchProductMutation } from "@/stores/api/branchProductApi";
 import { canManageProducts, isSuperAdmin } from "@/lib/rbac";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { Product, UserRole } from "@/types";
 import { toast } from "sonner";
 
@@ -118,6 +120,9 @@ export default function ProductsPage() {
     skip: shouldShowAll || !assignedBranchId
   });
 
+  const [productToRemove, setProductToRemove] = useState<{ id: string; name: string } | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
   const handleAddProduct = async (globalProduct: Product) => {
     try {
       const mappedVariants =
@@ -147,14 +152,17 @@ export default function ProductsPage() {
     }
   };
 
-  const handleRemoveProductFromBranch = async (branchProductId: string) => {
-    if (!confirm("Are you sure you want to remove this product from your branch?")) return;
-
+  const handleConfirmRemoveProduct = async () => {
+    if (!productToRemove) return;
+    setIsRemoving(true);
     try {
-      await deleteBranchProduct(branchProductId).unwrap();
+      await deleteBranchProduct(productToRemove.id).unwrap();
       toast.success("Product removed from branch successfully");
+      setProductToRemove(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to remove product from branch");
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -279,7 +287,7 @@ export default function ProductsPage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link href={`/admin/products/${targetId}`}>
-                        <Edit className="h-4 w-4 mr-2" />
+                        <TbEdit className="h-4 w-4 mr-2" />
                         Edit Product
                       </Link>
                     </DropdownMenuItem>
@@ -310,13 +318,13 @@ export default function ProductsPage() {
                       <>
                         <DropdownMenuItem asChild>
                           <Link href={`/admin/products/${targetId}`}>
-                            <Edit className="h-4 w-4 mr-2" />
+                            <TbEdit className="h-4 w-4 mr-2" />
                             Edit Branch Pricing
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive focus:text-destructive"
-                          onClick={() => handleRemoveProductFromBranch(actualBpId)}
+                          onClick={() => setProductToRemove({ id: actualBpId, name: row.productName || "this product" })}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Remove from Branch
@@ -380,78 +388,79 @@ export default function ProductsPage() {
         }
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={categoryFilter} onValueChange={(val) => {
-            setCategoryFilter(val);
-            setPagination(prev => ({ ...prev, pageIndex: 0 }));
-          }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.productCategoryId} value={cat.productCategoryId}>
-                  {cat.categoryName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {isBranchManager && (
-            <Select value={branchFilter} onValueChange={(val: "all" | "branch") => {
-              setBranchFilter(val);
-              setPagination(prev => ({ ...prev, pageIndex: 0 }));
-            }}>
-              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
-                <SelectValue placeholder="Availability" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Products</SelectItem>
-                <SelectItem value="branch">My Branch Products</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products..."
-            value={globalFilter}
-            onChange={(e) => {
-              setGlobalFilter(e.target.value);
-              setPagination(prev => ({ ...prev, pageIndex: 0 }));
-            }}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
-      </div>
-
-      <div>
-        {productsLoading ? (
-          <div className="space-y-2 p-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              icon={Package}
-              title="No products found"
-              description="Try adjusting your search or filters"
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value);
+                setPagination(prev => ({ ...prev, pageIndex: 0 }));
+              }}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
             />
           </div>
-        ) : (
-          <>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={categoryFilter} onValueChange={(val) => {
+              setCategoryFilter(val);
+              setPagination(prev => ({ ...prev, pageIndex: 0 }));
+            }}>
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.productCategoryId} value={cat.productCategoryId}>
+                    {cat.categoryName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {isBranchManager && (
+              <Select value={branchFilter} onValueChange={(val: "all" | "branch") => {
+                setBranchFilter(val);
+                setPagination(prev => ({ ...prev, pageIndex: 0 }));
+              }}>
+                <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                  <SelectValue placeholder="Availability" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Products</SelectItem>
+                  <SelectItem value="branch">My Branch Products</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {productsLoading ? (
+            <div className="space-y-2 p-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={Package}
+                title="No products found"
+                description="Try adjusting your search or filters"
+              />
+            </div>
+          ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border/60">
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-0">
                       {headerGroup.headers.map((header) => (
                         <TableHead
                           key={header.id}
@@ -492,73 +501,91 @@ export default function ProductsPage() {
                 </TableBody>
               </Table>
             </div>
+          )}
+        </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between border-t border-border/60 px-6 py-4 bg-muted/5">
-              <p className="text-body text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {pagination.pageIndex * pagination.pageSize + 1}
-                </span>
-                {" "}to{" "}
-                <span className="font-medium text-foreground">
-                  {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
-                </span>
-                {" "}of{" "}
-                <span className="font-medium text-foreground">{totalCount}</span>
-                {" "}products
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
-                  let pageNum: number;
-                  const totalPages = table.getPageCount();
-                  const currentPage = pagination.pageIndex;
+        {/* Pagination */}
+        {!productsLoading && products.length > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {pagination.pageIndex * pagination.pageSize + 1}
+              </span>
+              {" "}to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
+              </span>
+              {" "}of{" "}
+              <span className="font-medium text-foreground">{totalCount}</span>
+              {" "}products
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                let pageNum: number;
+                const totalPages = table.getPageCount();
+                const currentPage = pagination.pageIndex;
 
-                  if (totalPages <= 5) {
-                    pageNum = i;
-                  } else if (currentPage < 3) {
-                    pageNum = i;
-                  } else if (currentPage > totalPages - 4) {
-                    pageNum = totalPages - 5 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 w-8 p-0 text-caption"
-                      onClick={() => table.setPageIndex(pageNum)}
-                    >
-                      {pageNum + 1}
-                    </Button>
-                  );
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+                if (totalPages <= 5) {
+                  pageNum = i;
+                } else if (currentPage < 3) {
+                  pageNum = i;
+                } else if (currentPage > totalPages - 4) {
+                  pageNum = totalPages - 5 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => table.setPageIndex(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          </>
+          </div>
         )}
-      </div>
+      </Card>
+
+      <ConfirmDialog
+        open={!!productToRemove}
+        onOpenChange={(open) => {
+          if (!open) setProductToRemove(null);
+        }}
+        title="Remove Product from Branch"
+        description={`Are you sure you want to remove ${productToRemove?.name || "this product"} from your branch? This will remove branch overrides and availability for this branch.`}
+        confirmText="Remove Product"
+        variant="destructive"
+        isLoading={isRemoving}
+        onConfirm={handleConfirmRemoveProduct}
+      />
     </div>
   );
 }

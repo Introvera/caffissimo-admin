@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   Coffee,
-  Edit,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
@@ -14,6 +13,7 @@ import {
   ArrowDown,
   MoreVertical,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import {
   useReactTable,
   getCoreRowModel,
@@ -24,6 +24,7 @@ import {
   PaginationState,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -53,8 +54,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/stores/store";
 import { useGetToppingsQuery, useGetToppingCategoriesQuery } from "@/stores/api/toppingApi";
-import { canManageProducts } from "@/lib/rbac";
-import { formatCurrency } from "@/lib/utils";
+import { canManageBaseCatalog } from "@/lib/rbac";
+import { formatCurrency, cn } from "@/lib/utils";
 import { Topping, UserRole } from "@/types";
 
 const columnHelper = createColumnHelper<Topping>();
@@ -158,7 +159,7 @@ export default function ToppingsPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
                   <Link href={`/admin/toppings/${row.toppingId}`}>
-                    <Edit className="h-4 w-4 mr-2" />
+                    <TbEdit className="h-4 w-4 mr-2" />
                     Edit Topping
                   </Link>
                 </DropdownMenuItem>
@@ -188,7 +189,7 @@ export default function ToppingsPage() {
         title="Toppings"
         description="Manage your topping catalog and customizations"
         actions={
-          canManageProducts(currentRole as UserRole) && (
+          canManageBaseCatalog(currentRole as UserRole) && (
             <div className="flex gap-2">
               <Link href="/admin/toppings/categories">
                 <Button variant="outline">
@@ -206,63 +207,64 @@ export default function ToppingsPage() {
         }
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={categoryFilter} onValueChange={(val) => {
-            setCategoryFilter(val);
-            setPagination(prev => ({ ...prev, pageIndex: 0 }));
-          }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.toppingCategoryId} value={cat.toppingCategoryId}>
-                  {cat.categoryName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search toppings..."
-            value={globalFilter}
-            onChange={(e) => {
-              setGlobalFilter(e.target.value);
-              setPagination(prev => ({ ...prev, pageIndex: 0 }));
-            }}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
-      </div>
-
-      <div>
-        {toppingsLoading ? (
-          <div className="space-y-2 p-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : filteredToppings.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              icon={Coffee}
-              title="No toppings found"
-              description="Try adjusting your search or filters"
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search toppings..."
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value);
+                setPagination(prev => ({ ...prev, pageIndex: 0 }));
+              }}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
             />
           </div>
-        ) : (
-          <>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={categoryFilter} onValueChange={(val) => {
+              setCategoryFilter(val);
+              setPagination(prev => ({ ...prev, pageIndex: 0 }));
+            }}>
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.toppingCategoryId} value={cat.toppingCategoryId}>
+                    {cat.categoryName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {toppingsLoading ? (
+            <div className="space-y-2 p-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : filteredToppings.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={Coffee}
+                title="No toppings found"
+                description="Try adjusting your search or filters"
+              />
+            </div>
+          ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border/60">
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-0">
                       {headerGroup.headers.map((header) => (
                         <TableHead
                           key={header.id}
@@ -303,73 +305,78 @@ export default function ToppingsPage() {
                 </TableBody>
               </Table>
             </div>
+          )}
+        </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between border-t border-border/60 px-6 py-4 bg-muted/5">
-              <p className="text-body text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {pagination.pageIndex * pagination.pageSize + 1}
-                </span>
-                {" "}to{" "}
-                <span className="font-medium text-foreground">
-                  {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
-                </span>
-                {" "}of{" "}
-                <span className="font-medium text-foreground">{totalCount}</span>
-                {" "}toppings
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
-                  let pageNum: number;
-                  const totalPages = table.getPageCount();
-                  const currentPage = pagination.pageIndex;
+        {/* Pagination */}
+        {!toppingsLoading && totalCount > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {pagination.pageIndex * pagination.pageSize + 1}
+              </span>
+              {" "}to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
+              </span>
+              {" "}of{" "}
+              <span className="font-medium text-foreground">{totalCount}</span>
+              {" "}toppings
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                let pageNum: number;
+                const totalPages = table.getPageCount();
+                const currentPage = pagination.pageIndex;
 
-                  if (totalPages <= 5) {
-                    pageNum = i;
-                  } else if (currentPage < 3) {
-                    pageNum = i;
-                  } else if (currentPage > totalPages - 4) {
-                    pageNum = totalPages - 5 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 w-8 p-0 text-caption"
-                      onClick={() => table.setPageIndex(pageNum)}
-                    >
-                      {pageNum + 1}
-                    </Button>
-                  );
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+                if (totalPages <= 5) {
+                  pageNum = i;
+                } else if (currentPage < 3) {
+                  pageNum = i;
+                } else if (currentPage > totalPages - 4) {
+                  pageNum = totalPages - 5 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => table.setPageIndex(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          </>
+          </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

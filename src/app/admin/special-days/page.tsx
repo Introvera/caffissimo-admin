@@ -6,7 +6,6 @@ import {
   Calendar,
   Plus,
   Trash2,
-  Edit2,
   Sparkles,
   Filter,
   RefreshCw,
@@ -21,6 +20,7 @@ import {
   HelpCircle,
   MoreVertical,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,7 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import {
   Dialog,
   DialogContent,
@@ -294,16 +295,21 @@ export default function SpecialDaysPage() {
     }
   };
 
+  const [specialDayToDelete, setSpecialDayToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Delete event
-  const handleDelete = async (id: string) => {
-    if (!isManager) return;
-    if (confirm("Are you sure you want to delete this special day branding event?")) {
-      try {
-        await deleteSpecialDay(id).unwrap();
-        toast.success("Special day branding event deleted successfully!");
-      } catch (err: any) {
-        toast.error("Failed to delete special day");
-      }
+  const handleConfirmDelete = async () => {
+    if (!specialDayToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteSpecialDay(specialDayToDelete.id).unwrap();
+      toast.success("Special day branding event deleted successfully!");
+      setSpecialDayToDelete(null);
+    } catch (err: any) {
+      toast.error("Failed to delete special day");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -403,7 +409,7 @@ export default function SpecialDaysPage() {
                   transition={{ duration: 0.15 }}
                   className="h-full"
                 >
-                  <Card className={`relative overflow-hidden flex flex-col h-64 border rounded-xl bg-card transition-all duration-200 hover:shadow-sm ${config.border}`}>
+                  <Card className={`relative overflow-hidden flex flex-col h-64 border rounded-xl bg-card transition-all duration-200 ${config.border}`}>
                     
                     {/* Header Image / Gradient Block */}
                     <div className="relative h-28 overflow-hidden shrink-0 bg-muted">
@@ -486,10 +492,13 @@ export default function SpecialDaysPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleOpenEdit(day)}>
-                                <Edit2 className="h-4 w-4 mr-2" />
+                                <TbEdit className="h-4 w-4 mr-2" />
                                 Edit Seasonal Event
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(day.specialDayId)}>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setSpecialDayToDelete({ id: day.specialDayId, name: config.label })}
+                              >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete Branding
                               </DropdownMenuItem>
@@ -686,6 +695,19 @@ export default function SpecialDaysPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!specialDayToDelete}
+        onOpenChange={(open) => {
+          if (!open) setSpecialDayToDelete(null);
+        }}
+        title="Delete Special Day"
+        description={`Are you sure you want to delete the special day branding event "${specialDayToDelete?.name || ""}"? This action cannot be undone.`}
+        confirmText="Delete Event"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

@@ -198,11 +198,11 @@ export default function DashboardPage() {
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
           {/* Left Column Skeleton */}
           <div className="lg:col-span-1 flex flex-col gap-6">
+            <Skeleton className="h-[380px] rounded-xl" />
             <div className="grid grid-cols-2 gap-4">
               <Skeleton className="h-28 rounded-xl" />
               <Skeleton className="h-28 rounded-xl" />
             </div>
-            <Skeleton className="h-[380px] rounded-xl" />
           </div>
 
           {/* Right Column Skeleton */}
@@ -214,23 +214,8 @@ export default function DashboardPage() {
         <>
           {/* ── Main Dashboard Layout Grid ────────────────────────────────── */}
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-            {/* Left Column: KPI Cards and Sales by Type */}
+            {/* Left Column: Sales by Type and KPI Cards */}
             <div className="lg:col-span-1 flex flex-col gap-6">
-              {/* KPI Cards (Cancelled Orders & Average Order Price) */}
-              <div className="grid grid-cols-2 gap-4">
-                <KPICard
-                  title="Cancelled Orders"
-                  value={kpis.cancelledCount}
-                  icon={ShoppingCart}
-                />
-                <KPICard
-                  title="Avg Order Price"
-                  value={kpis.avgOrderValue}
-                  isCurrency
-                  icon={TrendingUp}
-                />
-              </div>
-
               {/* Redesigned Sales by Type Card (Donut Chart style) */}
               <Card className="flex flex-col flex-1">
                 <CardHeader className="pb-2">
@@ -314,6 +299,21 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* KPI Cards (Cancelled Orders & Average Order Price) */}
+              <div className="grid grid-cols-2 gap-4">
+                <KPICard
+                  title="Cancelled Orders"
+                  value={kpis.cancelledCount}
+                  icon={ShoppingCart}
+                />
+                <KPICard
+                  title="Avg Order Price"
+                  value={kpis.avgOrderValue}
+                  isCurrency
+                  icon={TrendingUp}
+                />
+              </div>
             </div>
 
             {/* Right Column: Revenue Analytics graph */}

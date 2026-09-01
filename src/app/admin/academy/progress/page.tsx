@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { cn } from "@/lib/utils";
 import { trainingApi } from "@/lib/training-api";
 import { useAppSelector } from "@/stores/store";
 import { canAccessAllBranches } from "@/lib/rbac";
@@ -87,8 +88,8 @@ function StatusBadge({ status }: { status: TrainingQualificationStatus }) {
   const cfg = statusConfig[status];
   const Icon = cfg.icon;
   return (
-    <Badge variant="outline" className={`gap-1 text-caption px-2 py-0.5 ${cfg.className}`}>
-      <Icon className="h-3 w-3" />
+    <Badge variant="outline" className={`gap-1.5 ${cfg.className}`}>
+      <Icon className="h-3.5 w-3.5" />
       {cfg.label}
     </Badge>
   );
@@ -259,7 +260,7 @@ export default function AcademyProgressPage() {
                 <Card
                   key={s}
                   className={`cursor-pointer border transition-all ${
-                    statusFilter === s ? "ring-2 ring-primary" : "hover:shadow-sm"
+                    statusFilter === s ? "ring-2 ring-primary" : ""
                   }`}
                   onClick={() =>
                     setStatusFilter((prev) => (prev === s ? "all" : s))
@@ -281,59 +282,59 @@ export default function AcademyProgressPage() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select
-            value={statusFilter}
-            onValueChange={(val) => setStatusFilter(val as TrainingQualificationStatus | "all")}
-          >
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Passed">Passed</SelectItem>
-              <SelectItem value="InProgress">In Progress</SelectItem>
-              <SelectItem value="NotStarted">Not Started</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="progress-search"
-            placeholder="Search module or employee..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 w-[240px]"
-          />
-        </div>
-      </div>
-
-      {/* Table */}
-      <Card>
-        {isLoading ? (
-          <CardContent className="py-24 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </CardContent>
-        ) : filtered.length === 0 ? (
-          <CardContent className="py-16">
-            <EmptyState
-              icon={GraduationCap}
-              title="No records found"
-              description={
-                search || statusFilter !== "all"
-                  ? "Try adjusting your filters"
-                  : "No training records exist for this branch yet"
-              }
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filters */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="progress-search"
+              placeholder="Search module or employee..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 w-[320px] bg-white dark:bg-[#141414] rounded-lg"
             />
-          </CardContent>
-        ) : (
-          <>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select
+              value={statusFilter}
+              onValueChange={(val) => setStatusFilter(val as TrainingQualificationStatus | "all")}
+            >
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="Passed">Passed</SelectItem>
+                <SelectItem value="InProgress">In Progress</SelectItem>
+                <SelectItem value="NotStarted">Not Started</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {isLoading ? (
+            <div className="py-24 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-16">
+              <EmptyState
+                icon={GraduationCap}
+                title="No records found"
+                description={
+                  search || statusFilter !== "all"
+                    ? "Try adjusting your filters"
+                    : "No training records exist for this branch yet"
+                }
+              />
+            </div>
+          ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-border/60">
+                <TableRow className="hover:bg-transparent border-0">
                   <TableHead>Module</TableHead>
                   <TableHead>Employee ID</TableHead>
                   <TableHead>Status</TableHead>
@@ -391,61 +392,64 @@ export default function AcademyProgressPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+        </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-                <p className="text-body text-muted-foreground">
-                  Page{" "}
-                  <span className="font-medium text-foreground">{page}</span> of{" "}
-                  <span className="font-medium text-foreground">{totalPages}</span>
-                  {" "}·{" "}
-                  <span className="font-medium text-foreground">{totalCount}</span> total records
-                </p>
-                <div className="flex items-center gap-1.5">
+        {/* Pagination */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Page{" "}
+              <span className="font-medium text-foreground">{page}</span> of{" "}
+              <span className="font-medium text-foreground">{totalPages}</span>
+              {" "}·{" "}
+              <span className="font-medium text-foreground">{totalCount}</span> total records
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                id="progress-prev-page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pg: number;
+                if (totalPages <= 5) pg = i + 1;
+                else if (page <= 3) pg = i + 1;
+                else if (page > totalPages - 3) pg = totalPages - 4 + i;
+                else pg = page - 2 + i;
+                return (
                   <Button
-                    variant="outline"
+                    key={pg}
+                    variant={page === pg ? "default" : "outline"}
                     size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                    id="progress-prev-page"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      page === pg && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => setPage(pg)}
+                    id={`progress-page-${pg}`}
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    {pg}
                   </Button>
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    let pg: number;
-                    if (totalPages <= 5) pg = i + 1;
-                    else if (page <= 3) pg = i + 1;
-                    else if (page > totalPages - 3) pg = totalPages - 4 + i;
-                    else pg = page - 2 + i;
-                    return (
-                      <Button
-                        key={pg}
-                        variant={page === pg ? "default" : "outline"}
-                        size="sm"
-                        className="h-8 w-8 p-0 text-caption"
-                        onClick={() => setPage(pg)}
-                        id={`progress-page-${pg}`}
-                      >
-                        {pg}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    id="progress-next-page"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                id="progress-next-page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         )}
       </Card>
 
@@ -471,7 +475,7 @@ export default function AcademyProgressPage() {
             ) : (
               <div className="space-y-3">
                 {certsList.map((cert) => (
-                  <Card key={cert.employeeTrainingCertificateId} className="border border-border/80 shadow-none">
+                  <Card key={cert.employeeTrainingCertificateId}>
                     <CardContent className="p-3 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-body font-medium truncate" title={cert.originalFileName}>

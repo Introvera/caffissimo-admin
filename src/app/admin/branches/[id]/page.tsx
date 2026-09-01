@@ -18,8 +18,8 @@ import {
   Upload,
   Trash2,
   Image as ImageIcon,
-  Edit,
 } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import {
   Card,
   CardContent,
@@ -615,13 +615,22 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 w-full">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <PageHeader
+          className="flex-1"
           title={currentBranch.branchName}
           description="Manage branch settings, marketing listings, and delivery platforms"
+          actions={
+            canEdit && !isEditingMode ? (
+              <Button onClick={() => setIsEditingMode(true)}>
+                <TbEdit className="h-4 w-4 mr-2" />
+                Edit Branch
+              </Button>
+            ) : null
+          }
         />
       </div>
 
@@ -652,7 +661,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
             {/* Main Info */}
             <div className="lg:col-span-2 space-y-6">
               {/* Core Information */}
-              <Card className="border border-border/60 shadow-sm">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     Branch Information
@@ -837,7 +846,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
               </Card>
 
               {/* Contacts */}
-              <Card className="border border-border/60 shadow-sm">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     Contact Channels
@@ -908,7 +917,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
               {/* Listed for Sale Sub-Form (Conditional) */}
               {isListedForSale && (
-                <Card className="border border-border/60 shadow-sm transition-all duration-300">
+                <Card className="transition-all duration-300">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5 text-primary" /> Listing
@@ -1036,7 +1045,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
               {/* Operating Hours (Operational Only) */}
               {!isListedForSale && (
-                <Card className="border border-border/60 shadow-sm transition-all duration-300">
+                <Card className="transition-all duration-300">
                   <CardHeader>
                     <CardTitle>Operating Hours</CardTitle>
                     <CardDescription>
@@ -1117,7 +1126,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
               {/* Platform Connections (Operational Only) */}
               {!isListedForSale && isSuper && (
-                <Card className="border border-border/60 shadow-sm transition-all duration-300">
+                <Card className="transition-all duration-300">
                   <CardHeader>
                     <CardTitle>Platform Connections</CardTitle>
                     <CardDescription>
@@ -1142,7 +1151,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             onChange={(e) => setUberUrl(e.target.value)}
                             placeholder="https://ubereats.com/store/..."
                             disabled={!isSuper || !isEditingMode}
-                            className="flex-1 bg-background"
+                            className="flex-1 bg-white dark:bg-[#141414]"
                           />
                           {uberUrl && (
                             <a
@@ -1185,7 +1194,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               onChange={(e) => setUberClientId(e.target.value)}
                               placeholder="Enter Client ID"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1200,7 +1209,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 }
                                 placeholder="Enter Client Secret"
                                 disabled={!isSuper || !isEditingMode}
-                                className="pr-10 bg-background"
+                                className="pr-10 bg-white dark:bg-[#141414]"
                               />
                               <button
                                 type="button"
@@ -1226,7 +1235,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               }
                               placeholder="e.g. uber-store-123"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1238,7 +1247,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               }
                               placeholder="Enter Webhook Secret"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1252,7 +1261,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               }
                               placeholder="Auto-generated or custom key"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1263,7 +1272,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setUberEnvironment(parseInt(e.target.value))
                               }
                               disabled={!isSuper || !isEditingMode}
-                              className="w-full h-10 px-3 border rounded-md bg-background text-body"
+                              className="w-full h-10 px-3 border rounded-md bg-white dark:bg-[#141414] text-body"
                             >
                               <option value={0}>Sandbox (Testing)</option>
                               <option value={1}>Production (Live)</option>
@@ -1289,7 +1298,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                             onChange={(e) => setDdUrl(e.target.value)}
                             placeholder="https://doordash.com/store/..."
                             disabled={!isSuper || !isEditingMode}
-                            className="flex-1 bg-background"
+                            className="flex-1 bg-white dark:bg-[#141414]"
                           />
                           {ddUrl && (
                             <a
@@ -1332,7 +1341,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               onChange={(e) => setDdClientId(e.target.value)}
                               placeholder="Enter Client ID"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1347,7 +1356,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 }
                                 placeholder="Enter Client Secret"
                                 disabled={!isSuper || !isEditingMode}
-                                className="pr-10 bg-background"
+                                className="pr-10 bg-white dark:bg-[#141414]"
                               />
                               <button
                                 type="button"
@@ -1373,7 +1382,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               }
                               placeholder="e.g. doordash-store-456"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1385,7 +1394,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               }
                               placeholder="Enter Webhook Secret"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1399,7 +1408,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               }
                               placeholder="Auto-generated or custom key"
                               disabled={!isSuper || !isEditingMode}
-                              className="bg-background"
+                              className="bg-white dark:bg-[#141414]"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1410,7 +1419,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                                 setDdEnvironment(parseInt(e.target.value))
                               }
                               disabled={!isSuper || !isEditingMode}
-                              className="w-full h-10 px-3 border rounded-md bg-background text-body"
+                              className="w-full h-10 px-3 border rounded-md bg-white dark:bg-[#141414] text-body"
                             >
                               <option value={0}>Sandbox (Testing)</option>
                               <option value={1}>Production (Live)</option>
@@ -1427,7 +1436,7 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Status */}
-              <Card className="border border-border/60 shadow-sm">
+              <Card>
                 <CardHeader>
                   <CardTitle>Status</CardTitle>
                 </CardHeader>
@@ -1464,16 +1473,6 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                   </div>
                 </CardContent>
               </Card>
-
-              {canEdit && !isEditingMode && (
-                <Button
-                  className="w-full"
-                  onClick={() => setIsEditingMode(true)}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Branch
-                </Button>
-              )}
             </div>
           </div>
         </TabsContent>

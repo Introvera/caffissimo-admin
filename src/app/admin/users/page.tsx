@@ -66,10 +66,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAppSelector } from "@/stores/store";
-import { canManageUsers, canAccessAllBranches, isSuperAdmin } from "@/lib/rbac";
+import { canManageUsers, canAccessAllBranches, isSuperAdmin, getAllowedTargetRoles } from "@/lib/rbac";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { ResetPasswordDialog } from "@/components/shared/reset-password-dialog";
+import { CharacterCounter } from "@/components/ui/character-counter";
 
-import { getInitials, formatDate } from "@/lib/utils";
+import { getInitials, formatDate, cn } from "@/lib/utils";
 import { User, UserRole } from "@/types";
 import {
   useGetUsersQuery,
@@ -132,14 +135,19 @@ export default function UsersPage() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUserRole] = useUpdateUserRoleMutation();
   const [resetUserPassword] = useResetUserPasswordMutation();
   const [deleteUser] = useDeleteUserMutation();
-  
+
   const { data: branchesData } = useGetBranchesQuery({ pageSize: 100 });
   const branches = branchesData?.items || [];
-  
+
   const { data: usersData, isLoading: isUsersLoading } = useGetUsersQuery({
     page: 1,
     pageSize: 100,
@@ -159,6 +167,7 @@ export default function UsersPage() {
   }, [usersData]);
 
   const canManage = canManageUsers(currentRole);
+  const allowedRoles = useMemo(() => getAllowedTargetRoles(currentRole), [currentRole]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -179,12 +188,14 @@ export default function UsersPage() {
     return branches.find((b) => b.branchId === branchId)?.branchName.replace("Caffissimo", "").trim() || "Unknown";
   };
 
+  const defaultInitialRole = allowedRoles[0] || UserRole.Employee;
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
-    role: UserRole.Cashier,
+    role: defaultInitialRole,
     branchId: "",
   });
 
@@ -226,6 +237,17 @@ export default function UsersPage() {
     if (!formData.role)
       errors.role = "Role is required.";
 
+    const isBranchRole =
+      formData.role === UserRole.BranchOwner ||
+      formData.role === UserRole.BranchAdmin ||
+      formData.role === UserRole.Supervisor ||
+      formData.role === UserRole.Cashier ||
+      formData.role === UserRole.Employee;
+
+    if (isBranchRole && !formData.branchId) {
+      errors.branchId = "Branch assignment is required for branch-level roles.";
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -236,7 +258,7 @@ export default function UsersPage() {
       lastName: "",
       email: "",
       password: "",
-      role: UserRole.Cashier,
+      role: allowedRoles[0] || UserRole.Employee,
       branchId: canAccessAllBranches(currentRole) ? "" : displayedBranchId || "",
     });
     setFormErrors({});
@@ -267,26 +289,32 @@ export default function UsersPage() {
     }
   };
 
-  const handleResetPassword = async (userId: string) => {
-    const newPassword = prompt("Enter new password:");
-    if (!newPassword) return;
-
+  const handleConfirmResetPassword = async (newPassword: string) => {
+    if (!resetPasswordTarget) return;
+    setIsResetting(true);
     try {
-      await resetUserPassword({ id: userId, data: { newPassword } }).unwrap();
+      await resetUserPassword({ id: resetPasswordTarget.id, data: { newPassword } }).unwrap();
       toast.success("Password reset successfully");
+      setResetPasswordTarget(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to reset password");
+      throw error;
+    } finally {
+      setIsResetting(false);
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-
+  const handleConfirmDeleteUser = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      await deleteUser(userId).unwrap();
+      await deleteUser(deleteTarget.id).unwrap();
       toast.success("User deleted successfully");
+      setDeleteTarget(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete user");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -367,14 +395,14 @@ export default function UsersPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleResetPassword(info.row.original.id)}>
+                  <DropdownMenuItem onClick={() => setResetPasswordTarget({ id: info.row.original.id, name: info.row.original.name })}>
                     <Shield className="h-4 w-4 mr-2" />
                     Reset Password
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="text-destructive"
-                    onClick={() => handleDeleteUser(info.row.original.id)}
+                    onClick={() => setDeleteTarget({ id: info.row.original.id, name: info.row.original.name })}
                   >
                     <UserX className="h-4 w-4 mr-2" />
                     Delete User
@@ -450,10 +478,14 @@ export default function UsersPage() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input 
-                      id="firstName" 
-                      placeholder="John" 
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <CharacterCounter current={formData.firstName.length} max={100} />
+                    </div>
+                    <Input
+                      id="firstName"
+                      placeholder="John"
+                      maxLength={100}
                       value={formData.firstName}
                       className={formErrors.firstName ? "border-destructive focus-visible:ring-destructive" : ""}
                       onChange={(e) => {
@@ -466,10 +498,14 @@ export default function UsersPage() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input 
-                      id="lastName" 
-                      placeholder="Doe" 
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <CharacterCounter current={formData.lastName.length} max={100} />
+                    </div>
+                    <Input
+                      id="lastName"
+                      placeholder="Doe"
+                      maxLength={100}
                       value={formData.lastName}
                       className={formErrors.lastName ? "border-destructive focus-visible:ring-destructive" : ""}
                       onChange={(e) => {
@@ -483,11 +519,15 @@ export default function UsersPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="john@caffissimo.com" 
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="email">Email</Label>
+                    <CharacterCounter current={formData.email.length} max={256} />
+                  </div>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@caffissimo.com"
+                    maxLength={256}
                     value={formData.email}
                     className={formErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}
                     onChange={(e) => {
@@ -501,10 +541,10 @@ export default function UsersPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Temporary Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="At least 6 characters"
                     value={formData.password}
                     className={formErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}
                     onChange={(e) => {
@@ -518,10 +558,10 @@ export default function UsersPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
-                  <Select 
-                    value={formData.role} 
+                  <Select
+                    value={formData.role}
                     onValueChange={(v) => {
-                      const isGlobalRole = v === UserRole.SuperAdmin || v === UserRole.SuperAdminDeveloper;
+                      const isGlobalRole = v === UserRole.SuperAdmin || v === UserRole.SuperAdminDeveloper || v === UserRole.Customer;
                       setFormData({ ...formData, role: v as UserRole, branchId: isGlobalRole ? "" : formData.branchId });
                       if (formErrors.role) setFormErrors((prev) => ({ ...prev, role: "" }));
                     }}
@@ -530,39 +570,29 @@ export default function UsersPage() {
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      {canAccessAllBranches(currentRole) ? (
-                        <>
-                          <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
-                          <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
-                          <SelectItem value={UserRole.Customer}>Customer</SelectItem>
-                          <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-                          <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
-                          <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                          <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
-                          <SelectItem value={UserRole.Employee}>Employee</SelectItem>
-                        </>
-                      ) : (
-                        <>
-                          <SelectItem value={UserRole.Customer}>Customer</SelectItem>
-                          <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-                          <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
-                          <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                          <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
-                          <SelectItem value={UserRole.Employee}>Employee</SelectItem>
-                        </>
-                      )}
+                      {allowedRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {roleLabels[role]}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.role && (
+                    <p className="text-caption text-destructive mt-1">{formErrors.role}</p>
+                  )}
                 </div>
                 {formData.role !== UserRole.SuperAdmin && formData.role !== UserRole.SuperAdminDeveloper && formData.role !== UserRole.Customer && (
                   <div className="space-y-2">
-                    <Label htmlFor="branch">Branch Assignment</Label>
+                    <Label htmlFor="branch">Branch Assignment *</Label>
                     {canAccessAllBranches(currentRole) ? (
-                      <Select 
-                        value={formData.branchId} 
-                        onValueChange={(v) => setFormData({ ...formData, branchId: v })}
+                      <Select
+                        value={formData.branchId}
+                        onValueChange={(v) => {
+                          setFormData({ ...formData, branchId: v });
+                          if (formErrors.branchId) setFormErrors((prev) => ({ ...prev, branchId: "" }));
+                        }}
                       >
-                        <SelectTrigger id="branch">
+                        <SelectTrigger id="branch" className={formErrors.branchId ? "border-destructive" : ""}>
                           <SelectValue placeholder="Select branch" />
                         </SelectTrigger>
                         <SelectContent>
@@ -574,12 +604,15 @@ export default function UsersPage() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Input 
-                        id="branch" 
-                        value={getBranchName(displayedBranchId)} 
-                        disabled 
+                      <Input
+                        id="branch"
+                        value={getBranchName(displayedBranchId)}
+                        disabled
                         className="bg-muted text-muted-foreground"
                       />
+                    )}
+                    {formErrors.branchId && (
+                      <p className="text-caption text-destructive mt-1">{formErrors.branchId}</p>
                     )}
                   </div>
                 )}
@@ -597,63 +630,64 @@ export default function UsersPage() {
         }
       />
 
-      {/* Filter Bar - same layout as Orders */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              {canAccessAllBranches(currentRole) ? (
-                <>
-                  <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
-                  <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
-                  <SelectItem value={UserRole.Customer}>Customer</SelectItem>
-                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
-                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
-                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
-                </>
-              ) : (
-                <>
-                  <SelectItem value={UserRole.Customer}>Customer</SelectItem>
-                  <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
-                  <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
-                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                  <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
-                  <SelectItem value={UserRole.Employee}>Employee</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                {canAccessAllBranches(currentRole) ? (
+                  <>
+                    <SelectItem value={UserRole.SuperAdmin}>Super Admin</SelectItem>
+                    <SelectItem value={UserRole.SuperAdminDeveloper}>Developer</SelectItem>
+                    <SelectItem value={UserRole.Customer}>Customer</SelectItem>
+                    <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                    <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                    <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                    <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                    <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value={UserRole.Customer}>Customer</SelectItem>
+                    <SelectItem value={UserRole.BranchOwner}>Branch Owner</SelectItem>
+                    <SelectItem value={UserRole.BranchAdmin}>Branch Admin</SelectItem>
+                    <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                    <SelectItem value={UserRole.Cashier}>Cashier</SelectItem>
+                    <SelectItem value={UserRole.Employee}>Employee</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users..."
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
-      </div>
-
-      <div>
-        <div className="p-0">
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
           {isUsersLoading ? (
-            <div className="border border-border/60 rounded-xl overflow-hidden bg-background shadow-sm">
-              <div className="p-4 border-b border-border/60 flex justify-between bg-muted/20">
+            <div className="p-0">
+              <div className="p-4 border-b flex justify-between bg-muted/20">
                 <Skeleton className="h-4 w-1/4" />
                 <Skeleton className="h-4 w-1/6" />
                 <Skeleton className="h-4 w-1/6" />
                 <Skeleton className="h-4 w-1/6" />
               </div>
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="p-4 border-b border-border/60 flex items-center justify-between last:border-b-0">
+                <div key={i} className="p-4 border-b flex items-center justify-between last:border-b-0">
                   <div className="flex items-center gap-3 w-1/4">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="space-y-2">
@@ -669,7 +703,7 @@ export default function UsersPage() {
               ))}
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="p-6">
+            <div className="p-12">
               <EmptyState
                 icon={Users}
                 title="No users found"
@@ -677,118 +711,144 @@ export default function UsersPage() {
               />
             </div>
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow
-                      key={headerGroup.id}
-                      className="hover:bg-transparent border-b border-border/60"
-                    >
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          className={
-                            header.column.getCanSort()
-                              ? "cursor-pointer select-none"
-                              : ""
-                          }
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          <span className="inline-flex items-center">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            <SortIcon header={header} />
-                          </span>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination - same as Orders */}
-              <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-                <p className="text-body text-muted-foreground">
-                  Showing{" "}
-                  <span className="font-medium text-foreground">
-                    {pageIndex * pageSize + 1}
-                  </span>
-                  {" "}to{" "}
-                  <span className="font-medium text-foreground">
-                    {Math.min((pageIndex + 1) * pageSize, totalRows)}
-                  </span>
-                  {" "}of{" "}
-                  <span className="font-medium text-foreground">{totalRows}</span>
-                  {" "}users
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow
+                    key={headerGroup.id}
+                    className="hover:bg-transparent border-0"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
-                    let pageNum: number;
-                    const totalPages = table.getPageCount();
-                    if (totalPages <= 5) {
-                      pageNum = i;
-                    } else if (pageIndex < 3) {
-                      pageNum = i;
-                    } else if (pageIndex > totalPages - 4) {
-                      pageNum = totalPages - 5 + i;
-                    } else {
-                      pageNum = pageIndex - 2 + i;
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageIndex === pageNum ? "default" : "outline"}
-                        size="sm"
-                        className="h-8 w-8 p-0 text-caption"
-                        onClick={() => table.setPageIndex(pageNum)}
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={
+                          header.column.getCanSort()
+                            ? "cursor-pointer select-none"
+                            : ""
+                        }
+                        onClick={header.column.getToggleSortingHandler()}
                       >
-                        {pageNum + 1}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </>
+                        <span className="inline-flex items-center">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                          <SortIcon header={header} />
+                        </span>
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </div>
-      </div>
+
+        {/* Pagination */}
+        {!isUsersLoading && filteredUsers.length > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {pageIndex * pageSize + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min((pageIndex + 1) * pageSize, totalRows)}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">{totalRows}</span>{" "}
+              users
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                let pageNum: number;
+                const totalPages = table.getPageCount();
+                if (totalPages <= 5) {
+                  pageNum = i;
+                } else if (pageIndex < 3) {
+                  pageNum = i;
+                } else if (pageIndex > totalPages - 4) {
+                  pageNum = totalPages - 5 + i;
+                } else {
+                  pageNum = pageIndex - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={pageIndex === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      pageIndex === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => table.setPageIndex(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      <ResetPasswordDialog
+        open={!!resetPasswordTarget}
+        onOpenChange={(open) => {
+          if (!open) setResetPasswordTarget(null);
+        }}
+        userName={resetPasswordTarget?.name}
+        isLoading={isResetting}
+        onReset={handleConfirmResetPassword}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete User"
+        description={`Are you sure you want to delete ${deleteTarget?.name || "this user"}? This action cannot be undone.`}
+        confirmText="Delete User"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDeleteUser}
+      />
     </div>
   );
 }

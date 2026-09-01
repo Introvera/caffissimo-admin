@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Upload, Plus, X, Save, Edit } from "lucide-react";
+import { ArrowLeft, Upload, Plus, X, Save } from "lucide-react";
+import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,10 +59,11 @@ import {
 import { Category, Branch, UserRole, BranchProductResponse } from "@/types";
 import { toast } from "sonner";
 import { ImageUploader } from "@/components/ui/image-uploader";
+import { CharacterCounter } from "@/components/ui/character-counter";
 
 const productSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").or(z.literal("")),
+  name: z.string().min(2, "Name must be at least 2 characters").max(200, "Name must not exceed 200 characters"),
+  description: z.string().max(1000, "Description must not exceed 1000 characters").or(z.literal("")),
   categoryId: z.string().min(1, "Please select a category"),
   price: z.number().positive("Price must be greater than 0"),
   isActive: z.boolean(),
@@ -328,6 +330,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             overridePosImageFiles: newFiles(branchConf.overridePosImage),
             overrideEcomImageFiles: newFiles(branchConf.overrideEcomImages),
             variants: branchConf.variants.map(v => ({
+              sizeName: v.variantName,
               variantName: v.variantName,
               price: Number(v.price),
               isAvailable: v.isAvailable
@@ -372,7 +375,8 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 data: {
                   sizeName: v.variantName,
                   price: Number(v.price),
-                  isAvailable: v.isAvailable
+                  isAvailable: v.isAvailable,
+                  isActive: true
                 } as any
               }).unwrap();
             }
@@ -464,18 +468,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex-1 flex justify-between items-center">
-          <PageHeader
-            title={product.productName}
-            description={isEditing ? "Edit product details and pricing" : "Product details and pricing"}
-          />
-          {canEdit && !isEditing && (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Product
-            </Button>
-          )}
-        </div>
+        <PageHeader
+          className="flex-1"
+          title={product.productName}
+          description={isEditing ? "Edit product details and pricing" : "Product details and pricing"}
+          actions={
+            canEdit && !isEditing ? (
+              <Button onClick={() => setIsEditing(true)}>
+                <TbEdit className="h-4 w-4 mr-2" />
+                Edit Product
+              </Button>
+            ) : null
+          }
+        />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
@@ -532,13 +537,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Product Name</Label>
-                      <Input id="name" disabled={isBaseFormDisabled} {...register("name")} />
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="name">Product Name</Label>
+                        <CharacterCounter current={(watch("name") || "").length} max={200} />
+                      </div>
+                      <Input id="name" maxLength={200} disabled={isBaseFormDisabled} {...register("name")} />
                       {errors.name && <p className="text-body text-destructive">{errors.name.message as string}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" disabled={isBaseFormDisabled} rows={4} {...register("description")} />
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="description">Description</Label>
+                        <CharacterCounter current={(watch("description") || "").length} max={1000} />
+                      </div>
+                      <Textarea id="description" maxLength={1000} disabled={isBaseFormDisabled} rows={4} {...register("description")} />
                       {errors.description && <p className="text-body text-destructive">{errors.description.message as string}</p>}
                     </div>
                     <div className="space-y-2">

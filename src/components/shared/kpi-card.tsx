@@ -63,7 +63,7 @@ export function KPICard({
 
   if (isLoading) {
     return (
-      <div className={cn("rounded-xl border bg-card p-4 shadow-sm", className)}>
+      <div className={cn("rounded-xl border bg-card p-4", className)}>
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-6 w-28 mt-2" />
       </div>
@@ -77,37 +77,32 @@ export function KPICard({
   const isOrders = title.toLowerCase().includes("order") && !isCancelled && !isAvgPrice;
   const isCustomers = title.toLowerCase().includes("user") || title.toLowerCase().includes("customer");
   
-  let cardBgClass = "bg-card border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
+  let cardBgClass = "bg-card border-border";
   let iconBgClass = "bg-secondary text-secondary-foreground";
   let sparklineColor = "hsl(var(--primary))";
 
   if (featured) {
-    cardBgClass = "bg-gradient-to-br from-amber-500 to-amber-600 dark:from-amber-600 dark:to-amber-700 text-white border-transparent shadow-[0_4px_20px_-4px_rgba(217,119,6,0.3)]";
+    cardBgClass = "bg-gradient-to-br from-amber-500 to-amber-600 dark:from-amber-600 dark:to-amber-700 text-white border-transparent";
     iconBgClass = "bg-white/20 text-white border border-white/10";
     sparklineColor = "#ffffff";
   } else if (isCancelled) {
     // Soft red theme for cancelled
-    cardBgClass = "bg-gradient-to-b from-card to-red-50/20 dark:to-red-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
     iconBgClass = "bg-red-500/10 text-red-600 dark:text-red-400";
     sparklineColor = "#EF4444";
   } else if (isAvgPrice) {
     // Soft orange/amber theme for average price
-    cardBgClass = "bg-gradient-to-b from-card to-orange-50/20 dark:to-orange-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
     iconBgClass = "bg-orange-500/10 text-orange-600 dark:text-orange-400";
     sparklineColor = "#F97316";
   } else if (isRevenue) {
     // Beautiful subtle emerald theme
-    cardBgClass = "bg-gradient-to-b from-card to-emerald-50/20 dark:to-emerald-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
     iconBgClass = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
     sparklineColor = "#10B981";
   } else if (isOrders) {
     // Elegant soft blue theme
-    cardBgClass = "bg-gradient-to-b from-card to-blue-50/20 dark:to-blue-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
     iconBgClass = "bg-blue-500/10 text-blue-600 dark:text-blue-400";
     sparklineColor = "#3B82F6";
   } else if (isCustomers) {
     // Regal purple/indigo theme
-    cardBgClass = "bg-gradient-to-b from-card to-indigo-50/20 dark:to-indigo-950/5 border-border shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] dark:shadow-none";
     iconBgClass = "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400";
     sparklineColor = "#6366F1";
   }

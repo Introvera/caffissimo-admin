@@ -13,7 +13,7 @@ export const variantApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["BranchProductVariant"],
+      invalidatesTags: ["BranchProductVariant", "BranchProduct", "Product"],
     }),
     updateBranchProductVariant: builder.mutation<BranchProductVariant, { id: string; data: Partial<BranchProductVariant> }>({
       query: ({ id, data }) => ({
@@ -21,16 +21,17 @@ export const variantApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["BranchProductVariant"],
+      invalidatesTags: ["BranchProductVariant", "BranchProduct", "Product"],
     }),
     deleteBranchProductVariant: builder.mutation<void, string>({
       query: (id) => ({
         url: `/api/branch-product-variants/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["BranchProductVariant"],
+      invalidatesTags: ["BranchProductVariant", "BranchProduct", "Product"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const {

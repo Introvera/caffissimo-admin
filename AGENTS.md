@@ -11,11 +11,11 @@ This file defines the standardized frontend guidelines, layout design rules, and
 ---
 
 ## 2. Colors & Surfaces
-- **Sidebar Background**: Smooth light grey (`#F7F6F9` in light mode, `#232323` in dark mode).
+- **Sidebar Background**: Pure white (`#FFFFFF` in light mode, `#232323` in dark mode).
 - **Sidebar Dividing Border**: Vertical right border of `border-r border-border/40`.
-- **Sidebar Logo Header**: Background is white (`bg-background`), height `h-16`, bottom border `border-b border-border/30`. No top margin/padding.
-- **Main/Right Page Content Area Background**: Pure white (`#FFFFFF` in light mode, `#1A1A1A` in dark mode).
-- **Navbar/Header Background**: White (`bg-background`), height `h-16`.
+- **Sidebar Logo Header**: Background matches sidebar (`bg-sidebar`), height `h-16`, bottom border `border-b border-border/30`. No top margin/padding.
+- **Main/Right Page Content Area Background**: Light neutral (`#F8FAFB` in light mode, `#1A1A1A` in dark mode).
+- **Navbar/Header Background**: White (`bg-white dark:bg-background`), height `h-16`.
 
 ---
 
@@ -54,3 +54,9 @@ This file defines the standardized frontend guidelines, layout design rules, and
   - Do **NOT** render inline platform buttons (Uber Eats, DoorDash) or "Manage Branch" settings links inside the card body.
   - Render a vertical three-dot icon (`TbDotsVertical`) in the top-right corner. Clicking it reveals a dropdown menu containing **View Branch**, **Uber Eats**, and **Door Dash** actions.
 - **Active Status Toggle**: The branch status Switch toggle must be positioned at the bottom of the card content inside a dedicated status row labeled "Active Status".
+
+---
+
+## 8. Chips & Badges Standard
+- **Typography**: All status chips, category chips, and badges must use **`text-chip`** (`0.8125rem` / `13px`, `font-medium`).
+- **Dimensions & Sizing**: Maintain standard table chip sizing (`px-2.5 py-1 rounded-md border`) consistently across all components and pages (including table badges, branch card open/closed chips, and status badges). Avoid custom overrides that shrink the chip container.

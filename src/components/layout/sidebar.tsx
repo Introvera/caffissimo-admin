@@ -228,7 +228,7 @@ export function Sidebar() {
       <div
         className={cn(
           "flex items-center gap-3 rounded-lg px-3 py-2.5 text-body font-medium transition-all duration-200",
-          "border border-border/60 bg-background shadow-xs hover:bg-accent/30 cursor-pointer"
+          "border border-border/60 bg-muted/30 shadow-xs hover:bg-accent/30 cursor-pointer"
         )}
       >
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-sm">
@@ -454,7 +454,7 @@ export function Sidebar() {
     <div className="flex h-full flex-col">
       <div
         className={cn(
-          "flex h-16 items-center justify-between bg-background border-b border-border/30 relative",
+          "flex h-16 items-center justify-between bg-white dark:bg-[#141414] border-b border-border/30 relative",
           collapsed ? "justify-center px-0" : "pl-4 pr-0"
         )}
       >
@@ -505,7 +505,7 @@ export function Sidebar() {
           <Button
             variant="outline"
             size="icon"
-            className="absolute -right-3.5 top-[18px] z-40 h-7 w-7 rounded-full bg-background border border-border/60 shadow-sm hover:bg-accent text-muted-foreground hover:text-foreground hidden lg:flex items-center justify-center cursor-pointer"
+            className="absolute -right-3.5 top-[18px] z-40 h-7 w-7 rounded-full bg-white dark:bg-[#141414] border border-border/60 shadow-sm hover:bg-accent text-muted-foreground hover:text-foreground hidden lg:flex items-center justify-center cursor-pointer"
             onClick={() => dispatch(setSidebarCollapsed(true))}
             title="Collapse Sidebar"
           >
@@ -515,7 +515,7 @@ export function Sidebar() {
           <Button
             variant="outline"
             size="icon"
-            className="absolute -right-3.5 top-[18px] z-40 h-7 w-7 rounded-full bg-background border border-border/60 shadow-sm hover:bg-accent text-muted-foreground hover:text-foreground hidden lg:flex items-center justify-center cursor-pointer"
+            className="absolute -right-3.5 top-[18px] z-40 h-7 w-7 rounded-full bg-white dark:bg-[#141414] border border-border/60 shadow-sm hover:bg-accent text-muted-foreground hover:text-foreground hidden lg:flex items-center justify-center cursor-pointer"
             onClick={() => dispatch(setSidebarCollapsed(false))}
             title="Expand Sidebar"
           >
@@ -567,7 +567,7 @@ export function Sidebar() {
         initial={false}
         animate={{ width: sidebarCollapsed ? 72 : 256 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="hidden lg:flex h-screen flex-col bg-sidebar border-r border-border/40 fixed left-0 top-0 z-30"
+        className="hidden lg:flex h-screen flex-col bg-white dark:bg-[#141414] border-r border-border/40 fixed left-0 top-0 z-30"
       >
         {sidebarContent(sidebarCollapsed)}
       </motion.aside>
@@ -589,7 +589,7 @@ export function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: -256 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="fixed left-0 top-0 z-50 h-screen w-64 border-r bg-sidebar lg:hidden"
+              className="fixed left-0 top-0 z-50 h-screen w-64 border-r bg-white dark:bg-[#141414] lg:hidden"
             >
               <div className="absolute right-2 top-2">
                 <Button

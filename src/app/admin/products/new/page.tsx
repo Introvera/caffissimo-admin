@@ -38,11 +38,12 @@ import { useGetToppingsQuery, useCreateProductToppingMutation } from "@/stores/a
 import { Category, Branch, UserRole } from "@/types";
 import { toast } from "sonner";
 import { ImageUploader } from "@/components/ui/image-uploader";
+import { CharacterCounter } from "@/components/ui/character-counter";
 
 // We remove tags and tastingNotes
 const productSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").or(z.literal("")),
+  name: z.string().min(2, "Name must be at least 2 characters").max(200, "Name must not exceed 200 characters"),
+  description: z.string().max(1000, "Description must not exceed 1000 characters").or(z.literal("")),
   categoryId: z.string().min(1, "Please select a category"),
   price: z.number().positive("Price must be greater than 0"),
 });
@@ -329,9 +330,13 @@ export default function NewProductPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Product Name</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="name">Product Name</Label>
+                      <CharacterCounter current={(watch("name") || "").length} max={200} />
+                    </div>
                     <Input
                       id="name"
+                      maxLength={200}
                       placeholder="e.g., Caramel Macchiato"
                       {...register("name")}
                     />
@@ -341,9 +346,13 @@ export default function NewProductPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="description">Description</Label>
+                      <CharacterCounter current={(watch("description") || "").length} max={1000} />
+                    </div>
                     <Textarea
                       id="description"
+                      maxLength={1000}
                       placeholder="Describe the product..."
                       rows={4}
                       {...register("description")}

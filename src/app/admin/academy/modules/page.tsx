@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { trainingApi } from "@/lib/training-api";
 import { useAppSelector } from "@/stores/store";
 import { canAccessAllBranches } from "@/lib/rbac";
@@ -150,20 +151,21 @@ export default function AcademyModulesPage() {
     }
   };
 
-  const handleDelete = async (moduleId: string) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this module? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
+  const [moduleToDelete, setModuleToDelete] = useState<TrainingModuleSummaryResponse | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!moduleToDelete) return;
+    setIsDeleting(true);
     try {
-      await trainingApi.deleteModule(moduleId);
+      await trainingApi.deleteModule(moduleToDelete.trainingModuleId);
       toast.success("Module deleted successfully");
+      setModuleToDelete(null);
       await loadModules();
     } catch (e: any) {
       toast.error(e?.message || "Failed to delete module");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -359,7 +361,7 @@ export default function AcademyModulesPage() {
               }
               onEdit={() => openEdit(mod)}
               onToggleActive={() => handleToggleActive(mod)}
-              onDelete={() => handleDelete(mod.trainingModuleId)}
+              onDelete={() => setModuleToDelete(mod)}
             />
           ))}
         </div>
@@ -427,6 +429,19 @@ export default function AcademyModulesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!moduleToDelete}
+        onOpenChange={(open) => {
+          if (!open) setModuleToDelete(null);
+        }}
+        title="Delete Training Module"
+        description={`Are you sure you want to delete "${moduleToDelete?.title || "this module"}"? All associated videos, questions, and completions will also be removed.`}
+        confirmText="Delete Module"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
@@ -448,7 +463,7 @@ function ModuleCard({
 }) {
   return (
     <Card
-      className="group relative flex flex-col cursor-pointer transition-shadow hover:shadow-md"
+      className="group relative flex flex-col cursor-pointer"
       onClick={onView}
     >
       {/* Top accent bar */}

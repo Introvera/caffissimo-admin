@@ -31,14 +31,26 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
 import { EditBar } from "@/components/shared/edit-bar";
+import { useAppSelector } from "@/stores/store";
+import { isSuperAdmin } from "@/lib/rbac";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { useGetProductsQuery, useGetCategoriesQuery } from "@/stores/api/productApi";
 import { useCreateOfferMutation } from "@/stores/api/offerApi";
 import { CreateOfferRequest, CreateOfferItemRequest, OfferType } from "@/types";
+import { CharacterCounter } from "@/components/ui/character-counter";
 import { toast } from "sonner";
 
 export default function NewOfferPage() {
   const router = useRouter();
+  const currentRole = useAppSelector((state) => state.auth.user?.role);
+  const isSuper = isSuperAdmin(currentRole);
+
+  useEffect(() => {
+    if (currentRole && !isSuper) {
+      toast.error("You are not authorized to create offers.");
+      router.push("/admin/offers");
+    }
+  }, [currentRole, isSuper, router]);
 
   const [apiSearchText, setApiSearchText] = useState("");
 
@@ -442,9 +454,13 @@ export default function NewOfferPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="offerName">Offer Name *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="offerName">Offer Name *</Label>
+                    <CharacterCounter current={offerName.length} max={200} />
+                  </div>
                   <Input
                     id="offerName"
+                    maxLength={200}
                     placeholder="e.g., Summer Coffee Carnival 20%"
                     value={offerName}
                     onChange={(e) => setOfferName(e.target.value)}
@@ -452,9 +468,13 @@ export default function NewOfferPage() {
                 </div>
 
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="description">Description</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description">Description</Label>
+                    <CharacterCounter current={description.length} max={1000} />
+                  </div>
                   <Textarea
                     id="description"
+                    maxLength={1000}
                     placeholder="Provide a public-facing description explaining this offer to cashiers/customers..."
                     rows={3}
                     value={description}

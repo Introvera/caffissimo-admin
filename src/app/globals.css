@@ -11,13 +11,13 @@
 /* ── Light Mode ─────────────────────────────────────────────────────────── */
 :root {
   /* 60% — Dominant neutral base */
-  --background: 0 0% 100%;          /* #FFFFFF — pure white page background */
+  --background: 200 27% 98%;          /* #F8FAFB — content background */
   --foreground: 0 0% 14%;           /* #242424 — text */
   --popover: 0 0% 100%;             /* #FFFFFF — popover surface */
   --popover-foreground: 0 0% 14%;
 
   /* 30% — Secondary neutral (depth & hierarchy) */
-  --sidebar: 252 18% 97%;           /* #F7F6F9 — sidebar surface */
+  --sidebar: 0 0% 100%;             /* #FFFFFF — white sidebar surface */
   --card: 0 0% 100%;                 /* #FFFFFF — card surface */
   --card-foreground: 0 0% 14%;
   --secondary: 0 0% 93%;            /* #ECECEC — secondary surface, chips */
@@ -167,7 +167,7 @@
 
 body {
   font-family: var(--font-jakarta), sans-serif;
-  background-color: hsl(var(--background));
+  background-color: #F8FAFB;
   color: hsl(var(--foreground));
   font-size: 0.875rem; /* 14px */
   line-height: 1.5;
@@ -175,6 +175,10 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dark body {
+  background-color: hsl(var(--background));
 }
 
 /* ── Tailwind theme tokens ──────────────────────────────────────────────── */
@@ -205,6 +209,8 @@ body {
   --radius-xl: var(--radius-xl);
   --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
+  --text-chip: 0.8125rem;
+  --text-chip--line-height: 1.4;
 
   /* Standardized font weights: only 500 (default) and 600 (bold) */
   --font-weight-thin: 500;
@@ -520,9 +526,6 @@ input[type="reset"]:disabled,
   font-size: 0.875rem; /* 14px */
   line-height: 1.42;
   font-weight: 500;
-  @media (min-width: 1024px) {
-    font-size: 1rem; /* 16px */
-  }
 }
 
 @utility text-caption {
@@ -536,6 +539,12 @@ input[type="reset"]:disabled,
 @utility text-detail {
   font-size: 0.625rem; /* 10px */
   line-height: 1.4;
+}
+
+@utility text-chip {
+  font-size: 0.8125rem !important; /* 13px */
+  line-height: 1.4 !important;
+  font-weight: 500;
 }
 
 

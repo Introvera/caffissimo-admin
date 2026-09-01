@@ -48,7 +48,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { useAppSelector } from "@/stores/store";
 import { canViewAuditLogs } from "@/lib/rbac";
 import { auditLogs, branches } from "@/data/seed";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, cn } from "@/lib/utils";
 import { AuditLog, AuditAction, UserRole } from "@/types";
 
 const actionLabels: Record<AuditAction, string> = {
@@ -233,39 +233,40 @@ export default function AuditLogsPage() {
         description="Track all system changes and activities"
       />
 
-      {/* Filter Bar - same layout as Orders */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
-              <SelectValue placeholder="Action" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Actions</SelectItem>
-              {Object.entries(actionLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search logs..."
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={actionFilter} onValueChange={setActionFilter}>
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Action" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Actions</SelectItem>
+                {Object.entries(actionLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search logs..."
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-9 w-[220px] h-9 bg-background rounded-lg"
-          />
-        </div>
-      </div>
-
-      <div>
-        <div className="p-0">
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
           {filteredLogs.length === 0 ? (
-            <div className="p-6">
+            <div className="p-12">
               <EmptyState
                 icon={FileSearch}
                 title="No logs found"
@@ -273,118 +274,121 @@ export default function AuditLogsPage() {
               />
             </div>
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow
-                      key={headerGroup.id}
-                      className="hover:bg-transparent border-b border-border/60"
-                    >
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          className={
-                            header.column.getCanSort()
-                              ? "cursor-pointer select-none"
-                              : ""
-                          }
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          <span className="inline-flex items-center">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            <SortIcon header={header} />
-                          </span>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination - same as Orders */}
-              <div className="flex items-center justify-between border-t border-border/60 px-6 py-4">
-                <p className="text-body text-muted-foreground">
-                  Showing{" "}
-                  <span className="font-medium text-foreground">
-                    {pageIndex * pageSize + 1}
-                  </span>
-                  {" "}to{" "}
-                  <span className="font-medium text-foreground">
-                    {Math.min((pageIndex + 1) * pageSize, totalRows)}
-                  </span>
-                  {" "}of{" "}
-                  <span className="font-medium text-foreground">{totalRows}</span>
-                  {" "}logs
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
-                    let pageNum: number;
-                    const totalPages = table.getPageCount();
-                    if (totalPages <= 5) {
-                      pageNum = i;
-                    } else if (pageIndex < 3) {
-                      pageNum = i;
-                    } else if (pageIndex > totalPages - 4) {
-                      pageNum = totalPages - 5 + i;
-                    } else {
-                      pageNum = pageIndex - 2 + i;
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageIndex === pageNum ? "default" : "outline"}
-                        size="sm"
-                        className="h-8 w-8 p-0 text-caption"
-                        onClick={() => table.setPageIndex(pageNum)}
+            <Table>
+              <TableHeader>
+                <TableRow
+                  key="header-row"
+                  className="hover:bg-transparent border-0"
+                >
+                  {table.getHeaderGroups().map((headerGroup) =>
+                    headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={
+                          header.column.getCanSort()
+                            ? "cursor-pointer select-none"
+                            : ""
+                        }
+                        onClick={header.column.getToggleSortingHandler()}
                       >
-                        {pageNum + 1}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </>
+                        <span className="inline-flex items-center">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          <SortIcon header={header} />
+                        </span>
+                      </TableHead>
+                    ))
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </div>
-      </div>
+
+        {/* Pagination - same as Orders */}
+        {filteredLogs.length > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {pageIndex * pageSize + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min((pageIndex + 1) * pageSize, totalRows)}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">{totalRows}</span>{" "}
+              logs
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                let pageNum: number;
+                const totalPages = table.getPageCount();
+                if (totalPages <= 5) {
+                  pageNum = i;
+                } else if (pageIndex < 3) {
+                  pageNum = i;
+                } else if (pageIndex > totalPages - 4) {
+                  pageNum = totalPages - 5 + i;
+                } else {
+                  pageNum = pageIndex - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={pageIndex === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      pageIndex === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                    )}
+                    onClick={() => table.setPageIndex(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
