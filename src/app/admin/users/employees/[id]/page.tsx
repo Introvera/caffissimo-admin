@@ -103,6 +103,7 @@ export default function EmployeeDetailPage({ params }: EmployeeDetailPageProps) 
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const currentRole = uiRole || authRole;
   const isSuper = isSuperAdmin(currentRole);
+  const assignedBranchId = useAppSelector((state) => state.auth.user?.branchId);
   const canEdit = canManageUsers(currentRole);
   const allowedRoles = getAllowedTargetRoles(currentRole).filter((r) => r !== UserRole.Customer);
 
@@ -121,6 +122,13 @@ export default function EmployeeDetailPage({ params }: EmployeeDetailPageProps) 
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && !isSuper && assignedBranchId && user.branchId && user.branchId !== assignedBranchId) {
+      toast.error("You are only authorized to view employees from your own branch.");
+      router.push("/admin/users/employees");
+    }
+  }, [user, isSuper, assignedBranchId, router]);
 
   useEffect(() => {
     if (user) {

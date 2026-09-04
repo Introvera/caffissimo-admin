@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Upload, Plus, X, Save } from "lucide-react";
+import { ArrowLeft, Upload, Plus, X, Save, Lock } from "lucide-react";
 import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -201,7 +201,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         return {
           branchId: bp.branchId,
           originalId: bp.branchProductId,
-          isActive: bp.isActive,
+          isActive: bp.isAvailable !== undefined ? bp.isAvailable : bp.isActive,
           overridePosImage: bp.overridePosImage?.[0] || null,
           overrideEcomImages: bp.overrideEcomImages || [],
           variants: bpVariants
@@ -233,10 +233,65 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         }
       });
       setActiveVariantTabs(variantTabs);
+      if (!isSuper && assignedBranchId) {
+        setActiveTab(`branch-${assignedBranchId}`);
+      }
       setSelectedToppingIds(productToppings.map(pt => pt.toppingId));
       setIsInitialized(true);
     }
   }, [product, branchProductsData, productToppings, isInitialized, reset, isSuper, assignedBranchId, branchProducts]);
+
+  useEffect(() => {
+    if (!isEditing && product && branchProductsData && productToppings !== undefined && isInitialized) {
+      reset({
+        name: product.productName,
+        description: product.productDescription || "",
+        categoryId: product.productCategoryId,
+        price: product.productPrice ?? 0,
+        isActive: !!product.isActive,
+      });
+      setBasePosImage(product.posImage?.[0] || null);
+      setBaseEcomImages(product.ecomImages || []);
+
+      const initialConfigs: BranchConfig[] = branchProducts.map(bp => {
+        const bpVariants = bp.variants?.map(v => ({
+          id: generateId(),
+          originalId: v.branchProductVariantId,
+          variantName: v.variantName || v.sizeName || "",
+          price: v.price,
+          isAvailable: v.isAvailable
+        })) || [];
+
+        return {
+          branchId: bp.branchId,
+          originalId: bp.branchProductId,
+          isActive: bp.isAvailable !== undefined ? bp.isAvailable : bp.isActive,
+          overridePosImage: bp.overridePosImage?.[0] || null,
+          overrideEcomImages: bp.overrideEcomImages || [],
+          variants: bpVariants
+        };
+      });
+
+      if (!isSuper && assignedBranchId && !initialConfigs.find(c => c.branchId === assignedBranchId)) {
+        const variantId = generateId();
+        initialConfigs.push({
+          branchId: assignedBranchId,
+          isActive: true,
+          overridePosImage: null,
+          overrideEcomImages: [],
+          variants: [{ id: variantId, variantName: "Normal", price: product.productPrice ?? 0, isAvailable: true }]
+        });
+      }
+
+      let filteredConfigs = initialConfigs;
+      if (!isSuper && assignedBranchId) {
+        filteredConfigs = initialConfigs.filter(c => c.branchId === assignedBranchId);
+      }
+
+      setBranchConfigs(filteredConfigs);
+      setSelectedToppingIds(productToppings.map(pt => pt.toppingId));
+    }
+  }, [isEditing, product, branchProductsData, productToppings, isInitialized, reset, isSuper, assignedBranchId, branchProducts]);
 
   const addBranchConfig = (branchId: string) => {
     const variantId = generateId();
@@ -527,7 +582,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             )}
           </div>
 
-          <TabsContent value="base" className="mt-6">
+          <TabsContent value="base" className="mt-6 space-y-6">
+            {!isSuper && (
+              <div className="rounded-xl border border-border/80 bg-muted/40 p-4 text-body text-muted-foreground flex items-center gap-3">
+                <Lock className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div>
+                  <span className="font-semibold text-foreground">Base product specifications are read-only.</span> Base catalog details are centrally managed by Super Admins. To configure pricing, images, and availability for your branch, switch to your branch tab above.
+                </div>
+              </div>
+            )}
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="space-y-6">
                 <Card>

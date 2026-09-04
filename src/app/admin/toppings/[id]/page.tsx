@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Plus, X, Lock } from "lucide-react";
 import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,13 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
         });
       }
 
-      setBranchConfigs(initialConfigs);
+      let filteredConfigs = initialConfigs;
+      if (!isSuper && assignedBranchId) {
+        filteredConfigs = initialConfigs.filter(c => c.branchId === assignedBranchId);
+        setActiveTab(`branch-${assignedBranchId}`);
+      }
+
+      setBranchConfigs(filteredConfigs);
       setIsInitialized(true);
     }
   }, [topping, branchToppingsData, isInitialized, reset, isSuper, assignedBranchId, branchToppings]);
@@ -189,7 +195,12 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
         });
       }
 
-      setBranchConfigs(initialConfigs);
+      let filteredConfigs = initialConfigs;
+      if (!isSuper && assignedBranchId) {
+        filteredConfigs = initialConfigs.filter(c => c.branchId === assignedBranchId);
+      }
+
+      setBranchConfigs(filteredConfigs);
     }
   }, [isEditing, topping, branchToppingsData, branchToppings, isSuper, assignedBranchId]);
 
@@ -387,7 +398,15 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
             )}
           </div>
 
-          <TabsContent value="base" className="mt-6">
+          <TabsContent value="base" className="mt-6 space-y-6">
+            {!isSuper && (
+              <div className="rounded-xl border border-border/80 bg-muted/40 p-4 text-body text-muted-foreground flex items-center gap-3">
+                <Lock className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div>
+                  <span className="font-semibold text-foreground">Base topping specifications are read-only.</span> Base catalog details are centrally managed by Super Admins. To configure pricing and availability for your branch, switch to your branch tab above.
+                </div>
+              </div>
+            )}
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Main Info */}
               <div className="lg:col-span-2 space-y-6">

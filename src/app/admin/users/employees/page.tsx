@@ -128,20 +128,14 @@ function SortIcon({ header }: { header: Header<AppUser, unknown> }) {
 
 export default function EmployeesPage() {
   const router = useRouter();
-  const { currentRole: uiRole, selectedBranchId, assignedBranchId } = useAppSelector((state) => state.ui);
-  const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
-  const currentRole = uiRole || authRole;
-  const effectiveBranchId = (selectedBranchId || assignedBranchId) ?? undefined;
+  const { currentRole: uiRole, selectedBranchId } = useAppSelector((state) => state.ui);
   const loggedInUser = useAppSelector((state) => state.auth.user);
-  const loggedInUserRole = loggedInUser?.role;
-  const isBranchOwnerOrAdmin =
-    loggedInUserRole === UserRole.BranchOwner ||
-    loggedInUserRole === UserRole.BranchAdmin ||
-    currentRole === UserRole.BranchOwner ||
-    currentRole === UserRole.BranchAdmin;
+  const authRole = loggedInUser?.role || UserRole.Cashier;
+  const currentRole = uiRole || authRole;
+  const isSuper = isSuperAdmin(currentRole);
+  const assignedBranchId = loggedInUser?.branchId || "";
+  const effectiveBranchId = isSuper ? (selectedBranchId || undefined) : (assignedBranchId || undefined);
 
-  const loggedInUserBranchId = loggedInUser?.branchId || assignedBranchId || selectedBranchId || "";
-  const displayedBranchId = isBranchOwnerOrAdmin ? loggedInUserBranchId : effectiveBranchId;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
   const [globalFilter, setGlobalFilter] = useState("");
@@ -164,7 +158,7 @@ export default function EmployeesPage() {
     page: 1,
     pageSize: 100,
     excludeRole: UserRole.Customer,
-    branchId: canAccessAllBranches(currentRole) ? undefined : (effectiveBranchId || undefined),
+    branchId: isSuper ? (selectedBranchId || undefined) : (assignedBranchId || undefined),
   });
 
   const employees: AppUser[] = useMemo(() => {
@@ -184,14 +178,13 @@ export default function EmployeesPage() {
 
       const matchesSearch = !search || name.includes(search) || email.includes(search);
       const matchesRole = roleFilter === "all" || user.role === (roleFilter as UserRole);
-      const matchesBranch =
-        branchFilter === "all"
-          ? canAccessAllBranches(currentRole) || user.branchId === effectiveBranchId
-          : user.branchId === branchFilter;
+      const matchesBranch = isSuper
+        ? (branchFilter === "all" ? true : user.branchId === branchFilter)
+        : (user.branchId === assignedBranchId);
 
       return matchesSearch && matchesRole && matchesBranch;
     });
-  }, [globalFilter, roleFilter, branchFilter, currentRole, effectiveBranchId, employees]);
+  }, [globalFilter, roleFilter, branchFilter, isSuper, assignedBranchId, employees]);
 
   const getBranchName = (branchId?: string) => {
     if (!branchId) return "—";
@@ -213,19 +206,19 @@ export default function EmployeesPage() {
     email: "",
     password: "",
     role: defaultInitialRole,
-    branchId: "",
+    branchId: isSuper ? "" : assignedBranchId,
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!canAccessAllBranches(currentRole) && displayedBranchId) {
+    if (!isSuper && assignedBranchId) {
       setFormData((prev) => ({
         ...prev,
-        branchId: displayedBranchId,
+        branchId: assignedBranchId,
       }));
     }
-  }, [currentRole, displayedBranchId]);
+  }, [isSuper, assignedBranchId]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -276,7 +269,7 @@ export default function EmployeesPage() {
       email: "",
       password: "",
       role: allowedRoles[0] || UserRole.Employee,
-      branchId: canAccessAllBranches(currentRole) ? "" : displayedBranchId || "",
+      branchId: isSuper ? "" : assignedBranchId,
     });
     setFormErrors({});
   };
@@ -325,8 +318,6 @@ export default function EmployeesPage() {
       setIsDeleting(false);
     }
   };
-
-  const isSuper = isSuperAdmin(currentRole);
 
   const columns = useMemo(
     () => {
