@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TbLayoutDashboard,
   TbMapPin,
   TbUser,
+  TbUsers,
+  TbMoodSmile,
   TbLayersIntersect,
   TbBox,
   TbCoffee,
@@ -35,6 +37,8 @@ import {
   TbChevronRight,
   TbChevronsLeft,
   TbChevronsRight,
+  TbDotsVertical,
+  TbLogout,
 } from "react-icons/tb";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -46,8 +50,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
 import { setSidebarCollapsed, setMobileMenuOpen } from "@/stores/slices/uiSlice";
+import { logout } from "@/stores/slices/authSlice";
+import { auth } from "@/lib/firebase";
 import { canAccessAdmin } from "@/lib/rbac";
 import { UserRole } from "@/types";
 
@@ -91,11 +103,14 @@ const navEntries: NavEntry[] = [
     permission: canAccessAdmin,
   },
   {
-    type: "single",
+    type: "group",
     title: "Users",
-    href: "/admin/users",
     icon: TbUser,
     permission: canAccessAdmin,
+    children: [
+      { title: "Employees", href: "/admin/users/employees", icon: TbUsers },
+      { title: "Customers", href: "/admin/users/customers", icon: TbMoodSmile },
+    ],
   },
   {
     type: "group",
@@ -162,6 +177,7 @@ const navEntries: NavEntry[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { sidebarCollapsed, mobileMenuOpen } = useAppSelector((state) => state.ui);
   const uiRole = useAppSelector((state) => state.ui.currentRole);
@@ -180,55 +196,58 @@ export function Sidebar() {
     : "User";
   const userEmail = authUser?.email || "";
 
-  const userWidget = (
-    <div
-      className={cn(
-        "flex items-center transition-all duration-200 cursor-pointer",
-        sidebarCollapsed
-          ? "justify-center h-10 w-10"
-          : "gap-3 px-3 py-2 hover:bg-accent/40 rounded-lg"
-      )}
-    >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-xs hover:bg-primary/20 transition-all">
-        {userName ? userName.charAt(0).toUpperCase() : "U"}
-      </div>
-      {!sidebarCollapsed && (
-        <div className="flex flex-col min-w-0 flex-1 text-left justify-center py-0.5">
-          <span className="text-body font-semibold text-foreground truncate leading-tight">
-            {userName}
-          </span>
-          {userEmail && (
-            <span className="text-[11px] text-muted-foreground truncate leading-normal font-normal">
-              {userEmail}
-            </span>
-          )}
-        </div>
-      )}
-    </div>
-  );
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      dispatch(logout());
+      router.push("/auth/login");
+    }
+  };
 
   const renderUserWidget = (collapsedState: boolean) => {
     const isActuallyCollapsed = collapsedState && sidebarCollapsed;
     
     if (isActuallyCollapsed) {
       return (
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <div className="flex justify-center w-full">{userWidget}</div>
-          </TooltipTrigger>
-          <TooltipContent side="right" className="flex flex-col gap-0.5 p-2 bg-popover text-popover-foreground border shadow-md rounded-lg">
-            <p className="text-body font-semibold text-foreground leading-tight">{userName}</p>
-            {userEmail && <p className="text-[11px] text-muted-foreground leading-normal">{userEmail}</p>}
-          </TooltipContent>
-        </Tooltip>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-xs hover:bg-primary/20 transition-all cursor-pointer focus-visible:outline-none"
+              title={userName}
+            >
+              {userName ? userName.charAt(0).toUpperCase() : "U"}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="right"
+            align="end"
+            sideOffset={12}
+            className="w-48 bg-white dark:bg-[#141414] border shadow-md rounded-lg p-1"
+          >
+            <div className="px-2.5 py-1.5 border-b border-border/40 mb-1">
+              <p className="text-body font-semibold text-foreground truncate leading-tight">{userName}</p>
+              {userEmail && <p className="text-[11px] text-muted-foreground truncate leading-normal">{userEmail}</p>}
+            </div>
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 rounded-md px-2.5 py-2 text-body"
+            >
+              <TbLogout className="h-4 w-4" />
+              <span>Log Out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     }
     
     return (
       <div
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-body font-medium transition-all duration-200",
-          "border border-border/60 bg-muted/30 shadow-xs hover:bg-accent/30 cursor-pointer"
+          "flex items-center gap-2 rounded-lg px-3 py-2 text-body font-medium transition-all duration-200",
+          "border border-border/60 bg-muted/30 shadow-xs hover:bg-accent/30"
         )}
       >
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-caption border border-primary/10 shadow-sm">
@@ -244,6 +263,31 @@ export function Sidebar() {
             </span>
           )}
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md cursor-pointer focus-visible:outline-none"
+            >
+              <TbDotsVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="top"
+            align="end"
+            sideOffset={8}
+            className="w-44 bg-white dark:bg-[#141414] border shadow-md rounded-lg p-1"
+          >
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 rounded-md px-2.5 py-2 text-body"
+            >
+              <TbLogout className="h-4 w-4" />
+              <span>Log Out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     );
   };

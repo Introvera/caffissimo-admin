@@ -38,7 +38,7 @@ import {
   useGetBranchByIdQuery,
   useUpdateBranchMutation,
 } from "@/stores/api/branchApi";
-import { canManageBranch, isSuperAdmin } from "@/lib/rbac";
+import { canManageBranch, isSuperAdmin, canAccessAllBranches } from "@/lib/rbac";
 import { UserRole, Branch, BranchPurpose, PlatformEnvironment } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -76,6 +76,14 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
   const uiRole = useAppSelector((state) => state.ui.currentRole);
   const authRole = useAppSelector((state) => state.auth.user?.role);
   const currentRole = uiRole || authRole || UserRole.Cashier;
+  const assignedBranchId = useAppSelector((state) => state.auth.user?.branchId);
+
+  useEffect(() => {
+    if (currentRole && !canAccessAllBranches(currentRole) && assignedBranchId && resolvedParams.id !== assignedBranchId) {
+      toast.error("You are only authorized to view your own branch.");
+      router.push(`/admin/branches/${assignedBranchId}`);
+    }
+  }, [currentRole, assignedBranchId, resolvedParams.id, router]);
 
   const { data: branch, isLoading } = useGetBranchByIdQuery(resolvedParams.id);
   const canEdit = canManageBranch(currentRole);

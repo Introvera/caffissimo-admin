@@ -36,6 +36,8 @@ import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { useGetProductsQuery, useGetCategoriesQuery } from "@/stores/api/productApi";
 import { useGetOfferByIdQuery, useUpdateOfferMutation } from "@/stores/api/offerApi";
 import { CreateOfferRequest, CreateOfferItemRequest, OfferType } from "@/types";
+import { useAppSelector } from "@/stores/store";
+import { isSuperAdmin } from "@/lib/rbac";
 import { toast } from "sonner";
 
 interface EditOfferPageProps {
@@ -46,6 +48,15 @@ export default function EditOfferPage({ params }: EditOfferPageProps) {
   const router = useRouter();
   const resolvedParams = use(params);
   const offerId = resolvedParams.id;
+  const currentRole = useAppSelector((state) => state.auth.user?.role);
+  const isSuper = isSuperAdmin(currentRole);
+
+  useEffect(() => {
+    if (currentRole && !isSuper) {
+      toast.error("You are not authorized to edit offers.");
+      router.push("/admin/offers");
+    }
+  }, [currentRole, isSuper, router]);
 
   const [apiSearchText, setApiSearchText] = useState("");
 

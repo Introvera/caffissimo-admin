@@ -178,7 +178,7 @@ function SearchResultsContent() {
               {results.users.map((user) => (
                 <li key={user.id}>
                   <Link
-                    href="/admin/users"
+                    href={`/admin/users/${user.id}`}
                     className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-body"
                   >
                     <div>

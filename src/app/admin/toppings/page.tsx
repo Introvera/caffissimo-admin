@@ -54,7 +54,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/stores/store";
 import { useGetToppingsQuery, useGetToppingCategoriesQuery } from "@/stores/api/toppingApi";
-import { canManageBaseCatalog } from "@/lib/rbac";
+import { canManageBaseCatalog, isSuperAdmin } from "@/lib/rbac";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Topping, UserRole } from "@/types";
 
@@ -149,6 +149,7 @@ export default function ToppingsPage() {
         id: "actions",
         cell: (info) => {
           const row = info.row.original;
+          const isSuper = isSuperAdmin(currentRole as UserRole);
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -160,7 +161,7 @@ export default function ToppingsPage() {
                 <DropdownMenuItem asChild>
                   <Link href={`/admin/toppings/${row.toppingId}`}>
                     <TbEdit className="h-4 w-4 mr-2" />
-                    Edit Topping
+                    {isSuper ? "Edit Topping" : "Branch Override"}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>

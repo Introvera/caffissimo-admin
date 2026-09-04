@@ -259,7 +259,17 @@ export default function ProductsPage() {
           header: "Status",
           cell: (info) => {
             const original = info.row.original as any;
-            const isAvail = original.isAvailable !== undefined ? original.isAvailable : original.isActive;
+            let isAvail: boolean;
+            if (isBranchManager && branchFilter === "all" && original.branchAssignment?.isAssigned) {
+              isAvail = original.branchAssignment.isAvailable !== undefined && original.branchAssignment.isAvailable !== null
+                ? !!original.branchAssignment.isAvailable
+                : !!original.isActive;
+            } else if (original.isAvailable !== undefined && original.isAvailable !== null) {
+              isAvail = !!original.isAvailable;
+            } else {
+              isAvail = !!original.isActive;
+            }
+
             return (
               <Badge variant={isAvail ? "success" : "secondary"}>
                 {isAvail ? "Active" : "Archived"}

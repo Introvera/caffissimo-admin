@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Plus, X, Lock } from "lucide-react";
 import { TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,6 @@ import {
 } from "@/stores/api/toppingApi";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
 import { toast } from "sonner";
-import { ImageUploader } from "@/components/ui/image-uploader";
 import { UserRole, ToppingCategory, BranchTopping } from "@/types";
 
 interface ToppingFormData {
@@ -64,7 +63,6 @@ type BranchToppingConfig = {
   originalId?: string;
   isAvailable: boolean;
   overrideToppingPrice: number | null;
-  overrideImageFiles?: (File | string)[];
 };
 
 interface ToppingDetailPageProps {
@@ -101,7 +99,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [branchConfigs, setBranchConfigs] = useState<BranchToppingConfig[]>([]);
-  const [toppingImages, setToppingImages] = useState<(File | string)[]>([]);
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   const {
@@ -131,16 +128,11 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
         isActive: topping.isActive,
       });
 
-      if (topping.image) {
-        setToppingImages(topping.image);
-      }
-
       const initialConfigs: BranchToppingConfig[] = branchToppings.map(bt => ({
         branchId: bt.branchId,
         originalId: bt.branchToppingId,
         isAvailable: bt.isAvailable,
         overrideToppingPrice: bt.overrideToppingPrice,
-        overrideImageFiles: bt.overrideImage || [],
       }));
 
       if (!isSuper && assignedBranchId && !initialConfigs.find(c => c.branchId === assignedBranchId)) {
@@ -148,11 +140,16 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
           branchId: assignedBranchId,
           isAvailable: true,
           overrideToppingPrice: null,
-          overrideImageFiles: [],
         });
       }
 
-      setBranchConfigs(initialConfigs);
+      let filteredConfigs = initialConfigs;
+      if (!isSuper && assignedBranchId) {
+        filteredConfigs = initialConfigs.filter(c => c.branchId === assignedBranchId);
+        setActiveTab(`branch-${assignedBranchId}`);
+      }
+
+      setBranchConfigs(filteredConfigs);
       setIsInitialized(true);
     }
   }, [topping, branchToppingsData, isInitialized, reset, isSuper, assignedBranchId, branchToppings]);
@@ -183,18 +180,11 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
 
   useEffect(() => {
     if (!isEditing && topping && branchToppingsData) {
-      if (topping.image) {
-        setToppingImages(topping.image);
-      } else {
-        setToppingImages([]);
-      }
-      
       const initialConfigs: BranchToppingConfig[] = branchToppings.map(bt => ({
         branchId: bt.branchId,
         originalId: bt.branchToppingId,
         isAvailable: bt.isAvailable,
         overrideToppingPrice: bt.overrideToppingPrice,
-        overrideImageFiles: bt.overrideImage || [],
       }));
 
       if (!isSuper && assignedBranchId && !initialConfigs.find(c => c.branchId === assignedBranchId)) {
@@ -202,11 +192,15 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
           branchId: assignedBranchId,
           isAvailable: true,
           overrideToppingPrice: null,
-          overrideImageFiles: [],
         });
       }
 
-      setBranchConfigs(initialConfigs);
+      let filteredConfigs = initialConfigs;
+      if (!isSuper && assignedBranchId) {
+        filteredConfigs = initialConfigs.filter(c => c.branchId === assignedBranchId);
+      }
+
+      setBranchConfigs(filteredConfigs);
     }
   }, [isEditing, topping, branchToppingsData, branchToppings, isSuper, assignedBranchId]);
 
@@ -222,8 +216,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
             toppingCategoryId: data.toppingCategoryId,
             toppingPrice: Number(data.price),
             isActive: data.isActive,
-            imageFiles: toppingImages.filter((f): f is File => f instanceof File),
-            image: toppingImages.filter((f): f is string => typeof f === "string"),
           } as any,
         }).unwrap();
       }
@@ -245,7 +237,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
               toppingId: resolvedParams.id,
               isAvailable: branchConf.isAvailable,
               overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-              overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
             } as any).unwrap();
           } else {
             // UPDATE Branch Topping
@@ -254,8 +245,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
               data: {
                 isAvailable: branchConf.isAvailable,
                 overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-                overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
-                overrideImage: branchConf.overrideImageFiles?.filter((f): f is string => typeof f === "string") || [],
               } as any
             }).unwrap();
           }
@@ -270,7 +259,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
               toppingId: resolvedParams.id,
               isAvailable: branchConf.isAvailable,
               overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-              overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
             } as any).unwrap();
           } else {
             await updateBranchTopping({
@@ -278,8 +266,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
               data: {
                 isAvailable: branchConf.isAvailable,
                 overrideToppingPrice: branchConf.overrideToppingPrice !== null ? Number(branchConf.overrideToppingPrice) : null,
-                overrideImageFiles: branchConf.overrideImageFiles?.filter((f): f is File => f instanceof File) || [],
-                overrideImage: branchConf.overrideImageFiles?.filter((f): f is string => typeof f === "string") || [],
               } as any
             }).unwrap();
           }
@@ -412,7 +398,15 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
             )}
           </div>
 
-          <TabsContent value="base" className="mt-6">
+          <TabsContent value="base" className="mt-6 space-y-6">
+            {!isSuper && (
+              <div className="rounded-xl border border-border/80 bg-muted/40 p-4 text-body text-muted-foreground flex items-center gap-3">
+                <Lock className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div>
+                  <span className="font-semibold text-foreground">Base topping specifications are read-only.</span> Base catalog details are centrally managed by Super Admins. To configure pricing and availability for your branch, switch to your branch tab above.
+                </div>
+              </div>
+            )}
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Main Info */}
               <div className="lg:col-span-2 space-y-6">
@@ -475,24 +469,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                         )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Topping Images</CardTitle>
-                    <CardDescription>Upload image files for this topping</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ImageUploader
-                      multiple={true}
-                      value={toppingImages}
-                      onChange={(val) => setToppingImages(val as (File | string)[])}
-                      disabled={isBaseDisabled}
-                      accept="image/*"
-                      maxSizeMB={5}
-                      helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
-                    />
                   </CardContent>
                 </Card>
               </div>
@@ -571,19 +547,6 @@ export default function ToppingDetailPage({ params }: ToppingDetailPageProps) {
                               Leave empty to use base price: ${(topping.toppingPrice ?? topping.price ?? 0).toFixed(2)}
                             </p>
                           </div>
-                        </div>
-
-                        <div className="space-y-2 border-t pt-4">
-                          <Label>Branch Topping Image Override (Optional)</Label>
-                          <ImageUploader
-                            multiple={true}
-                            value={branchConf.overrideImageFiles || []}
-                            onChange={(val) => updateBranchConfig(branchConf.branchId, { overrideImageFiles: val as (File | string)[] })}
-                            disabled={isFormDisabled}
-                            accept="image/*"
-                            maxSizeMB={5}
-                            helperText="Supports PNG, JPG, JPEG, GIF up to 5MB"
-                          />
                         </div>
                       </CardContent>
                     </Card>
