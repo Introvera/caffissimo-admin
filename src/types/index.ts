@@ -737,6 +737,14 @@ export interface AppUser {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber?: string;
+  age?: number;
+  birthday?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  postalCode?: string;
+  profilePictureUrl?: string;
   role: UserRole;
   branchId?: string;
   branchName?: string;

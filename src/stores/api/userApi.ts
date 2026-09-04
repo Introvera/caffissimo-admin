@@ -9,13 +9,25 @@ import {
   PagedResult,
 } from "@/types";
 
+export interface UserQueryParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  role?: string;
+  excludeRole?: string;
+  branchId?: string;
+  isActive?: boolean;
+  sortBy?: string;
+  sortDescending?: boolean;
+}
+
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /api/firebaseuser
-    getUsers: builder.query<PagedResult<AppUser>, { page?: number; pageSize?: number; search?: string; role?: string; branchId?: string; isActive?: boolean }>({
+    getUsers: builder.query<PagedResult<AppUser>, UserQueryParams | void>({
       query: (params) => ({
         url: "/api/firebaseuser",
-        params,
+        params: params || undefined,
       }),
       providesTags: ["User"],
     }),
@@ -23,6 +35,12 @@ export const userApi = baseApi.injectEndpoints({
     // GET /api/firebaseuser/current-user
     getCurrentUser: builder.query<AppUser, void>({
       query: () => "/api/firebaseuser/current-user",
+      providesTags: ["User"],
+    }),
+
+    // GET /api/firebaseuser/{id}
+    getUserById: builder.query<AppUser, string>({
+      query: (id) => `/api/firebaseuser/${id}`,
       providesTags: ["User"],
     }),
 
@@ -79,6 +97,7 @@ export const userApi = baseApi.injectEndpoints({
 export const {
   useGetUsersQuery,
   useGetCurrentUserQuery,
+  useGetUserByIdQuery,
   useCreateUserMutation,
   useCreateCustomerUserMutation,
   useUpdateUserRoleMutation,

@@ -91,8 +91,8 @@ export default function LoginPage() {
                   w-full px-3.5 py-2.5 rounded-lg text-body
                   bg-background border border-border
                   text-foreground placeholder:text-muted-foreground
-                  outline-none transition-all duration-200
-                  focus:border-primary focus:ring-2 focus:ring-primary/20
+                  outline-none transition-colors duration-200
+                  focus:border-primary
                 "
               />
             </div>
@@ -117,8 +117,8 @@ export default function LoginPage() {
                     w-full px-3.5 py-2.5 pr-10 rounded-lg text-body
                     bg-background border border-border
                     text-foreground placeholder:text-muted-foreground
-                    outline-none transition-all duration-200
-                    focus:border-primary focus:ring-2 focus:ring-primary/20
+                    outline-none transition-colors duration-200
+                    focus:border-primary
                   "
                 />
                 <button

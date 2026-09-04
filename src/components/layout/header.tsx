@@ -75,6 +75,7 @@ export function Header() {
     if (cleanPath === "/admin/branches") return [{ label: "Branches", active: true }];
     if (cleanPath.startsWith("/admin/branches/")) return [{ label: "Branches", href: "/admin/branches" }, { label: "Details", active: true }];
     if (cleanPath === "/admin/users") return [{ label: "Users", active: true }];
+    if (cleanPath.startsWith("/admin/users/")) return [{ label: "Users", href: "/admin/users" }, { label: "Details", active: true }];
     
     // Catalog
     if (cleanPath === "/admin/products") return [{ label: "Catalog" }, { label: "Products", active: true }];
@@ -203,7 +204,7 @@ export function Header() {
               value={selectedBranchId || "all"}
               onValueChange={handleBranchChange}
             >
-              <SelectTrigger className="w-[160px] md:w-[180px] h-10 bg-white dark:bg-[#141414] border border-input shadow-none hover:bg-muted/50 cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+              <SelectTrigger className="w-[160px] md:w-[180px] h-10 bg-white dark:bg-[#141414] border border-input shadow-none hover:bg-muted/50 cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-md focus-visible:outline-none focus-visible:border-primary transition-colors duration-200">
                 <Store className="w-4 h-4 text-slate-400 shrink-0" />
                 <span className="truncate text-[13px] font-semibold text-foreground flex-1 text-left">
                   {selectedBranchId 
@@ -231,7 +232,7 @@ export function Header() {
                 type="button"
                 onClick={() => dispatch(setDateRangePreset(preset))}
                 className={cn(
-                  "inline-flex items-center justify-center h-8 whitespace-nowrap rounded-sm px-4 text-caption font-normal ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
+                  "inline-flex items-center justify-center h-8 whitespace-nowrap rounded-sm px-4 text-caption font-normal ring-offset-background transition-all focus-visible:outline-none focus-visible:border-primary cursor-pointer",
                   dateRangePreset === preset
                     ? "bg-white dark:bg-[#141414] text-foreground font-medium border border-border"
                     : "hover:text-foreground text-muted-foreground"
@@ -243,7 +244,7 @@ export function Header() {
           </div>
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 text-caption font-medium rounded-md border border-input text-foreground px-4 hover:bg-muted/50 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white dark:bg-[#141414] shadow-none">
+              <Button variant="outline" size="sm" className="h-10 text-caption font-medium rounded-md border border-input text-foreground px-4 hover:bg-muted/50 flex items-center gap-2 focus-visible:outline-none focus-visible:border-primary transition-colors duration-200 bg-white dark:bg-[#141414] shadow-none">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span>{format(dateRange.from, "MMM dd, yyyy")} – {format(dateRange.to, "MMM dd, yyyy")}</span>
               </Button>
