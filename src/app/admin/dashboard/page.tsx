@@ -38,13 +38,20 @@ import { OrderSummaryResponse, OrderType } from "@/types";
 const TYPE_COLORS: Record<string, string> = {
   ECommerce: "#D97706",
   POS: "#3B82F6",
+  DineIn: "#10B981",
+  Delivery: "#8B5CF6",
   UberEats: "#8C8C8C",
   DoorDash: "#ADADAD",
 };
 
 const TYPE_LABELS: Record<string, string> = {
   ECommerce: "E-Commerce",
+  Takeaway: "E-Commerce",
+  TakeAway: "E-Commerce",
+  Online: "E-Commerce",
   POS: "POS",
+  DineIn: "Dine In",
+  Delivery: "Delivery",
   UberEats: "Uber Eats",
   DoorDash: "Door Dash",
 };
@@ -88,41 +95,41 @@ export default function DashboardPage() {
     }
 
     const byType: Record<string, number> = {
-      ECommerce: statsData.salesByType?.dineIn || 0,
+      ECommerce: statsData.salesByType?.takeaway || 0,
       POS: statsData.salesByType?.pos || 0,
-      UberEats: statsData.salesByType?.takeaway || 0,
-      DoorDash: statsData.salesByType?.delivery || 0,
+      DineIn: statsData.salesByType?.dineIn || 0,
+      Delivery: statsData.salesByType?.delivery || 0,
     };
 
     // Calculate proportional order counts client-side since we are keeping backend unchanged
-    const totalSalesByType = (statsData.salesByType?.dineIn || 0) +
+    const totalSalesByType = (statsData.salesByType?.takeaway || 0) +
                              (statsData.salesByType?.pos || 0) +
-                             (statsData.salesByType?.takeaway || 0) +
+                             (statsData.salesByType?.dineIn || 0) +
                              (statsData.salesByType?.delivery || 0);
 
     const totalOrdersCount = statsData.orderCount || 0;
 
     let eCommerceOrders = 0;
     let posOrders = 0;
-    let uberEatsOrders = 0;
-    let doorDashOrders = 0;
+    let dineInOrders = 0;
+    let deliveryOrders = 0;
 
     if (totalSalesByType > 0 && totalOrdersCount > 0) {
-      eCommerceOrders = Math.round(((statsData.salesByType?.dineIn || 0) / totalSalesByType) * totalOrdersCount);
+      eCommerceOrders = Math.round(((statsData.salesByType?.takeaway || 0) / totalSalesByType) * totalOrdersCount);
       posOrders = Math.round(((statsData.salesByType?.pos || 0) / totalSalesByType) * totalOrdersCount);
-      uberEatsOrders = Math.round(((statsData.salesByType?.takeaway || 0) / totalSalesByType) * totalOrdersCount);
-      // Remainder goes to Door Dash to ensure total order count matches exactly
-      doorDashOrders = totalOrdersCount - (eCommerceOrders + posOrders + uberEatsOrders);
-      if (doorDashOrders < 0) {
-        doorDashOrders = 0;
+      dineInOrders = Math.round(((statsData.salesByType?.dineIn || 0) / totalSalesByType) * totalOrdersCount);
+      // Remainder goes to Delivery to ensure total order count matches exactly
+      deliveryOrders = totalOrdersCount - (eCommerceOrders + posOrders + dineInOrders);
+      if (deliveryOrders < 0) {
+        deliveryOrders = 0;
       }
     }
 
     const ordersByType: Record<string, number> = {
       ECommerce: eCommerceOrders,
       POS: posOrders,
-      UberEats: uberEatsOrders,
-      DoorDash: doorDashOrders,
+      DineIn: dineInOrders,
+      Delivery: deliveryOrders,
     };
 
     return {
@@ -143,9 +150,9 @@ export default function DashboardPage() {
       return {
         date: format(parsedDate, "MMM d"),
         total: item.total || 0,
-        ECommerce: item.dineIn || 0,
-        UberEats: item.takeaway || 0,
-        DoorDash: item.delivery || 0,
+        ECommerce: item.takeaway || 0,
+        DineIn: item.dineIn || 0,
+        Delivery: item.delivery || 0,
         POS: item.pos || 0,
       };
     });
