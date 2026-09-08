@@ -4,6 +4,7 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useGetUberOrderByIdQuery } from "@/stores/api/uberApi";
 import { useAppSelector } from "@/stores/store";
+import { useSetBreadcrumb } from "@/hooks/use-breadcrumb";
 import { canAccessAdmin } from "@/lib/rbac";
 import { Badge } from "@/components/ui/badge";
 import { UserRole } from "@/types";
@@ -71,6 +72,8 @@ export default function UberEatsOrderDetailPage({
   const { data: order, isLoading, refetch } = useGetUberOrderByIdQuery(id, {
     pollingInterval: 15000,
   });
+
+  useSetBreadcrumb(order ? `#${order.displayId ?? order.uberOrderId.slice(0, 5).toUpperCase()}` : null);
 
   if (!canAccessAdmin(currentRole)) {
     return (

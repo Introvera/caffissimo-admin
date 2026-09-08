@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useAppSelector } from "@/stores/store";
+import { useSetBreadcrumb } from "@/hooks/use-breadcrumb";
 import { useGetBranchByIdQuery } from "@/stores/api/branchApi";
 import { useGetOrderByIdQuery, useUpdateOrderMutation, useDeleteOrderMutation } from "@/stores/api/orderApi";
 import { canCancelOrders } from "@/lib/rbac";
@@ -72,6 +73,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const { data: order, isLoading, isError } = useGetOrderByIdQuery(resolvedParams.id);
+  useSetBreadcrumb(order ? `Order #${order.orderNumber}` : null);
   const { data: branch } = useGetBranchByIdQuery(order?.branchId ?? "", {
     skip: !order?.branchId,
   });

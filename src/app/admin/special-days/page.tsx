@@ -1,26 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import {
   Calendar,
   Plus,
   Trash2,
   Sparkles,
-  Filter,
-  RefreshCw,
-  Image as ImageIcon,
-  ChevronLeft,
-  ChevronRight,
+  Search,
   PartyPopper,
   Heart,
   Egg,
   Skull,
   Gift,
   HelpCircle,
-  MoreVertical,
+  RefreshCw,
+  Image as ImageIcon,
 } from "lucide-react";
-import { TbEdit } from "react-icons/tb";
+import { TbDotsVertical, TbEdit } from "react-icons/tb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,72 +64,36 @@ import { SpecialDayCategory, CreateSpecialDayRequest, UpdateSpecialDayRequest } 
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-// Beautiful themed colors, gradients, and icons for each seasonal category
-const THEME_CONFIG: Record<
+const CATEGORY_CONFIG: Record<
   SpecialDayCategory,
   {
-    gradient: string;
-    border: string;
-    text: string;
-    accent: string;
-    badge: string;
     icon: React.ElementType;
     label: string;
   }
 > = {
   newyear: {
-    gradient: "from-blue-600/80 to-amber-500/80 dark:from-blue-900/60 dark:to-amber-900/40",
-    border: "border-amber-400/20 hover:border-amber-400/50",
-    text: "text-amber-500 dark:text-amber-300",
-    accent: "bg-amber-500/10 text-amber-500 dark:bg-amber-500/20",
-    badge: "bg-blue-500 text-white",
     icon: PartyPopper,
     label: "New Year",
   },
   valentines: {
-    gradient: "from-rose-500/80 to-pink-600/80 dark:from-rose-950/60 dark:to-pink-950/40",
-    border: "border-rose-400/20 hover:border-rose-400/50",
-    text: "text-rose-500 dark:text-rose-300",
-    accent: "bg-rose-500/10 text-rose-500 dark:bg-rose-500/20",
-    badge: "bg-rose-500 text-white",
     icon: Heart,
     label: "Valentine's Day",
   },
   easter: {
-    gradient: "from-emerald-600/80 to-green-600/80 dark:from-emerald-950/60 dark:to-green-950/40",
-    border: "border-emerald-400/20 hover:border-emerald-400/50",
-    text: "text-emerald-600 dark:text-emerald-300",
-    accent: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20",
-    badge: "bg-emerald-500 text-white",
     icon: Egg,
     label: "Easter",
   },
   halloween: {
-    gradient: "from-orange-500/80 to-purple-800/80 dark:from-orange-950/60 dark:to-purple-950/40",
-    border: "border-orange-500/20 hover:border-orange-500/50",
-    text: "text-orange-500 dark:text-orange-400",
-    accent: "bg-orange-500/10 text-orange-500 dark:bg-orange-500/20",
-    badge: "bg-orange-600 text-white",
     icon: Skull,
     label: "Halloween",
   },
   christmas: {
-    gradient: "from-emerald-700/80 to-rose-700/80 dark:from-emerald-950/60 dark:to-rose-950/40",
-    border: "border-emerald-400/20 hover:border-emerald-400/50",
-    text: "text-emerald-500 dark:text-emerald-300",
-    accent: "bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20",
-    badge: "bg-emerald-600 text-white",
     icon: Gift,
     label: "Christmas",
   },
   other: {
-    gradient: "from-zinc-600/80 to-slate-700/80 dark:from-zinc-900/60 dark:to-slate-900/40",
-    border: "border-zinc-400/20 hover:border-zinc-400/50",
-    text: "text-zinc-500 dark:text-zinc-300",
-    accent: "bg-zinc-500/10 text-zinc-500 dark:bg-zinc-500/20",
-    badge: "bg-zinc-500 text-white",
-    icon: HelpCircle,
-    label: "Other",
+    icon: Sparkles,
+    label: "Special Day",
   },
 };
 
@@ -141,11 +102,9 @@ export default function SpecialDaysPage() {
   const isManager = canManageSpecialDays(currentRole);
 
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const [filterActive, setFilterActive] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  
-  // Image loading failure tracking state
-  const [failedImageIds, setFailedImageIds] = useState<Record<string, boolean>>({});
 
   // Dialog States
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -164,7 +123,7 @@ export default function SpecialDaysPage() {
   const PAGE_SIZE = 9;
 
   // API Calls
-  const { data, isLoading, refetch } = useGetSpecialDaysQuery({
+  const { data, isLoading } = useGetSpecialDaysQuery({
     page,
     pageSize: PAGE_SIZE,
     isActive: filterActive === "active" ? true : filterActive === "inactive" ? false : undefined,
@@ -181,6 +140,19 @@ export default function SpecialDaysPage() {
 
   const specialDays = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
+
+  // Search filter
+  const filteredSpecialDays = useMemo(() => {
+    if (!searchTerm.trim()) return specialDays;
+    const query = searchTerm.toLowerCase();
+    return specialDays.filter((day) => {
+      const config = CATEGORY_CONFIG[day.category as SpecialDayCategory] || CATEGORY_CONFIG.other;
+      return (
+        config.label.toLowerCase().includes(query) ||
+        day.category.toLowerCase().includes(query)
+      );
+    });
+  }, [specialDays, searchTerm]);
 
   // Open creation modal
   const handleOpenCreate = () => {
@@ -254,8 +226,6 @@ export default function SpecialDaysPage() {
           isActive,
         };
         await updateSpecialDay({ id: editingSpecialDayId, data: payload }).unwrap();
-        // Clear failed image track on update so it re-attempts loading the new image URL
-        setFailedImageIds(prev => ({ ...prev, [editingSpecialDayId]: false }));
         toast.success("Special day updated successfully!");
       } else {
         const payload: CreateSpecialDayRequest = {
@@ -278,7 +248,7 @@ export default function SpecialDaysPage() {
     }
   };
 
-  // Switch toggle status directly from the dashboard card header (aligned with branches page)
+  // Toggle active status
   const handleToggleActive = async (day: any, currentActive: boolean) => {
     if (!isManager) return;
     try {
@@ -305,7 +275,7 @@ export default function SpecialDaysPage() {
     setIsDeleting(true);
     try {
       await deleteSpecialDay(specialDayToDelete.id).unwrap();
-      toast.success("Special day branding event deleted successfully!");
+      toast.success("Special day deleted successfully!");
       setSpecialDayToDelete(null);
     } catch (err: any) {
       toast.error("Failed to delete special day");
@@ -315,23 +285,36 @@ export default function SpecialDaysPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6">
       <PageHeader
         title="Special Days"
         description="Themed periods and seasonal overlays for catalog branding"
         actions={
           isManager ? (
-            <Button size="sm" onClick={handleOpenCreate}>
+            <Button onClick={handleOpenCreate}>
               <Plus className="h-4 w-4 mr-2" />
-              New Special Day
+              Create Special Day
             </Button>
           ) : undefined
         }
       />
 
-      {/* Filter Bar - Perfectly aligned with toppings and branches pages */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
+      {/* Filter Bar */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search special days..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+            className="pl-9 bg-white dark:bg-[#141414] rounded-lg border-border/80"
+          />
+        </div>
+
+        <div className="flex items-center gap-2.5">
           {/* Active status filter */}
           <Select value={filterActive} onValueChange={(val) => { setFilterActive(val); setPage(1); }}>
             <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
@@ -356,7 +339,7 @@ export default function SpecialDaysPage() {
                   {cat.label}
                 </SelectItem>
               )) || (
-                Object.entries(THEME_CONFIG).map(([key, value]) => (
+                Object.entries(CATEGORY_CONFIG).map(([key, value]) => (
                   <SelectItem key={key} value={key}>
                     {value.label}
                   </SelectItem>
@@ -370,22 +353,26 @@ export default function SpecialDaysPage() {
       {/* Content Grid */}
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-64 rounded-xl" />
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-[240px] w-full rounded-xl" />
           ))}
         </div>
-      ) : specialDays.length === 0 ? (
+      ) : filteredSpecialDays.length === 0 ? (
         <Card className="border border-dashed border-border/80 bg-muted/10">
           <CardContent className="py-16">
             <EmptyState
               icon={Calendar}
               title="No special days found"
-              description="Seasonal branding periods, themed events, and holiday configurations will be displayed here."
+              description={
+                searchTerm || filterCategory !== "all" || filterActive !== "all"
+                  ? "Try changing your search or filter criteria"
+                  : "Seasonal branding periods and themed holiday events will be displayed here."
+              }
               action={
                 isManager ? (
                   <Button onClick={handleOpenCreate}>
                     <Plus className="h-4 w-4 mr-2" />
-                    New Special Day
+                    Create Special Day
                   </Button>
                 ) : undefined
               }
@@ -395,116 +382,123 @@ export default function SpecialDaysPage() {
       ) : (
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {specialDays.map((day) => {
+            {filteredSpecialDays.map((day, index: number) => {
               const categoryKey = (day.category as string).toLowerCase() as SpecialDayCategory;
-              const config = THEME_CONFIG[categoryKey] || THEME_CONFIG.other;
+              const config = CATEGORY_CONFIG[categoryKey] || CATEGORY_CONFIG.other;
               const CategoryIcon = config.icon;
               const isExpired = new Date(day.endDate) < new Date();
-              const hasImageFailed = failedImageIds[day.specialDayId];
 
               return (
                 <motion.div
                   key={day.specialDayId}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.15 }}
                   className="h-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <Card className={`relative overflow-hidden flex flex-col h-64 border rounded-xl bg-card transition-all duration-200 ${config.border}`}>
-                    
-                    {/* Header Image / Gradient Block */}
-                    <div className="relative h-28 overflow-hidden shrink-0 bg-muted">
-                      
-                      {/* Gradient Overlay */}
-                      <div className={`absolute inset-0 bg-gradient-to-b ${config.gradient} mix-blend-multiply z-10 opacity-70`} />
-                      
-                      {/* Image Render - If failed, unmount to completely prevent repeated request flashing */}
-                      {!hasImageFailed ? (
-                        <img
-                          src={day.backgroundImage}
-                          alt={config.label}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          onError={() => {
-                            // Unmounts the image tag immediately and safely falls back to dynamic CSS gradients
-                            setFailedImageIds(prev => ({ ...prev, [day.specialDayId]: true }));
-                          }}
-                        />
-                      ) : (
-                        // Gorgeous fallback design using the custom theme's gradient instead of broken images
-                        <div className={`absolute inset-0 bg-gradient-to-tr ${config.gradient} opacity-80`} />
-                      )}
-
-                      {/* Header Thematic Overlay Details */}
-                      <div className="absolute top-3.5 left-3.5 z-20 flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-white/20 backdrop-blur-md text-white border border-white/20">
-                          <CategoryIcon className="h-4.5 w-4.5" />
-                        </div>
-                        <span className="text-body font-bold text-white tracking-wide">
-                          {config.label}
-                        </span>
-                      </div>
-
-                      {/* Top-Right Badges & Actions */}
-                      <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5">
-                        <Badge variant={day.isActive && !isExpired ? "default" : "secondary"} className={`text-detail font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full ${day.isActive && !isExpired ? config.badge : ""}`}>
-                          {isExpired ? "Expired" : day.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Description/Info Area */}
-                    <CardContent className="p-4 flex-1 flex flex-col gap-3 justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center text-caption text-muted-foreground gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span>Timeline</span>
-                        </div>
-                        <p className="text-body font-medium tracking-tight leading-normal text-foreground">
-                          {format(parseISO(day.startDate), "MMM dd, yyyy h:mm a")}
-                          <span className="block text-caption font-normal text-muted-foreground mt-0.5">
-                            to {format(parseISO(day.endDate), "MMM dd, yyyy h:mm a")}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* Status Toggle & Card Operations Menu (Perfectly aligned with branches & toppings page) */}
-                      <div className="flex items-center justify-between border-t border-border/60 pt-3 mt-auto">
-                        <div className="flex items-center gap-2">
-                          {isManager && (
-                            <Switch
-                              checked={day.isActive}
-                              disabled={isUpdating}
-                              onCheckedChange={() => handleToggleActive(day, day.isActive)}
-                              title={day.isActive ? "Toggle Inactive" : "Toggle Active"}
-                            />
-                          )}
-                          <span className="text-caption text-muted-foreground font-medium">
-                            {day.isActive ? "Active overlay" : "Inactive overlay"}
-                          </span>
+                  <Card className="h-full flex flex-col overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <CategoryIcon className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-h3 leading-normal">
+                                {config.label}
+                              </CardTitle>
+                              <Badge variant={day.isActive && !isExpired ? "success" : "secondary"}>
+                                {isExpired ? "Expired" : day.isActive ? "Active" : "Inactive"}
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Standard administrative dropdown actions */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                            >
+                              <TbDotsVertical className="h-5 w-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44 bg-white dark:bg-[#141414] border shadow-md rounded-lg">
+                            <DropdownMenuItem onClick={() => handleOpenEdit(day)} className="cursor-pointer">
+                              <TbEdit className="h-4 w-4 mr-2" />
+                              Edit Special Day
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setSpecialDayToDelete({
+                                  id: day.specialDayId,
+                                  name: config.label,
+                                })
+                              }
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Special Day
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="flex-1 flex flex-col space-y-4">
+                      <div className="flex-1 pt-2">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-3.5">
+                          {/* Start Date */}
+                          <div className="space-y-1">
+                            <span className="text-body text-slate-500 dark:text-slate-400">Start Date</span>
+                            <p className="text-body text-foreground break-words leading-normal">
+                              {format(parseISO(day.startDate), "MMM dd, yyyy")}
+                            </p>
+                          </div>
+
+                          {/* End Date */}
+                          <div className="space-y-1">
+                            <span className="text-body text-slate-500 dark:text-slate-400">End Date</span>
+                            <p className="text-body text-foreground break-words leading-normal">
+                              {format(parseISO(day.endDate), "MMM dd, yyyy")}
+                            </p>
+                          </div>
+
+                          {/* Start Time */}
+                          <div className="space-y-1">
+                            <span className="text-body text-slate-500 dark:text-slate-400">Start Time</span>
+                            <p className="text-body text-foreground break-words leading-normal">
+                              {format(parseISO(day.startDate), "h:mm a")}
+                            </p>
+                          </div>
+
+                          {/* End Time */}
+                          <div className="space-y-1">
+                            <span className="text-body text-slate-500 dark:text-slate-400">End Time</span>
+                            <p className="text-body text-foreground break-words leading-normal">
+                              {format(parseISO(day.endDate), "h:mm a")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-auto">
                         {isManager && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleOpenEdit(day)}>
-                                <TbEdit className="h-4 w-4 mr-2" />
-                                Edit Seasonal Event
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => setSpecialDayToDelete({ id: day.specialDayId, name: config.label })}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Branding
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="flex items-center justify-between border-t border-border/50 pt-3">
+                            <span className="text-body font-semibold text-muted-foreground">Active Status</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-caption font-medium text-foreground">
+                                {day.isActive ? "Active" : "Inactive"}
+                              </span>
+                              <Switch
+                                checked={day.isActive}
+                                disabled={isUpdating}
+                                onCheckedChange={() => handleToggleActive(day, day.isActive)}
+                              />
+                            </div>
+                          </div>
                         )}
                       </div>
                     </CardContent>
@@ -516,27 +510,25 @@ export default function SpecialDaysPage() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-6">
+            <div className="flex items-center justify-center gap-2 mt-8">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setPage((p) => p - 1)}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
               >
-                <ChevronLeft className="h-4 w-4" />
+                Previous
               </Button>
-              <span className="text-body font-medium text-muted-foreground">
+              <span className="text-caption text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
               >
-                <ChevronRight className="h-4 w-4" />
+                Next
               </Button>
             </div>
           )}
@@ -557,8 +549,7 @@ export default function SpecialDaysPage() {
           </DialogHeader>
 
           <form onSubmit={handleSave} className="space-y-6 py-2">
-            
-            {/* Category Select (Full Width) */}
+            {/* Category Select */}
             <div className="space-y-1.5">
               <Label htmlFor="modalCategory">Branding Theme Category *</Label>
               <Select
@@ -574,7 +565,7 @@ export default function SpecialDaysPage() {
                       {cat.label}
                     </SelectItem>
                   )) || (
-                    Object.entries(THEME_CONFIG).map(([key, value]) => (
+                    Object.entries(CATEGORY_CONFIG).map(([key, value]) => (
                       <SelectItem key={key} value={key}>
                         {value.label}
                       </SelectItem>
@@ -584,7 +575,7 @@ export default function SpecialDaysPage() {
               </Select>
             </div>
 
-            {/* Date Range Inputs (Side-by-Side) */}
+            {/* Date Range Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="modalStartDate">Start Date & Time *</Label>
@@ -606,16 +597,14 @@ export default function SpecialDaysPage() {
               </div>
             </div>
 
-            {/* Middle Section: Symmetrical Image Uploaders side-by-side */}
+            {/* Symmetrical Image Uploaders */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Desktop Background Image Upload */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label className="flex items-center gap-1">
-                    <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                    Desktop Background Image *
-                  </Label>
-                </div>
+                <Label className="flex items-center gap-1">
+                  <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                  Desktop Background Image *
+                </Label>
                 <ImageUploader
                   value={backgroundImageFile || backgroundImage || null}
                   onChange={(val) => {
@@ -663,12 +652,12 @@ export default function SpecialDaysPage() {
               </div>
             </div>
 
-            {/* Bottom Section: Active Status Switch */}
+            {/* Active Status Switch */}
             <div className="flex items-center justify-between border-t dark:border-zinc-800 pt-4">
               <div className="space-y-0.5">
                 <Label htmlFor="modalActive">Active Immediately</Label>
                 <p className="text-detail text-muted-foreground">
-                  Seasonal branding will render on the customer apps as soon as the start date kicks off.
+                  Seasonal branding will render on customer apps when active.
                 </p>
               </div>
               <Switch id="modalActive" checked={isActive} onCheckedChange={setIsActive} />
@@ -678,7 +667,7 @@ export default function SpecialDaysPage() {
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={isCreating || isUpdating}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isCreating || isUpdating} className="bg-primary hover:bg-primary/95 text-white font-semibold">
+              <Button type="submit" disabled={isCreating || isUpdating}>
                 {isCreating || isUpdating ? (
                   <span className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 animate-spin" />
@@ -701,8 +690,8 @@ export default function SpecialDaysPage() {
           if (!open) setSpecialDayToDelete(null);
         }}
         title="Delete Special Day"
-        description={`Are you sure you want to delete the special day branding event "${specialDayToDelete?.name || ""}"? This action cannot be undone.`}
-        confirmText="Delete Event"
+        description={`Are you sure you want to delete the special day "${specialDayToDelete?.name || ""}"? This action cannot be undone.`}
+        confirmText="Delete Special Day"
         variant="destructive"
         isLoading={isDeleting}
         onConfirm={handleConfirmDelete}
