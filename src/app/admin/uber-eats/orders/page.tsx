@@ -169,7 +169,7 @@ export default function UberEatsOrdersPage() {
               value={selectedBranchId}
               onValueChange={(v) => { setSelectedBranchId(v); setPage(1); }}
             >
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-[220px] bg-white dark:bg-[#141414] rounded-lg border-border/80">
                 <SelectValue placeholder="Select branch" />
               </SelectTrigger>
               <SelectContent>

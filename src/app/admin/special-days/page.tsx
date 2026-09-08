@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
@@ -333,7 +334,7 @@ export default function SpecialDaysPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Active status filter */}
           <Select value={filterActive} onValueChange={(val) => { setFilterActive(val); setPage(1); }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -345,7 +346,7 @@ export default function SpecialDaysPage() {
 
           {/* Category filter */}
           <Select value={filterCategory} onValueChange={(val) => { setFilterCategory(val); setPage(1); }}>
-            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-background px-3.5 text-body font-medium shadow-none">
+            <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -587,22 +588,20 @@ export default function SpecialDaysPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="modalStartDate">Start Date & Time *</Label>
-                <Input
+                <DateTimePicker
                   id="modalStartDate"
-                  type="datetime-local"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  required
+                  onChange={setStartDate}
+                  placeholder="Select start date & time"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="modalEndDate">End Date & Time *</Label>
-                <Input
+                <DateTimePicker
                   id="modalEndDate"
-                  type="datetime-local"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  required
+                  onChange={setEndDate}
+                  placeholder="Select end date & time"
                 />
               </div>
             </div>

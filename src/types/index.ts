@@ -542,8 +542,21 @@ export interface UpdateItemPriceRequest {
   priceInCents: number;
 }
 
-export type OfferItemRole = "Target" | "BuyItem" | "RewardItem";
-export type OfferTargetType = "Product" | "BranchProduct" | "Order";
+export type OfferItemRole =
+  | "Target"
+  | "BuyItem"
+  | "RewardItem"
+  | "RequiredItem"
+  | "Trigger"
+  | "AddOnOption"
+  | "GiftItem";
+
+export type OfferTargetType =
+  | "Product"
+  | "BranchProduct"
+  | "Order"
+  | "ProductCategory"
+  | "BranchProductVariant";
 
 export interface OfferBranch {
   offerBranchId: string;
@@ -558,10 +571,10 @@ export interface OfferItem {
   targetType: OfferTargetType;
   productId?: string;
   branchProductId?: string;
+  productCategoryId?: string;
+  branchProductVariantId?: string;
+  upgradeToVariantId?: string;
   quantity?: number;
-  percentageValue?: number;
-  amountValue?: number;
-  fixedPriceValue?: number;
 }
 
 export interface OfferSummary {
@@ -572,8 +585,16 @@ export interface OfferSummary {
   startDateTime: string;
   endDateTime: string;
   isActive: boolean;
-  buyAmount?: number;
-  getAmount?: number;
+  minSpendAmount?: number;
+  discountPercent?: number;
+  discountAmount?: number;
+  bundlePrice?: number;
+  addOnPrice?: number;
+  fixedPrice?: number;
+  stampsRequired?: number;
+  buyQuantity?: number;
+  getQuantity?: number;
+  priority: number;
   offerBranches: OfferBranch[];
   offerItems: OfferItem[];
 }
@@ -891,10 +912,30 @@ export type UpdateOrderItemRequest = CreateOrderItemRequest;
 
 // ============== BACKEND-ALIGNED: OFFERS ==============
 export type OfferType =
-  | "PercentageOff"
-  | "AmountOff"
-  | "FixedPrice"
-  | "BuyXGetY";
+  | "SpendThresholdDiscount"
+  | "BuyXGetY"
+  | "BundleFixedPrice"
+  | "ScheduledFixedPrice"
+  | "FreeUpgrade"
+  | "LoyaltyStamp"
+  | "SpendThresholdGift"
+  | "AddOnUpsell";
+
+export interface OfferScheduleWindowRequest {
+  dayOfWeek: string;
+  startTime: string; // "HH:mm"
+  endTime: string;   // "HH:mm"
+  isActive?: boolean;
+}
+
+export interface OfferScheduleWindowResponse {
+  offerScheduleWindowId: string;
+  offerId: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+}
 
 export interface OfferBranchResponse {
   offerBranchId: string;
@@ -905,14 +946,14 @@ export interface OfferBranchResponse {
 export interface OfferItemResponse {
   offerItemId: string;
   offerId: string;
-  itemRole: string;
-  targetType: string;
+  itemRole: OfferItemRole;
+  targetType: OfferTargetType;
   productId?: string;
   branchProductId?: string;
+  productCategoryId?: string;
+  branchProductVariantId?: string;
+  upgradeToVariantId?: string;
   quantity?: number;
-  percentageValue?: number;
-  amountValue?: number;
-  fixedPriceValue?: number;
 }
 
 export interface OfferResponse {
@@ -923,23 +964,44 @@ export interface OfferResponse {
   startDateTime: string;
   endDateTime: string;
   isActive: boolean;
-  buyAmount?: number;
-  getAmount?: number;
+  minSpendAmount?: number;
+  discountPercent?: number;
+  discountAmount?: number;
+  bundlePrice?: number;
+  addOnPrice?: number;
+  fixedPrice?: number;
+  stampsRequired?: number;
+  buyQuantity?: number;
+  getQuantity?: number;
+  priority: number;
   offerBranches: OfferBranchResponse[];
   offerItems: OfferItemResponse[];
+  scheduleWindows: OfferScheduleWindowResponse[];
 }
 
 export type OfferSummaryResponse = Omit<OfferResponse, "offerItems">;
 
+export interface OfferListParams extends PaginationParams {
+  search?: string;
+  offerType?: OfferType;
+  isActive?: boolean;
+  branchId?: string;
+  validAsOf?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortDescending?: boolean;
+}
+
 export interface CreateOfferItemRequest {
-  itemRole: string;
-  targetType: string;
+  itemRole: OfferItemRole;
+  targetType: OfferTargetType;
   productId?: string;
   branchProductId?: string;
+  productCategoryId?: string;
+  branchProductVariantId?: string;
+  upgradeToVariantId?: string;
   quantity?: number;
-  percentageValue?: number;
-  amountValue?: number;
-  fixedPriceValue?: number;
 }
 
 export interface CreateOfferRequest {
@@ -949,13 +1011,90 @@ export interface CreateOfferRequest {
   startDateTime: string;
   endDateTime: string;
   isActive: boolean;
-  buyAmount?: number;
-  getAmount?: number;
+  minSpendAmount?: number;
+  discountPercent?: number;
+  discountAmount?: number;
+  bundlePrice?: number;
+  addOnPrice?: number;
+  fixedPrice?: number;
+  stampsRequired?: number;
+  buyQuantity?: number;
+  getQuantity?: number;
+  priority?: number;
   branchIds: string[];
   items: CreateOfferItemRequest[];
+  scheduleWindows?: OfferScheduleWindowRequest[];
 }
 
 export type UpdateOfferRequest = CreateOfferRequest;
+
+export interface EvaluateOffersRequestLine {
+  branchProductVariantId: string;
+  quantity: number;
+  selectedToppings?: { branchToppingId: string; quantity: number }[];
+}
+
+export interface EvaluateOffersRequest {
+  branchId: string;
+  customerId?: string;
+  atTime?: string;
+  lines: EvaluateOffersRequestLine[];
+  orderLevelOfferId?: string;
+  lineOfferIds?: (string | null)[];
+}
+
+export interface EvaluateOfferLineResponse {
+  lineIndex: number;
+  branchProductVariantId: string;
+  quantity: number;
+  unitPrice: number;
+  subTotal: number;
+  discountAmount: number;
+  toppingsTotal: number;
+  lineTotal: number;
+  appliedOfferId?: string;
+  appliedOfferNameSnapshot?: string;
+  isLoyaltyRedemption: boolean;
+}
+
+export interface EvaluateOffersResponse {
+  branchId: string;
+  atTime: string;
+  lines: EvaluateOfferLineResponse[];
+  orderLevel?: {
+    discountAmount: number;
+    appliedOfferId?: string;
+    appliedOfferNameSnapshot?: string;
+  };
+  subTotal: number;
+  discountTotal: number;
+  toppingsTotal: number;
+  grandTotal: number;
+  loyaltyProgress: {
+    offerId: string;
+    offerName: string;
+    paidCount: number;
+    stampsRequired: number;
+    nextFreeAtCount: number;
+    eligibleForFreeNow: boolean;
+  }[];
+  warnings: string[];
+}
+
+export interface LoyaltyProgressItem {
+  offerId: string;
+  offerName: string;
+  paidCount: number;
+  stampsRequired: number;
+  remainingUntilFree: number;
+  eligibleForFreeNow: boolean;
+}
+
+export interface LoyaltyProgressResponse {
+  branchId: string;
+  customerId: string;
+  items: LoyaltyProgressItem[];
+}
 
 // ============== BACKEND-ALIGNED: BRANCH PRODUCTS ==============
 export interface BranchProductVariantResponse {

@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 import {
   Dialog,
   DialogContent,
@@ -260,7 +262,7 @@ export default function UberPromotionsPage() {
         <div className="flex gap-2 items-center">
           {canUseAllBranches && branchOptions.length > 0 && (
             <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[200px] bg-white dark:bg-[#141414] rounded-lg border-border/80">
                 <SelectValue placeholder="Select branch" />
               </SelectTrigger>
               <SelectContent>
@@ -465,13 +467,19 @@ export default function UberPromotionsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Start Date</Label>
-                <Input type="datetime-local" value={form.startDate ?? ""}
-                  onChange={(e) => set({ startDate: e.target.value || undefined })} />
+                <DateTimePicker
+                  value={form.startDate ?? ""}
+                  onChange={(val) => set({ startDate: val || undefined })}
+                  placeholder="Select start date & time"
+                />
               </div>
               <div>
                 <Label>End Date</Label>
-                <Input type="datetime-local" value={form.endDate ?? ""}
-                  onChange={(e) => set({ endDate: e.target.value || undefined })} />
+                <DateTimePicker
+                  value={form.endDate ?? ""}
+                  onChange={(val) => set({ endDate: val || undefined })}
+                  placeholder="Select end date & time"
+                />
               </div>
             </div>
 
@@ -542,11 +550,19 @@ export default function UberPromotionsPage() {
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <div>
                       <Label className="text-caption">From</Label>
-                      <Input type="time" value={form.scheduleStart} onChange={(e) => set({ scheduleStart: e.target.value })} />
+                      <TimePicker
+                        className="mt-1"
+                        value={form.scheduleStart}
+                        onChange={(val) => set({ scheduleStart: val })}
+                      />
                     </div>
                     <div>
                       <Label className="text-caption">To</Label>
-                      <Input type="time" value={form.scheduleEnd} onChange={(e) => set({ scheduleEnd: e.target.value })} />
+                      <TimePicker
+                        className="mt-1"
+                        value={form.scheduleEnd}
+                        onChange={(val) => set({ scheduleEnd: val })}
+                      />
                     </div>
                   </div>
                 </div>

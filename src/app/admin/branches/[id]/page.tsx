@@ -41,6 +41,7 @@ import {
 import { canManageBranch, isSuperAdmin, canAccessAllBranches } from "@/lib/rbac";
 import { UserRole, Branch, BranchPurpose, PlatformEnvironment } from "@/types";
 import { Input } from "@/components/ui/input";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductsTab } from "./tabs/products-tab";
@@ -1084,32 +1085,30 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                               {label}
                             </span>
                             <div className="flex items-center gap-2 flex-1">
-                              <Input
-                                type="time"
+                              <TimePicker
                                 value={hours?.openAt || ""}
-                                onChange={(e) =>
+                                onChange={(val) =>
                                   handleHoursChange(
                                     index,
                                     "openAt",
-                                    e.target.value,
+                                    val,
                                   )
                                 }
                                 disabled={!isSuper || !isOpen || !isEditingMode}
-                                className="w-28"
+                                className="w-32"
                               />
                               <span className="text-muted-foreground">to</span>
-                              <Input
-                                type="time"
+                              <TimePicker
                                 value={hours?.closeAt || ""}
-                                onChange={(e) =>
+                                onChange={(val) =>
                                   handleHoursChange(
                                     index,
                                     "closeAt",
-                                    e.target.value,
+                                    val,
                                   )
                                 }
                                 disabled={!isSuper || !isOpen || !isEditingMode}
-                                className="w-28"
+                                className="w-32"
                               />
                               <div className="flex items-center gap-2 ml-4">
                                 <Switch

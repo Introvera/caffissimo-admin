@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -157,7 +158,7 @@ export default function FridgeStockPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Date</Label>
-                      <Input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
+                      <DatePicker value={reportDate} onChange={setReportDate} placeholder="Select date" />
                     </div>
                     {canAccessAllBranches(currentRole) && (
                       <div className="space-y-2">
