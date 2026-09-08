@@ -178,7 +178,7 @@ export default function ReportsPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-[160px] bg-white dark:bg-[#141414] rounded-lg border-border/80">
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
               <SelectContent>

@@ -5,13 +5,16 @@ import {
   CreateOfferRequest,
   UpdateOfferRequest,
   PagedResult,
-  PaginationParams,
+  OfferListParams,
+  EvaluateOffersRequest,
+  EvaluateOffersResponse,
+  LoyaltyProgressResponse,
 } from "@/types";
 
 export const offerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /api/offers  (paged, anonymous)
-    getOffers: builder.query<PagedResult<OfferSummaryResponse>, PaginationParams | void>({
+    getOffers: builder.query<PagedResult<OfferSummaryResponse>, OfferListParams | void>({
       query: (params) => ({
         url: "/api/offers",
         params: params || undefined,
@@ -53,6 +56,26 @@ export const offerApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Offer"],
     }),
+
+    // POST /api/offers/evaluate
+    evaluateOffers: builder.mutation<EvaluateOffersResponse, EvaluateOffersRequest>({
+      query: (data) => ({
+        url: "/api/offers/evaluate",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    // GET /api/offers/loyalty/progress
+    getLoyaltyProgress: builder.query<
+      LoyaltyProgressResponse,
+      { branchId: string; customerId?: string; offerId?: string }
+    >({
+      query: (params) => ({
+        url: "/api/offers/loyalty/progress",
+        params,
+      }),
+    }),
   }),
 });
 
@@ -62,5 +85,8 @@ export const {
   useCreateOfferMutation,
   useUpdateOfferMutation,
   useDeleteOfferMutation,
+  useEvaluateOffersMutation,
+  useGetLoyaltyProgressQuery,
 } = offerApi;
+
 

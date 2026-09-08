@@ -11,6 +11,7 @@ interface UiState {
   currentRole: Role | null;
   assignedBranchId: string | null;
   devMode: boolean;
+  breadcrumbTitle: string | null;
 }
 
 const getDefaultDateRange = (preset: DateRangePreset): DateRange => {
@@ -38,6 +39,7 @@ const initialState: UiState = {
   currentRole: null,
   assignedBranchId: null,
   devMode: true,
+  breadcrumbTitle: null,
 };
 
 export const uiSlice = createSlice({
@@ -72,6 +74,9 @@ export const uiSlice = createSlice({
     setDevMode(state, action: PayloadAction<boolean>) {
       state.devMode = action.payload;
     },
+    setBreadcrumbTitle(state, action: PayloadAction<string | null>) {
+      state.breadcrumbTitle = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -93,6 +98,7 @@ export const {
   setRole,
   setAssignedBranchId,
   setDevMode,
+  setBreadcrumbTitle,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

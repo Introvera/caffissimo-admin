@@ -43,6 +43,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { useSetBreadcrumb } from "@/hooks/use-breadcrumb";
 import { trainingApi } from "@/lib/training-api";
 import {
   TrainingModuleType,
@@ -89,6 +90,8 @@ export default function ModuleDetailPage() {
 
   const [module, setModule] = useState<TrainingModuleDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useSetBreadcrumb(module?.title);
 
   // Inline header edit
   const [isEditingHeader, setIsEditingHeader] = useState(false);

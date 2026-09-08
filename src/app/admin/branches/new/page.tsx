@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { TimePicker } from "@/components/ui/time-picker";
 import { PageHeader } from "@/components/shared/page-header";
 import { LocationInput } from "@/components/ui/location-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -506,20 +507,18 @@ export default function NewBranchPage() {
                       <div key={key} className="flex items-center gap-4 border-b pb-3 last:border-0 last:pb-0">
                         <span className="w-24 text-body font-medium">{label}</span>
                         <div className="flex items-center gap-2 flex-1">
-                          <Input
-                            type="time"
+                          <TimePicker
                             value={hours?.open ?? "06:00"}
-                            onChange={(e) => updateHours(key, "open", e.target.value)}
+                            onChange={(val) => updateHours(key, "open", val)}
                             disabled={closed}
-                            className="w-28"
+                            className="w-32"
                           />
                           <span className="text-muted-foreground">to</span>
-                          <Input
-                            type="time"
+                          <TimePicker
                             value={hours?.close ?? "20:00"}
-                            onChange={(e) => updateHours(key, "close", e.target.value)}
+                            onChange={(val) => updateHours(key, "close", val)}
                             disabled={closed}
-                            className="w-28"
+                            className="w-32"
                           />
                           <div className="flex items-center gap-2 ml-4">
                             <Switch

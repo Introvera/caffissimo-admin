@@ -130,7 +130,7 @@ export default function POSLoginReportPage() {
                 placeholder="Search by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 w-[280px] h-9"
+                className="pl-8 w-[280px] h-9 bg-white dark:bg-[#141414] rounded-lg border-border/80"
               />
             </div>
             <Button variant="outline" size="sm" className="h-9">

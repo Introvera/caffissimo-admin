@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Menu, Search, Filter, Calendar, Store } from "lucide-react";
 import { LuHouse } from "react-icons/lu";
 import { TbChevronRight } from "react-icons/tb";
+import Link from "next/link";
 import { ThemeToggleSimple } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DateRangeCalendar } from "@/components/ui/calendar";
 import { useAppDispatch, useAppSelector } from "@/stores/store";
-import { setSelectedBranchId, setDateRange, setDateRangePreset, setMobileMenuOpen, setRole } from "@/stores/slices/uiSlice";
+import { setSelectedBranchId, setDateRange, setDateRangePreset, setMobileMenuOpen, setRole, setBreadcrumbTitle } from "@/stores/slices/uiSlice";
 import { setUserRole } from "@/stores/slices/authSlice";
 import { canAccessAllBranches } from "@/lib/rbac";
 import { useGetBranchesQuery } from "@/stores/api/branchApi";
@@ -48,6 +49,12 @@ const roleBadgeVariants: Record<UserRole, "default" | "secondary" | "outline"> =
   [UserRole.Employee]: "outline",
 };
 
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+  active?: boolean;
+}
+
 export function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,65 +67,261 @@ export function Header() {
     dateRange,
     dateRangePreset,
     currentRole: uiRole,
+    breadcrumbTitle,
   } = useAppSelector((state) => state.ui);
 
+  // Clear dynamic breadcrumb title on path change
+  useEffect(() => {
+    dispatch(setBreadcrumbTitle(null));
+  }, [pathname, dispatch]);
+
   // Breadcrumb helper
-  const getBreadcrumbs = (path: string) => {
+  const getBreadcrumbs = (path: string, dynamicTitle?: string | null): BreadcrumbItem[] => {
     const cleanPath = path.replace(/\/$/, "");
+    const title = dynamicTitle || "Details";
     
-    if (cleanPath === "/admin/dashboard") {
+    // Dashboard
+    if (cleanPath === "/admin/dashboard" || cleanPath === "/admin") {
+      return [{ label: "Dashboard", active: true }];
+    }
+    
+    // Branches
+    if (cleanPath === "/admin/branches") {
+      return [{ label: "Branches", active: true }];
+    }
+    if (cleanPath === "/admin/branches/new") {
       return [
-        { label: "Dashboard", active: true }
+        { label: "Branches", href: "/admin/branches" },
+        { label: dynamicTitle || "New Branch", active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/branches/")) {
+      return [
+        { label: "Branches", href: "/admin/branches" },
+        { label: title, active: true }
       ];
     }
     
-    if (cleanPath === "/admin/branches") return [{ label: "Branches", active: true }];
-    if (cleanPath.startsWith("/admin/branches/")) return [{ label: "Branches", href: "/admin/branches" }, { label: "Details", active: true }];
-    if (cleanPath === "/admin/users") return [{ label: "Users", active: true }];
-    if (cleanPath.startsWith("/admin/users/")) return [{ label: "Users", href: "/admin/users" }, { label: "Details", active: true }];
+    // Users (Customers & Employees)
+    if (cleanPath === "/admin/users") {
+      return [{ label: "Users", active: true }];
+    }
+    if (cleanPath === "/admin/users/customers") {
+      return [
+        { label: "Users", href: "/admin/users" },
+        { label: "Customers", active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/users/customers/")) {
+      return [
+        { label: "Users", href: "/admin/users" },
+        { label: "Customers", href: "/admin/users/customers" },
+        { label: title, active: true }
+      ];
+    }
+    if (cleanPath === "/admin/users/employees") {
+      return [
+        { label: "Users", href: "/admin/users" },
+        { label: "Employees", active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/users/employees/")) {
+      return [
+        { label: "Users", href: "/admin/users" },
+        { label: "Employees", href: "/admin/users/employees" },
+        { label: title, active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/users/")) {
+      return [
+        { label: "Users", href: "/admin/users" },
+        { label: title, active: true }
+      ];
+    }
     
-    // Catalog
-    if (cleanPath === "/admin/products") return [{ label: "Catalog" }, { label: "Products", active: true }];
-    if (cleanPath.startsWith("/admin/products/")) return [{ label: "Catalog" }, { label: "Products", href: "/admin/products" }, { label: "Details", active: true }];
-    if (cleanPath === "/admin/toppings") return [{ label: "Catalog" }, { label: "Toppings", active: true }];
-    if (cleanPath === "/admin/offers") return [{ label: "Catalog" }, { label: "Offers", active: true }];
+    // Catalog - Products
+    if (cleanPath === "/admin/products") {
+      return [{ label: "Catalog" }, { label: "Products", active: true }];
+    }
+    if (cleanPath === "/admin/products/new") {
+      return [
+        { label: "Catalog" },
+        { label: "Products", href: "/admin/products" },
+        { label: dynamicTitle || "New Product", active: true }
+      ];
+    }
+    if (cleanPath === "/admin/products/categories") {
+      return [
+        { label: "Catalog" },
+        { label: "Products", href: "/admin/products" },
+        { label: "Categories", active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/products/")) {
+      return [
+        { label: "Catalog" },
+        { label: "Products", href: "/admin/products" },
+        { label: title, active: true }
+      ];
+    }
     
-    // E-commerce
-    if (cleanPath === "/admin/special-days") return [{ label: "E-commerce" }, { label: "Special Days", active: true }];
+    // Catalog - Toppings
+    if (cleanPath === "/admin/toppings") {
+      return [{ label: "Catalog" }, { label: "Toppings", active: true }];
+    }
+    if (cleanPath === "/admin/toppings/new") {
+      return [
+        { label: "Catalog" },
+        { label: "Toppings", href: "/admin/toppings" },
+        { label: dynamicTitle || "New Topping", active: true }
+      ];
+    }
+    if (cleanPath === "/admin/toppings/categories") {
+      return [
+        { label: "Catalog" },
+        { label: "Toppings", href: "/admin/toppings" },
+        { label: "Categories", active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/toppings/")) {
+      return [
+        { label: "Catalog" },
+        { label: "Toppings", href: "/admin/toppings" },
+        { label: title, active: true }
+      ];
+    }
     
-    // Sales
-    if (cleanPath === "/admin/orders") return [{ label: "Sales" }, { label: "Orders", active: true }];
-    if (cleanPath === "/admin/reports") return [{ label: "Sales" }, { label: "Reports", active: true }];
+    // Catalog - Offers
+    if (cleanPath === "/admin/offers") {
+      return [{ label: "Catalog" }, { label: "Offers", active: true }];
+    }
+    if (cleanPath === "/admin/offers/new") {
+      return [
+        { label: "Catalog" },
+        { label: "Offers", href: "/admin/offers" },
+        { label: dynamicTitle || "New Offer", active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/offers/edit/")) {
+      return [
+        { label: "Catalog" },
+        { label: "Offers", href: "/admin/offers" },
+        { label: title, active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/offers/")) {
+      return [
+        { label: "Catalog" },
+        { label: "Offers", href: "/admin/offers" },
+        { label: title, active: true }
+      ];
+    }
     
-    // Integrations
-    if (cleanPath === "/admin/uber-eats") return [{ label: "Integrations" }, { label: "Uber Eats", active: true }];
-    if (cleanPath === "/admin/uber-eats/orders") return [{ label: "Integrations" }, { label: "Uber Eats Orders", active: true }];
-    if (cleanPath === "/admin/uber-eats/promotions") return [{ label: "Integrations" }, { label: "Uber Promotions", active: true }];
+    // E-commerce - Special Days
+    if (cleanPath === "/admin/special-days") {
+      return [{ label: "E-commerce" }, { label: "Special Days", active: true }];
+    }
     
-    // Logs
-    if (cleanPath === "/admin/attendance") return [{ label: "System Logs" }, { label: "Attendance", active: true }];
-    if (cleanPath === "/admin/audit-logs") return [{ label: "System Logs" }, { label: "Audit Logs", active: true }];
+    // Sales - Orders & Reports
+    if (cleanPath === "/admin/orders") {
+      return [{ label: "Sales" }, { label: "Orders", active: true }];
+    }
+    if (cleanPath.startsWith("/admin/orders/")) {
+      return [
+        { label: "Sales" },
+        { label: "Orders", href: "/admin/orders" },
+        { label: title, active: true }
+      ];
+    }
+    if (cleanPath === "/admin/reports") {
+      return [{ label: "Sales" }, { label: "Reports", active: true }];
+    }
+    
+    // Integrations - Uber Eats
+    if (cleanPath === "/admin/uber-eats") {
+      return [{ label: "Integrations" }, { label: "Uber Eats", active: true }];
+    }
+    if (cleanPath === "/admin/uber-eats/orders") {
+      return [
+        { label: "Integrations" },
+        { label: "Uber Eats", href: "/admin/uber-eats" },
+        { label: "Orders", active: true }
+      ];
+    }
+    if (cleanPath.startsWith("/admin/uber-eats/orders/")) {
+      return [
+        { label: "Integrations" },
+        { label: "Uber Eats", href: "/admin/uber-eats" },
+        { label: "Orders", href: "/admin/uber-eats/orders" },
+        { label: title, active: true }
+      ];
+    }
+    if (cleanPath === "/admin/uber-eats/promotions") {
+      return [
+        { label: "Integrations" },
+        { label: "Uber Eats", href: "/admin/uber-eats" },
+        { label: "Promotions", active: true }
+      ];
+    }
+    if (cleanPath === "/admin/uber-menus") {
+      return [{ label: "Integrations" }, { label: "Uber Menus", active: true }];
+    }
+    
+    // System Logs
+    if (cleanPath === "/admin/attendance") {
+      return [{ label: "System Logs" }, { label: "Attendance", active: true }];
+    }
+    if (cleanPath === "/admin/audit-logs") {
+      return [{ label: "System Logs" }, { label: "Audit Logs", active: true }];
+    }
+    if (cleanPath === "/admin/fridge-stock") {
+      return [{ label: "System Logs" }, { label: "Fridge Stock", active: true }];
+    }
     
     // Academy
-    if (cleanPath === "/admin/academy/modules") return [{ label: "Academy" }, { label: "Modules", active: true }];
-    if (cleanPath === "/admin/academy/progress") return [{ label: "Academy" }, { label: "Progress", active: true }];
+    if (cleanPath === "/admin/academy/modules") {
+      return [{ label: "Academy" }, { label: "Modules", active: true }];
+    }
+    if (cleanPath.startsWith("/admin/academy/modules/")) {
+      return [
+        { label: "Academy" },
+        { label: "Modules", href: "/admin/academy/modules" },
+        { label: title, active: true }
+      ];
+    }
+    if (cleanPath === "/admin/academy/progress") {
+      return [{ label: "Academy" }, { label: "Progress", active: true }];
+    }
     
-    // Settings
-    if (cleanPath === "/admin/settings") return [{ label: "Settings", active: true }];
+    // Settings & Search
+    if (cleanPath === "/admin/settings") {
+      return [{ label: "Settings", active: true }];
+    }
+    if (cleanPath === "/admin/search") {
+      return [{ label: "Search", active: true }];
+    }
     
     // Default fallback based on path segments
     const segments = cleanPath.split("/").filter(Boolean);
     if (segments[0] === "admin") {
-      return segments.slice(1).map((s, idx, arr) => ({
-        label: s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " "),
-        active: idx === arr.length - 1
-      }));
+      return segments.slice(1).map((s, idx, arr) => {
+        const isLast = idx === arr.length - 1;
+        const isIdLike = /^[0-9a-fA-F-]{8,}$/.test(s) || /^\d+$/.test(s);
+        let label = s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " ");
+        if (isLast && isIdLike) {
+          label = title;
+        }
+        return {
+          label,
+          active: isLast,
+        };
+      });
     }
     
     return [];
   };
 
-  const breadcrumbs = getBreadcrumbs(pathname);
+  const breadcrumbs = getBreadcrumbs(pathname, breadcrumbTitle);
   
   const authRole = useAppSelector((state) => state.auth.user?.role);
   const currentRole = uiRole || authRole || UserRole.Cashier;
@@ -183,9 +386,12 @@ export function Header() {
                   {crumb.label}
                 </span>
               ) : crumb.href ? (
-                <a href={crumb.href} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-semibold text-[13.5px] transition-colors whitespace-nowrap">
+                <Link
+                  href={crumb.href}
+                  className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-semibold text-[13.5px] transition-colors whitespace-nowrap"
+                >
                   {crumb.label}
-                </a>
+                </Link>
               ) : (
                 <span className="text-slate-500 dark:text-slate-400 font-semibold text-[13.5px] whitespace-nowrap">
                   {crumb.label}

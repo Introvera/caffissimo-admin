@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/utils";
+import { useSetBreadcrumb } from "@/hooks/use-breadcrumb";
 
 interface PageHeaderProps {
   title: string;
@@ -13,6 +16,8 @@ export function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
+  useSetBreadcrumb(title);
+
   return (
     <div
       className={cn(

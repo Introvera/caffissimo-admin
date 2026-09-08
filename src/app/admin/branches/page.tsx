@@ -135,7 +135,7 @@ export default function BranchesPage() {
                 setSearchTerm(e.target.value);
                 setPage(1); // Reset to first page on search
               }}
-              className="pl-9"
+              className="pl-9 bg-white dark:bg-[#141414] rounded-lg border-border/80"
             />
           </div>
         </div>

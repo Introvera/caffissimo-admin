@@ -44,6 +44,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -651,7 +652,7 @@ export default function UberEatsPage() {
               onValueChange={updateSelectedBranch}
               disabled={branchesLoading || branchOptions.length === 0}
             >
-              <SelectTrigger className="h-9 w-[220px]">
+              <SelectTrigger className="h-9 w-[220px] bg-white dark:bg-[#141414] rounded-lg border-border/80">
                 <SelectValue placeholder="Select branch" />
               </SelectTrigger>
               <SelectContent>
@@ -737,7 +738,7 @@ export default function UberEatsPage() {
                 setMenuPage(1);
               }}
             >
-              <SelectTrigger className="h-9 w-[145px]">
+              <SelectTrigger className="h-9 w-[145px] bg-white dark:bg-[#141414] rounded-lg border-border/80">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -755,7 +756,7 @@ export default function UberEatsPage() {
                   setMenuPage(1);
                 }}
                 placeholder="Search menus"
-                className="h-9 pl-9"
+                className="h-9 pl-9 bg-white dark:bg-[#141414] rounded-lg border-border/80"
               />
             </div>
           </div>
@@ -1168,27 +1169,25 @@ export default function UberEatsPage() {
                               />
                               {day.slice(0, 3)}
                             </label>
-                            <Input
-                              type="time"
+                            <TimePicker
                               value={availability?.openAt ?? "08:00"}
                               disabled={!enabled}
-                              onChange={(event) =>
+                              onChange={(val) =>
                                 updateAvailabilityTime(
                                   day,
                                   "openAt",
-                                  event.target.value,
+                                  val,
                                 )
                               }
                             />
-                            <Input
-                              type="time"
+                            <TimePicker
                               value={availability?.closeAt ?? "20:00"}
                               disabled={!enabled}
-                              onChange={(event) =>
+                              onChange={(val) =>
                                 updateAvailabilityTime(
                                   day,
                                   "closeAt",
-                                  event.target.value,
+                                  val,
                                 )
                               }
                             />

@@ -327,7 +327,7 @@ export default function AcademyModulesPage() {
           placeholder="Search modules..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 h-9"
+          className="pl-9 h-9 bg-white dark:bg-[#141414] rounded-lg border-border/80"
         />
       </div>
 
