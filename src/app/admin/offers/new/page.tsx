@@ -496,9 +496,9 @@ export default function NewOfferPage() {
         scheduleWindows: schedulePayload,
       };
 
-      await createOffer(payload).unwrap();
+      const created = await createOffer(payload).unwrap();
       toast.success("Offer created successfully");
-      router.push("/admin/offers");
+      router.push(created?.offerId ? `/admin/offers/${created.offerId}` : "/admin/offers");
     } catch (err: any) {
       console.error("Create offer error:", err);
       toast.error(err?.data?.message || err?.message || "Failed to create offer");

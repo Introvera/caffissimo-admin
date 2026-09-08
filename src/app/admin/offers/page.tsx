@@ -13,8 +13,8 @@ import {
   Search,
   Filter,
   MoreVertical,
+  Eye,
 } from "lucide-react";
-import { TbEdit } from "react-icons/tb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -258,7 +258,11 @@ export default function OffersPage() {
                 "bg-muted text-muted-foreground";
 
               return (
-                <Card key={offer.offerId} className="flex flex-col hover:border-primary/40 transition-colors">
+                <Card
+                  key={offer.offerId}
+                  onClick={() => router.push(`/admin/offers/${offer.offerId}`)}
+                  className="flex flex-col hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer"
+                >
                   <CardContent className="p-5 flex flex-col gap-3 flex-1">
                     {/* Header: Title, Description & Action Menu */}
                     <div className="flex items-start justify-between gap-2">
@@ -271,33 +275,35 @@ export default function OffersPage() {
                         )}
                       </div>
                       {canManage && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 -mr-1 -mt-1"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              className="cursor-pointer"
-                              onClick={() => router.push(`/admin/offers/edit/${offer.offerId}`)}
-                            >
-                              <TbEdit className="h-4 w-4 mr-2" />
-                              Edit Offer
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive cursor-pointer"
-                              onClick={() => setOfferToDelete({ id: offer.offerId, name: offer.offerName })}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete Offer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 -mr-1 -mt-1"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => router.push(`/admin/offers/${offer.offerId}`)}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive cursor-pointer"
+                                onClick={() => setOfferToDelete({ id: offer.offerId, name: offer.offerName })}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Offer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       )}
                     </div>
 
