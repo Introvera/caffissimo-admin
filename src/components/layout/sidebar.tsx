@@ -148,9 +148,9 @@ const navEntries: NavEntry[] = [
     icon: TbPlug,
     permission: canAccessAdmin,
     children: [
-      { title: "Uber Eats Menus", href: "/admin/uber-eats", icon: TbToolsKitchen2 },
-      { title: "Uber Eats Orders", href: "/admin/uber-eats/orders", icon: TbTruck },
-      { title: "Uber Promotions", href: "/admin/uber-eats/promotions", icon: TbSpeakerphone },
+      { title: "Uber Eats Menus", href: "/admin/uber-eats-menus", icon: TbToolsKitchen2 },
+      { title: "Uber Eats Orders", href: "/admin/uber-eats-orders", icon: TbTruck },
+      { title: "Uber Promotions", href: "/admin/uber-eats-promotions", icon: TbSpeakerphone },
     ],
   },
   {

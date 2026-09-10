@@ -15,7 +15,9 @@ import {
   ChevronDown,
   Trash2,
   List,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,18 +42,33 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { useAppSelector } from "@/stores/store";
 import { useSetBreadcrumb } from "@/hooks/use-breadcrumb";
 import { useGetBranchByIdQuery } from "@/stores/api/branchApi";
-import { useGetOrderByIdQuery, useUpdateOrderMutation, useDeleteOrderMutation } from "@/stores/api/orderApi";
+import {
+  useGetOrderByIdQuery,
+  useUpdateOrderStatusMutation,
+  useDeleteOrderMutation,
+} from "@/stores/api/orderApi";
 import { canCancelOrders } from "@/lib/rbac";
 import { formatCurrency } from "@/lib/utils";
 import { OrderStatus, OrderType, PaymentType, UserRole } from "@/types";
 
-// Status steps in order
-const STATUS_STEPS: OrderStatus[] = ["Pending", "Confirmed", "Preparing", "Ready", "Completed"];
+// Status steps in order progress tracker
+const STATUS_STEPS: OrderStatus[] = ["Pending", "Confirmed", "Preparing", "Completed"];
 
 function getStatusIndex(status: OrderStatus) {
   if (status === "Cancelled") return -1;
+  if (status === "PendingPayment" || status === "pending_payment") return 0;
   return STATUS_STEPS.indexOf(status);
 }
+
+// Strict transition edges matching backend OrderFulfilmentStateMachine
+const ALLOWED_STATUS_TRANSITIONS: Record<string, OrderStatus[]> = {
+  PendingPayment: ["Confirmed", "Cancelled"],
+  Pending: ["Confirmed", "Preparing", "Cancelled"],
+  Confirmed: ["Preparing", "Cancelled"],
+  Preparing: ["Completed", "Cancelled"],
+  Completed: [],
+  Cancelled: [],
+};
 
 const ORDER_TYPE_LABELS: Record<OrderType, string> = {
   DineIn: "Dine In",
@@ -70,14 +87,13 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const { currentRole: uiRole } = useAppSelector((state) => state.ui);
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const currentRole = uiRole || authRole;
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const { data: order, isLoading, isError } = useGetOrderByIdQuery(resolvedParams.id);
   useSetBreadcrumb(order ? `Order #${order.orderNumber}` : null);
   const { data: branch } = useGetBranchByIdQuery(order?.branchId ?? "", {
     skip: !order?.branchId,
   });
-  const [updateOrder, { isLoading: isUpdating }] = useUpdateOrderMutation();
+  const [updateOrderStatus, { isLoading: isUpdatingStatus }] = useUpdateOrderStatusMutation();
   const [deleteOrder, { isLoading: isDeleting }] = useDeleteOrderMutation();
 
   const canCancel = canCancelOrders(currentRole);
@@ -85,46 +101,27 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const handleStatusChange = async (newStatus: OrderStatus) => {
     if (!order) return;
     try {
-      await updateOrder({
+      await updateOrderStatus({
         id: order.orderId,
         data: {
-          orderNumber: order.orderNumber,
-          orderDate: order.orderDate,
-          branchId: order.branchId,
-          paymentType: order.paymentType,
-          orderType: order.orderType,
-          subTotal: order.subTotal,
-          discountTotal: order.discountTotal,
-          grandTotal: order.grandTotal,
-          appliedOfferId: order.appliedOfferId,
-          appliedOfferNameSnapshot: order.appliedOfferNameSnapshot,
-          orderStatus: newStatus,
-          items: order.items.map((item) => ({
-            branchProductVariantId: item.branchProductVariantId,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            subTotal: item.subTotal,
-            discountAmount: item.discountAmount,
-            lineTotal: item.lineTotal,
-            appliedOfferId: item.appliedOfferId,
-            appliedOfferNameSnapshot: item.appliedOfferNameSnapshot,
-            selectedToppings: item.toppings.map((t) => ({
-              branchToppingId: t.branchToppingId,
-              quantity: t.quantity,
-              unitPrice: t.unitPrice,
-            })),
-          })),
+          toStatus: newStatus,
         },
       }).unwrap();
-    } catch {}
+      toast.success(`Order status updated to ${newStatus}`);
+    } catch (err: any) {
+      toast.error(err?.data?.message || `Failed to update order status to ${newStatus}`);
+    }
   };
 
   const handleDelete = async () => {
     if (!order) return;
     try {
       await deleteOrder(order.orderId).unwrap();
+      toast.success("Order deleted successfully");
       router.push("/admin/orders");
-    } catch {}
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete order");
+    }
   };
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -166,16 +163,26 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   }
 
   const currentStepIndex = getStatusIndex(order.orderStatus);
-  const isCancelled = order.orderStatus === "Cancelled";
-  const isCompleted = order.orderStatus === "Completed";
+  const isCancelled = order.orderStatus === "Cancelled" || order.orderStatus === "cancelled";
 
-  // Statuses the user can transition to from the current state
-  const availableStatuses: OrderStatus[] = STATUS_STEPS.filter(
-    (s) => STATUS_STEPS.indexOf(s) > currentStepIndex
+  // Normalize order status key to match transition map
+  const normalizedKey = order.orderStatus
+    ? order.orderStatus.replace(/[-_\s]/g, "").toLowerCase()
+    : "pending";
+
+  const keyMap: Record<string, string> = {
+    pendingpayment: "PendingPayment",
+    pending: "Pending",
+    confirmed: "Confirmed",
+    preparing: "Preparing",
+    completed: "Completed",
+    cancelled: "Cancelled",
+  };
+
+  const nextTransitions = ALLOWED_STATUS_TRANSITIONS[keyMap[normalizedKey] || "Pending"] || [];
+  const availableStatuses: OrderStatus[] = nextTransitions.filter(
+    (s) => s !== "Cancelled" || canCancel
   );
-  if (canCancel && !isCancelled && !isCompleted) {
-    availableStatuses.push("Cancelled");
-  }
 
   return (
     <div className="space-y-6">
@@ -204,17 +211,25 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
           {availableStatuses.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={isUpdating}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isUpdatingStatus}
+                  className="bg-white hover:bg-zinc-50 dark:bg-[#141414] dark:hover:bg-[#1f1f1f]"
+                >
+                  {isUpdatingStatus ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  ) : null}
                   Update Status
                   <ChevronDown className="h-3.5 w-3.5 ml-1.5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-white dark:bg-[#141414] border border-border shadow-md">
                 {availableStatuses.map((s) => (
                   <DropdownMenuItem
                     key={s}
                     onClick={() => handleStatusChange(s)}
-                    className={s === "Cancelled" ? "text-destructive" : ""}
+                    className={`cursor-pointer ${s === "Cancelled" ? "text-destructive hover:!text-destructive" : ""}`}
                   >
                     Mark as {s}
                   </DropdownMenuItem>

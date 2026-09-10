@@ -286,7 +286,7 @@ export default function CustomersPage() {
           header: "Phone",
           cell: (info) => (
             <span className="text-body text-muted-foreground">
-              {info.getValue() || "—"}
+              {info.getValue() || "â€”"}
             </span>
           ),
         }),
@@ -297,7 +297,7 @@ export default function CustomersPage() {
             const location = [cust.city, cust.postalCode].filter(Boolean).join(", ");
             return (
               <span className="text-body text-muted-foreground">
-                {location || "—"}
+                {location || "â€”"}
               </span>
             );
           },
@@ -554,7 +554,7 @@ export default function CustomersPage() {
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 text-caption font-medium",
-                      currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      currentPage === pageNum && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                     )}
                     onClick={() => table.setPageIndex(pageNum)}
                   >

@@ -412,7 +412,7 @@ export default function ProductCategoriesPage() {
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 text-caption font-medium",
-                      currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      currentPage === pageNum && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                     )}
                     onClick={() => table.setPageIndex(pageNum)}
                   >

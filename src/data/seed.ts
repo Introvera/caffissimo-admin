@@ -166,7 +166,7 @@ const BASE_DATE = new Date("2026-02-05T12:00:00Z");
 export function generateOrders(): Order[] {
   const orders: Order[] = [];
   const sources: OrderSource[] = ["pos", "ecommerce", "uber_eats", "doordash"];
-  const statuses: OrderStatus[] = ["completed", "completed", "completed", "cancelled", "ready", "preparing"];
+  const statuses: OrderStatus[] = ["completed", "completed", "completed", "cancelled", "confirmed", "preparing"];
   const paymentMethods: PaymentMethod[] = ["cash", "card", "card", "online"];
   const customerNames = ["John D.", "Sarah M.", "Mike T.", "Emma R.", "Alex K.", "Lisa P.", null, null];
   const random = seededRandom(12345);

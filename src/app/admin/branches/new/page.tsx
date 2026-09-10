@@ -71,6 +71,8 @@ export default function NewBranchPage() {
   const [phoneAlt, setPhoneAlt] = useState("");
   const [email, setEmail] = useState("");
   const [emailAlt, setEmailAlt] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
   
   const [isOpen, setIsOpen] = useState(true);
   const [isActive, setIsActive] = useState(true);
@@ -172,6 +174,8 @@ export default function NewBranchPage() {
         branchPhoneNumberAlt: phoneAlt || undefined,
         branchEmail: email,
         branchEmailAlt: emailAlt || undefined,
+        branchFacebookUrl: facebookUrl.trim() || undefined,
+        branchInstagramUrl: instagramUrl.trim() || undefined,
         isOpen,
         isActive,
         openingHours: purpose === BranchPurpose.ListedForSale ? [] : formattedOpeningHours,
@@ -841,6 +845,36 @@ export default function NewBranchPage() {
                   placeholder="e.g. support@caffissimo.com"
                   value={emailAlt}
                   onChange={(e) => setEmailAlt(e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Social Channels */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-h3 flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" /> Social Channels
+              </CardTitle>
+              <CardDescription>Public social media profiles for this branch</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="facebookUrl">Facebook Profile URL</Label>
+                <Input
+                  id="facebookUrl"
+                  placeholder="https://facebook.com/caffissimo..."
+                  value={facebookUrl}
+                  onChange={(e) => setFacebookUrl(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instagramUrl">Instagram Profile URL</Label>
+                <Input
+                  id="instagramUrl"
+                  placeholder="https://instagram.com/caffissimo..."
+                  value={instagramUrl}
+                  onChange={(e) => setInstagramUrl(e.target.value)}
                 />
               </div>
             </CardContent>

@@ -1,32 +1,39 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  Shield,
-  Mail,
-  Phone,
-  Calendar,
-  Clock,
-  Building2,
-  User as UserIcon,
-  Copy,
-  Check,
-  UserX,
-  ExternalLink,
-  MapPin,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
   MoreVertical,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  UserX,
+  Shield,
+  Eye,
+  UserCheck,
 } from "lucide-react";
-import { TbEdit } from "react-icons/tb";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  flexRender,
+  createColumnHelper,
+  SortingState,
+  PaginationState,
+  Header,
+} from "@tanstack/react-table";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -35,142 +42,194 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/shared/page-header";
-import { EditBar } from "@/components/shared/edit-bar";
+import { EmptyState } from "@/components/shared/empty-state";
+import { useAppSelector } from "@/stores/store";
+import { canManageUsers, isSuperAdmin } from "@/lib/rbac";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ResetPasswordDialog } from "@/components/shared/reset-password-dialog";
-import { useAppSelector } from "@/stores/store";
-import { canManageUsers, isSuperAdmin, getAllowedTargetRoles } from "@/lib/rbac";
+
+import { getInitials, formatDate, cn } from "@/lib/utils";
+import { UserRole, AppUser } from "@/types";
 import {
-  useGetUserByIdQuery,
-  useUpdateUserRoleMutation,
+  useGetUsersQuery,
+  useCreateUserMutation,
   useResetUserPasswordMutation,
   useDeleteUserMutation,
 } from "@/stores/api/userApi";
-import { useGetBranchesQuery } from "@/stores/api/branchApi";
-import { getInitials, formatDate, formatDateTime } from "@/lib/utils";
-import { UserRole } from "@/types";
 import { toast } from "sonner";
 
-interface EmployeeDetailPageProps {
-  params: Promise<{ id: string }>;
+const columnHelper = createColumnHelper<AppUser>();
+
+function SortIcon({ header }: { header: Header<AppUser, unknown> }) {
+  if (!header.column.getCanSort()) return null;
+  const sorted = header.column.getIsSorted();
+  if (sorted === "asc") return <ArrowUp className="h-3.5 w-3.5 ml-1" />;
+  if (sorted === "desc") return <ArrowDown className="h-3.5 w-3.5 ml-1" />;
+  return <ArrowUpDown className="h-3.5 w-3.5 ml-1 opacity-40" />;
 }
 
-const roleLabels: Record<UserRole, string> = {
-  [UserRole.SuperAdmin]: "Super Admin",
-  [UserRole.SuperAdminDeveloper]: "Developer",
-  [UserRole.Customer]: "Customer",
-  [UserRole.BranchOwner]: "Branch Owner",
-  [UserRole.BranchAdmin]: "Branch Admin",
-  [UserRole.Supervisor]: "Supervisor",
-  [UserRole.Cashier]: "Cashier",
-  [UserRole.Employee]: "Employee",
-};
-
-const roleBadgeVariants: Record<UserRole, "default" | "secondary" | "outline"> = {
-  [UserRole.SuperAdmin]: "default",
-  [UserRole.SuperAdminDeveloper]: "default",
-  [UserRole.Customer]: "outline",
-  [UserRole.BranchOwner]: "secondary",
-  [UserRole.BranchAdmin]: "secondary",
-  [UserRole.Supervisor]: "outline",
-  [UserRole.Cashier]: "outline",
-  [UserRole.Employee]: "outline",
-};
-
-const roleDescriptions: Record<UserRole, string> = {
-  [UserRole.SuperAdmin]: "Full administrative access to manage all branches, products, and system settings.",
-  [UserRole.SuperAdminDeveloper]: "Full developer and administrative access across all system operations.",
-  [UserRole.Customer]: "Customer account used for placing online orders and earning loyalty rewards.",
-  [UserRole.BranchOwner]: "Full ownership and operational permissions for the assigned branch.",
-  [UserRole.BranchAdmin]: "Administrative permissions for menu, pricing, and staff within the assigned branch.",
-  [UserRole.Supervisor]: "Supervises branch shift operations, orders, and attendance.",
-  [UserRole.Cashier]: "Handles point of sale (POS) transactions and counter orders.",
-  [UserRole.Employee]: "Standard branch staff member with basic access.",
-};
-
-export default function EmployeeDetailPage({ params }: EmployeeDetailPageProps) {
-  const resolvedParams = use(params);
+export default function CustomersPage() {
   const router = useRouter();
-
   const { currentRole: uiRole } = useAppSelector((state) => state.ui);
   const authRole = useAppSelector((state) => state.auth.user?.role) || UserRole.Cashier;
   const currentRole = uiRole || authRole;
-  const isSuper = isSuperAdmin(currentRole);
-  const assignedBranchId = useAppSelector((state) => state.auth.user?.branchId);
-  const canEdit = canManageUsers(currentRole);
-  const allowedRoles = getAllowedTargetRoles(currentRole).filter((r) => r !== UserRole.Customer);
 
-  const { data: user, isLoading: isUserLoading, error: userError } = useGetUserByIdQuery(resolvedParams.id);
-  const { data: branchesData } = useGetBranchesQuery({ pageSize: 100 });
-  const branches = branchesData?.items || [];
-
-  const [updateUserRole, { isLoading: isUpdatingRole }] = useUpdateUserRoleMutation();
-  const [resetUserPassword] = useResetUserPasswordMutation();
-  const [deleteUser, { isLoading: isDeletingUser }] = useDeleteUserMutation();
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole | "">("");
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-
-  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (user && !isSuper && assignedBranchId && user.branchId && user.branchId !== assignedBranchId) {
-      toast.error("You are only authorized to view employees from your own branch.");
-      router.push("/admin/users/employees");
-    }
-  }, [user, isSuper, assignedBranchId, router]);
+  const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
+  const [resetUserPassword] = useResetUserPasswordMutation();
+  const [deleteUser] = useDeleteUserMutation();
 
-  useEffect(() => {
-    if (user) {
-      setSelectedRole(user.role);
-    }
-  }, [user]);
+  const { data: usersData, isLoading: isUsersLoading } = useGetUsersQuery({
+    page: 1,
+    pageSize: 100,
+    role: UserRole.Customer,
+  });
 
-  const handleCopy = (text: string, field: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(field);
-    toast.success(`${field} copied to clipboard`);
-    setTimeout(() => setCopiedField(null), 2000);
+  const customers: AppUser[] = useMemo(() => {
+    return (usersData?.items || []).filter((u) => u.role === UserRole.Customer);
+  }, [usersData]);
+
+  const canManage = canManageUsers(currentRole);
+  const isSuper = isSuperAdmin(currentRole);
+
+  const filteredCustomers = useMemo(() => {
+    return customers.filter((cust) => {
+      const name = `${cust.firstName || ""} ${cust.lastName || ""}`.toLowerCase();
+      const email = (cust.email || "").toLowerCase();
+      const phone = (cust.phoneNumber || "").toLowerCase();
+      const city = (cust.city || "").toLowerCase();
+      const search = globalFilter.toLowerCase();
+
+      const matchesSearch =
+        !search ||
+        name.includes(search) ||
+        email.includes(search) ||
+        phone.includes(search) ||
+        city.includes(search);
+
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && cust.isActive) ||
+        (statusFilter === "inactive" && !cust.isActive);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [globalFilter, statusFilter, customers]);
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+    city: "",
+    postalCode: "",
+    addressLine1: "",
+  });
+
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.firstName.trim())
+      errors.firstName = "First name is required.";
+    else if (formData.firstName.length > 100)
+      errors.firstName = "First name must not exceed 100 characters.";
+
+    if (!formData.lastName.trim())
+      errors.lastName = "Last name is required.";
+    else if (formData.lastName.length > 100)
+      errors.lastName = "Last name must not exceed 100 characters.";
+
+    if (!formData.email.trim())
+      errors.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      errors.email = "A valid email address is required.";
+    else if (formData.email.length > 256)
+      errors.email = "Email must not exceed 256 characters.";
+
+    if (!formData.password)
+      errors.password = "Password is required.";
+    else if (formData.password.length < 6)
+      errors.password = "Password must be at least 6 characters.";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  const handleSaveChanges = async () => {
-    if (!user) return;
-    if (!selectedRole) {
-      toast.error("Please select a valid role.");
-      return;
-    }
+  const resetForm = () => {
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      phoneNumber: "",
+      city: "",
+      postalCode: "",
+      addressLine1: "",
+    });
+    setFormErrors({});
+  };
 
+  const handleCreateCustomer = async () => {
+    if (!validateForm()) return;
     try {
-      if (selectedRole !== user.role) {
-        await updateUserRole({
-          id: user.id,
-          data: { role: selectedRole.toString() },
-        }).unwrap();
-        toast.success("Employee role updated successfully");
-      }
-      setIsEditing(false);
+      await createUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        role: UserRole.Customer,
+      }).unwrap();
+      toast.success("Customer created successfully");
+      setCreateDialogOpen(false);
+      resetForm();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update employee");
+      toast.error(error?.data?.message || "Failed to create customer");
     }
   };
 
   const handleConfirmResetPassword = async (newPassword: string) => {
-    if (!user) return;
+    if (!resetPasswordTarget) return;
     setIsResetting(true);
     try {
-      await resetUserPassword({ id: user.id, data: { newPassword } }).unwrap();
+      await resetUserPassword({ id: resetPasswordTarget.id, data: { newPassword } }).unwrap();
       toast.success("Password reset successfully");
-      setResetPasswordOpen(false);
+      setResetPasswordTarget(null);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to reset password");
       throw error;
@@ -179,385 +238,464 @@ export default function EmployeeDetailPage({ params }: EmployeeDetailPageProps) 
     }
   };
 
-  const handleConfirmDeleteUser = async () => {
-    if (!user) return;
+  const handleConfirmDeleteCustomer = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      await deleteUser(user.id).unwrap();
-      toast.success("Employee deleted successfully");
-      router.push("/admin/users/employees");
+      await deleteUser(deleteTarget.id).unwrap();
+      toast.success("Customer deleted successfully");
+      setDeleteTarget(null);
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to delete employee");
+      toast.error(error?.data?.message || "Failed to delete customer");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  if (isUserLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-72" />
-          </div>
-        </div>
+  const columns = useMemo(
+    () => {
+      const cols: any[] = [
+        columnHelper.accessor("firstName", {
+          id: "customer",
+          header: "Customer",
+          cell: (info) => {
+            const cust = info.row.original;
+            const name = `${cust.firstName || ""} ${cust.lastName || ""}`.trim() || "Unnamed Customer";
+            return (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                  {cust.profilePictureUrl && <AvatarImage src={cust.profilePictureUrl} alt={name} />}
+                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                    {getInitials(name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <Link
+                    href={`/admin/users/customers/${cust.id}`}
+                    className="font-medium text-foreground hover:underline"
+                  >
+                    {name}
+                  </Link>
+                  <p className="text-body text-muted-foreground">{cust.email}</p>
+                </div>
+              </div>
+            );
+          },
+        }),
+        columnHelper.accessor("phoneNumber", {
+          header: "Phone",
+          cell: (info) => (
+            <span className="text-body text-muted-foreground">
+              {info.getValue() || "â€”"}
+            </span>
+          ),
+        }),
+        columnHelper.accessor("city", {
+          header: "City / Location",
+          cell: (info) => {
+            const cust = info.row.original;
+            const location = [cust.city, cust.postalCode].filter(Boolean).join(", ");
+            return (
+              <span className="text-body text-muted-foreground">
+                {location || "â€”"}
+              </span>
+            );
+          },
+        }),
+        columnHelper.accessor("isActive", {
+          header: "Status",
+          enableSorting: false,
+          cell: (info) => (
+            <Badge variant={info.getValue() ? "success" : "secondary"}>
+              {info.getValue() ? "Active" : "Inactive"}
+            </Badge>
+          ),
+        }),
+        columnHelper.accessor("createdAt", {
+          header: "Joined",
+          cell: (info) => (
+            <span className="text-body text-muted-foreground">
+              {formatDate(info.getValue())}
+            </span>
+          ),
+        }),
+        columnHelper.display({
+          id: "actions",
+          cell: (info) => {
+            const cust = info.row.original;
+            const name = `${cust.firstName || ""} ${cust.lastName || ""}`.trim() || "Customer";
+            return (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href={`/admin/users/customers/${cust.id}`}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Link>
+                  </DropdownMenuItem>
+                  {isSuper && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setResetPasswordTarget({ id: cust.id, name })}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Reset Password
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setDeleteTarget({ id: cust.id, name })}
+                      >
+                        <UserX className="h-4 w-4 mr-2" />
+                        Delete Customer
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            );
+          },
+        }),
+      ];
 
-        <Skeleton className="h-40 w-full rounded-xl" />
+      return cols;
+    },
+    [isSuper]
+  );
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Skeleton className="h-80 w-full rounded-xl" />
-          <Skeleton className="h-80 w-full rounded-xl" />
-        </div>
-      </div>
-    );
-  }
+  const table = useReactTable({
+    data: filteredCustomers,
+    columns,
+    state: { sorting, pagination },
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
-  if (userError || !user) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Employee Not Found" />
-        <Card className="border border-border shadow-none rounded-xl">
-          <CardContent className="py-12 text-center">
-            <UserX className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-            <h3 className="text-lg font-medium text-foreground">Employee Not Found</h3>
-            <p className="text-muted-foreground text-body mt-1">
-              The employee profile you are looking for does not exist or you do not have permission to view it.
-            </p>
-            <Button onClick={() => router.push("/admin/users/employees")} className="mt-6">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Employees
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unnamed Employee";
-  const assignedBranch = branches.find((b) => b.branchId === user.branchId);
-  const branchName = user.branchName || (assignedBranch ? assignedBranch.branchName.replace("Caffissimo", "").trim() : "None");
-
-  const hasAddress = Boolean(user.addressLine1 || user.addressLine2 || user.city || user.postalCode);
+  const totalCount = filteredCustomers.length;
 
   return (
-    <div className="space-y-6 pb-20">
-      {/* Top Header */}
-      <div className="flex items-center gap-4 w-full">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/users/employees")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <PageHeader
-          className="flex-1"
-          title={fullName}
-          description={isEditing ? "Edit employee role and branch assignment" : "Employee profile, role permissions, and branch affiliation"}
-          actions={
-            <div className="flex items-center gap-2">
-              {canEdit && !isEditing && (
-                <Button onClick={() => setIsEditing(true)}>
-                  <TbEdit className="h-4 w-4 mr-2" />
-                  Edit Employee
-                </Button>
-              )}
-              {isSuper && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9">
-                      <MoreVertical className="h-4 w-4" />
-                      <span className="sr-only">Actions</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setResetPasswordOpen(true)}>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Reset Password
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => setDeleteDialogOpen(true)}
-                    >
-                      <UserX className="h-4 w-4 mr-2" />
-                      Delete Employee
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+    <div className="space-y-6">
+      <PageHeader
+        title="Customers"
+        description="View and manage registered customers, online account profiles, and delivery details"
+        actions={
+          canManage && (
+            <Button
+              onClick={() => {
+                resetForm();
+                setCreateDialogOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Customer
+            </Button>
+          )
+        }
+      />
+
+      <Card className="p-6 space-y-4 bg-white dark:bg-[#141414] border border-border shadow-none rounded-xl">
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search customers by name, email, phone, or city..."
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value);
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+              className="pl-9 w-[320px] h-9 bg-white dark:bg-[#141414] rounded-lg"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select
+              value={statusFilter}
+              onValueChange={(val) => {
+                setStatusFilter(val);
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+            >
+              <SelectTrigger className="w-auto h-9 gap-1.5 rounded-lg border-border/80 bg-white dark:bg-[#141414] px-3.5 text-body font-medium shadow-none">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Table / State Container */}
+        <div className="overflow-hidden rounded-lg">
+          {isUsersLoading ? (
+            <div className="space-y-2 p-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
             </div>
-          }
-        />
-      </div>
-
-      {/* Employee Hero Overview Card */}
-      <Card className="border border-border shadow-none rounded-xl bg-white dark:bg-[#141414] overflow-hidden">
-        <div className="h-2 bg-primary/20 w-full" />
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <Avatar className="h-20 w-20 border-2 border-border/50 shadow-sm">
-                {user.profilePictureUrl ? (
-                  <AvatarImage src={user.profilePictureUrl} alt={fullName} className="object-cover" />
-                ) : null}
-                <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                  {getInitials(fullName)}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h2 className="text-xl font-semibold text-foreground leading-tight">{fullName}</h2>
-                  <Badge variant={roleBadgeVariants[user.role]}>
-                    {roleLabels[user.role] || user.role}
-                  </Badge>
-                  <Badge variant={user.isActive ? "success" : "secondary"}>
-                    {user.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-body text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-muted-foreground/70" />
-                    {user.email}
-                  </span>
-                  {user.phoneNumber && (
-                    <span className="flex items-center gap-1.5">
-                      <Phone className="h-4 w-4 text-muted-foreground/70" />
-                      {user.phoneNumber}
-                    </span>
-                  )}
-                  {user.branchId && (
-                    <span className="flex items-center gap-1.5">
-                      <Building2 className="h-4 w-4 text-muted-foreground/70" />
-                      {branchName}
-                    </span>
-                  )}
-                </div>
-              </div>
+          ) : filteredCustomers.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                icon={UserCheck}
+                title="No customers found"
+                description="Try adjusting your search or status filters"
+              />
             </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-0">
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          className={
+                            header.column.getCanSort()
+                              ? "cursor-pointer select-none"
+                              : ""
+                          }
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          <span className="inline-flex items-center">
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                            <SortIcon header={header} />
+                          </span>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
 
-            {/* Quick Metadata Chips */}
-            <div className="flex flex-wrap md:flex-col gap-2 md:items-end justify-start text-caption text-muted-foreground border-t md:border-t-0 pt-4 md:pt-0">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>Joined {formatDate(user.createdAt)}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5" />
-                <span>Updated {formatDateTime(user.updatedAt)}</span>
-              </div>
+        {/* Pagination Footer */}
+        {!isUsersLoading && totalCount > 0 && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-body text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {pagination.pageIndex * pagination.pageSize + 1}
+              </span>
+              {" "}to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)}
+              </span>
+              {" "}of{" "}
+              <span className="font-medium text-foreground">{totalCount}</span>
+              {" "}customers
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: Math.min(table.getPageCount(), 5) }, (_, i) => {
+                let pageNum: number;
+                const totalPages = table.getPageCount();
+                const currentPage = pagination.pageIndex;
+
+                if (totalPages <= 5) {
+                  pageNum = i;
+                } else if (currentPage < 3) {
+                  pageNum = i;
+                } else if (currentPage > totalPages - 4) {
+                  pageNum = totalPages - 5 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 text-caption font-medium",
+                      currentPage === pageNum && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                    )}
+                    onClick={() => table.setPageIndex(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        </CardContent>
+        )}
       </Card>
 
-      {/* Detail Cards Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Personal & Contact Information Card */}
-        <Card className="border border-border shadow-none rounded-xl bg-white dark:bg-[#141414]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <UserIcon className="h-4 w-4 text-primary" />
-              Personal Information
-            </CardTitle>
-            <CardDescription>Basic contact and profile information</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      {/* Add Customer Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Customer</DialogTitle>
+            <DialogDescription>
+              Create a customer account for online ordering and loyalty.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-caption font-normal">First Name</Label>
-                <Input value={user.firstName || "-"} disabled className="bg-muted/30 text-foreground" />
+                <Label htmlFor="cust-firstName">First Name *</Label>
+                <Input
+                  id="cust-firstName"
+                  placeholder="First name"
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
+                  className={formErrors.firstName ? "border-destructive" : ""}
+                />
+                {formErrors.firstName && (
+                  <p className="text-caption text-destructive">{formErrors.firstName}</p>
+                )}
               </div>
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-caption font-normal">Last Name</Label>
-                <Input value={user.lastName || "-"} disabled className="bg-muted/30 text-foreground" />
+                <Label htmlFor="cust-lastName">Last Name *</Label>
+                <Input
+                  id="cust-lastName"
+                  placeholder="Last name"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
+                  className={formErrors.lastName ? "border-destructive" : ""}
+                />
+                {formErrors.lastName && (
+                  <p className="text-caption text-destructive">{formErrors.lastName}</p>
+                )}
               </div>
             </div>
-
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-caption font-normal">Email Address</Label>
-              <div className="relative">
-                <Input value={user.email} disabled className="bg-muted/30 text-foreground pr-10" />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
-                  onClick={() => handleCopy(user.email, "Email")}
-                >
-                  {copiedField === "Email" ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-caption font-normal">Phone Number</Label>
-                <Input value={user.phoneNumber || "Not provided"} disabled className="bg-muted/30 text-foreground" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-caption font-normal">Birthday</Label>
-                <Input value={user.birthday ? formatDate(user.birthday) : "Not provided"} disabled className="bg-muted/30 text-foreground" />
-              </div>
-            </div>
-
-            {user.age && (
-              <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-caption font-normal">Age</Label>
-                <Input value={user.age.toString()} disabled className="bg-muted/30 text-foreground" />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Role & Access Management Card */}
-        <Card className="border border-border shadow-none rounded-xl bg-white dark:bg-[#141414]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Shield className="h-4 w-4 text-primary" />
-              Role & Branch Assignment
-            </CardTitle>
-            <CardDescription>Control permissions and branch affiliation</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-caption font-normal">Assigned Role</Label>
-              {isEditing && canEdit ? (
-                <Select
-                  value={selectedRole}
-                  onValueChange={(val) => setSelectedRole(val as UserRole)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allowedRoles.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {roleLabels[role] || role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="p-3 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between">
-                  <div>
-                    <span className="font-medium text-foreground">{roleLabels[user.role] || user.role}</span>
-                    <p className="text-caption text-muted-foreground mt-0.5">
-                      {roleDescriptions[user.role] || "Standard employee permissions"}
-                    </p>
-                  </div>
-                  <Badge variant={roleBadgeVariants[user.role]}>
-                    {roleLabels[user.role] || user.role}
-                  </Badge>
-                </div>
+              <Label htmlFor="cust-email">Email Address *</Label>
+              <Input
+                id="cust-email"
+                type="email"
+                placeholder="customer@example.com"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className={formErrors.email ? "border-destructive" : ""}
+              />
+              {formErrors.email && (
+                <p className="text-caption text-destructive">{formErrors.email}</p>
               )}
             </div>
-
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-caption font-normal">Assigned Branch</Label>
-              {user.branchId ? (
-                <div className="p-3 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between gap-3">
-                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                    <Building2 className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-foreground truncate">{branchName}</p>
-                      {assignedBranch?.branchAddress && (
-                        <p className="text-caption text-muted-foreground break-words leading-relaxed">{assignedBranch.branchAddress}</p>
-                      )}
-                    </div>
-                  </div>
-                  <Link
-                    href={`/admin/branches/${user.branchId}`}
-                    className="inline-flex items-center text-caption font-medium text-primary hover:underline shrink-0 whitespace-nowrap"
-                  >
-                    View Branch
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </Link>
-                </div>
-              ) : (
-                <Input value="No branch assigned (Global / Head Office)" disabled className="bg-muted/30 text-muted-foreground" />
+              <Label htmlFor="cust-password">Initial Password *</Label>
+              <Input
+                id="cust-password"
+                type="password"
+                placeholder="Min. 6 characters"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className={formErrors.password ? "border-destructive" : ""}
+              />
+              {formErrors.password && (
+                <p className="text-caption text-destructive">{formErrors.password}</p>
               )}
             </div>
-
-            <div className="space-y-1.5 pt-2 border-t border-border/60">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-body font-medium text-foreground">Active Status</Label>
-                  <p className="text-caption text-muted-foreground">Staff account access status</p>
-                </div>
-                <Badge variant={user.isActive ? "success" : "secondary"}>
-                  {user.isActive ? "Active Account" : "Suspended / Inactive"}
-                </Badge>
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="cust-phone">Phone Number (Optional)</Label>
+              <Input
+                id="cust-phone"
+                type="tel"
+                placeholder="+61 400 000 000"
+                value={formData.phoneNumber}
+                onChange={(e) =>
+                  setFormData({ ...formData, phoneNumber: e.target.value })
+                }
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Address Information Card (if applicable) */}
-        {hasAddress && (
-          <Card className="border border-border shadow-none rounded-xl bg-white dark:bg-[#141414] lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <MapPin className="h-4 w-4 text-primary" />
-                Address Details
-              </CardTitle>
-              <CardDescription>Residential or contact address</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-caption font-normal">Address Line 1</Label>
-                <Input value={user.addressLine1 || "-"} disabled className="bg-muted/30 text-foreground" />
-              </div>
-              {user.addressLine2 && (
-                <div className="space-y-1.5">
-                  <Label className="text-muted-foreground text-caption font-normal">Address Line 2</Label>
-                  <Input value={user.addressLine2} disabled className="bg-muted/30 text-foreground" />
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-muted-foreground text-caption font-normal">City</Label>
-                  <Input value={user.city || "-"} disabled className="bg-muted/30 text-foreground" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-muted-foreground text-caption font-normal">Postal Code</Label>
-                  <Input value={user.postalCode || "-"} disabled className="bg-muted/30 text-foreground" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* EditBar when editing */}
-      <EditBar
-        isVisible={isEditing}
-        onSave={handleSaveChanges}
-        onCancel={() => {
-          setSelectedRole(user.role);
-          setIsEditing(false);
-        }}
-        isSaving={isUpdatingRole}
-        label="Unsaved role changes"
-        saveLabel="Save Changes"
-        cancelLabel="Cancel"
-      />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCreateDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreateCustomer} disabled={isCreating}>
+              {isCreating ? "Creating..." : "Create Customer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Reset Password Dialog */}
       <ResetPasswordDialog
-        open={resetPasswordOpen}
-        onOpenChange={setResetPasswordOpen}
-        userName={fullName}
+        open={Boolean(resetPasswordTarget)}
+        onOpenChange={(open) => !open && setResetPasswordTarget(null)}
+        userName={resetPasswordTarget?.name || "Customer"}
         isLoading={isResetting}
         onReset={handleConfirmResetPassword}
       />
 
-      {/* Delete User Confirm Dialog */}
+      {/* Delete Customer Confirm Dialog */}
       <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Delete Employee Account"
-        description={`Are you sure you want to delete ${fullName}? This will permanently remove their staff user profile and authentication access. This action cannot be undone.`}
-        confirmText="Delete Employee"
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Delete Customer Account"
+        description={`Are you sure you want to delete ${deleteTarget?.name}? This will permanently remove their customer profile and authentication account. This action cannot be undone.`}
+        confirmText="Delete Customer"
         variant="destructive"
-        isLoading={isDeletingUser}
-        onConfirm={handleConfirmDeleteUser}
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDeleteCustomer}
       />
     </div>
   );

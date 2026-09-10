@@ -4,6 +4,7 @@ import {
   OrderSummaryResponse,
   CreateOrderRequest,
   UpdateOrderRequest,
+  UpdateOrderStatusRequest,
   PagedResult,
   OrderListParams,
 } from "@/types";
@@ -35,11 +36,21 @@ export const orderApi = baseApi.injectEndpoints({
       invalidatesTags: ["Order"],
     }),
 
-    // PUT /api/orders/{id}  — full update including status change
+    // PUT /api/orders/{id}  — full update including items & status
     updateOrder: builder.mutation<OrderResponse, { id: string; data: UpdateOrderRequest }>({
       query: ({ id, data }) => ({
         url: `/api/orders/${id}`,
         method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: "Order", id }, "Order"],
+    }),
+
+    // POST /api/orders/{id}/status — dedicated lightweight status transition
+    updateOrderStatus: builder.mutation<OrderResponse, { id: string; data: UpdateOrderStatusRequest }>({
+      query: ({ id, data }) => ({
+        url: `/api/orders/${id}/status`,
+        method: "POST",
         body: data,
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "Order", id }, "Order"],
@@ -62,6 +73,8 @@ export const {
   useGetOrderByIdQuery,
   useCreateOrderMutation,
   useUpdateOrderMutation,
+  useUpdateOrderStatusMutation,
   useDeleteOrderMutation,
 } = orderApi;
+
 

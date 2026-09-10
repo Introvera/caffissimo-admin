@@ -276,7 +276,7 @@ export default function BranchesPage() {
                     size="sm"
                     className={cn(
                       "w-9",
-                      p === page && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      p === page && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                     )}
                     onClick={() => setPage(p)}
                   >

@@ -116,7 +116,7 @@ export default function UberEatsOrderDetailPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/admin/uber-eats/orders")}>
+          <Button variant="ghost" size="sm" onClick={() => router.push("/admin/uber-eats-orders")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Orders
           </Button>
           <h1 className="text-h2 font-bold font-mono">

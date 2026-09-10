@@ -46,6 +46,7 @@ interface UberOrderListParams extends PaginationParams {
 }
 
 export const uberApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getUberMenus: builder.query<PagedResult<UberMenuSummary>, UberMenuListParams | void>({
       query: (params) => ({

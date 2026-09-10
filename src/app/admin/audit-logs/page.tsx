@@ -368,7 +368,7 @@ export default function AuditLogsPage() {
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 text-caption font-medium",
-                      pageIndex === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      pageIndex === pageNum && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                     )}
                     onClick={() => table.setPageIndex(pageNum)}
                   >

@@ -57,10 +57,10 @@ const ORDER_TYPE_LABELS: Record<string, string> = {
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All Status" },
+  { value: "PendingPayment", label: "Pending Payment" },
   { value: "Pending", label: "Pending" },
   { value: "Confirmed", label: "Confirmed" },
   { value: "Preparing", label: "Preparing" },
-  { value: "Ready", label: "Ready" },
   { value: "Completed", label: "Completed" },
   { value: "Cancelled", label: "Cancelled" },
 ];
@@ -356,7 +356,7 @@ export default function OrdersPage() {
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 text-caption font-medium",
-                      page === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      page === pageNum && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                     )}
                     onClick={() => setPage(pageNum)}
                   >
