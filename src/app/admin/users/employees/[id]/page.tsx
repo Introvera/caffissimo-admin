@@ -286,7 +286,7 @@ export default function CustomersPage() {
           header: "Phone",
           cell: (info) => (
             <span className="text-body text-muted-foreground">
-              {info.getValue() || "â€”"}
+              {info.getValue() || "—"}
             </span>
           ),
         }),
@@ -297,7 +297,7 @@ export default function CustomersPage() {
             const location = [cust.city, cust.postalCode].filter(Boolean).join(", ");
             return (
               <span className="text-body text-muted-foreground">
-                {location || "â€”"}
+                {location || "—"}
               </span>
             );
           },

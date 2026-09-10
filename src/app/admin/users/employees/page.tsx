@@ -187,7 +187,7 @@ export default function EmployeesPage() {
   }, [globalFilter, roleFilter, branchFilter, isSuper, assignedBranchId, employees]);
 
   const getBranchName = (branchId?: string) => {
-    if (!branchId) return "â€”";
+    if (!branchId) return "—";
     return branches.find((b) => b.branchId === branchId)?.branchName.replace("Caffissimo", "").trim() || "Unknown";
   };
 
