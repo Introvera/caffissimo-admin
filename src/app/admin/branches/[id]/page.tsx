@@ -46,6 +46,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductsTab } from "./tabs/products-tab";
 import { UberMenusTab } from "./tabs/uber-menus-tab";
+import { PaymentGatewayTab } from "./tabs/payment-gateway-tab";
 import { LocationInput } from "@/components/ui/location-input";
 import {
   Select,
@@ -208,8 +209,8 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
           : newImageFile
           ? { branchImageFile: newImageFile }
           : { branchImageUrl: currentBranch.branchImageUrl || undefined }),
-        branchFacebookUrl: undefined,
-        branchInstagramUrl: undefined,
+        branchFacebookUrl: currentBranch.branchFacebookUrl?.trim() || undefined,
+        branchInstagramUrl: currentBranch.branchInstagramUrl?.trim() || undefined,
         branchAddress: currentBranch.branchAddress,
         latitude: currentBranch.latitude !== undefined && currentBranch.latitude !== null ? Number(currentBranch.latitude) : undefined,
         longitude: currentBranch.longitude !== undefined && currentBranch.longitude !== null ? Number(currentBranch.longitude) : undefined,
@@ -408,6 +409,8 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
     if (formData.branchPhoneNumberAlt !== undefined && hasStringChanged(formData.branchPhoneNumberAlt, branch.branchPhoneNumberAlt)) count++;
     if (formData.branchEmail !== undefined && hasStringChanged(formData.branchEmail, branch.branchEmail)) count++;
     if (formData.branchEmailAlt !== undefined && hasStringChanged(formData.branchEmailAlt, branch.branchEmailAlt)) count++;
+    if (formData.branchFacebookUrl !== undefined && hasStringChanged(formData.branchFacebookUrl, branch.branchFacebookUrl)) count++;
+    if (formData.branchInstagramUrl !== undefined && hasStringChanged(formData.branchInstagramUrl, branch.branchInstagramUrl)) count++;
 
     if (formData.isOpen !== undefined && formData.isOpen !== branch.isOpen) count++;
     if (formData.isActive !== undefined && formData.isActive !== branch.isActive) count++;
@@ -662,6 +665,12 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
             className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
           >
             Uber Menus
+          </TabsTrigger>
+          <TabsTrigger
+            value="payment-gateway"
+            className="relative rounded-none bg-transparent border-0 shadow-none px-4 pb-3 pt-2 text-body font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t-full after:bg-transparent data-[state=active]:after:bg-primary"
+          >
+            Payment Gateway
           </TabsTrigger>
         </TabsList>
 
@@ -918,6 +927,52 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
                         }
                         disabled={!canEdit || !isEditingMode}
                         placeholder="e.g. support@caffissimo.com"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Social Channels */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-primary" /> Social Channels
+                  </CardTitle>
+                  <CardDescription>
+                    Public social media profiles for this branch location
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="branchFacebookUrl">Facebook Profile URL</Label>
+                      <Input
+                        id="branchFacebookUrl"
+                        placeholder="https://facebook.com/caffissimo..."
+                        value={currentBranch.branchFacebookUrl || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branchFacebookUrl: e.target.value,
+                          })
+                        }
+                        disabled={!canEdit || !isEditingMode}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="branchInstagramUrl">Instagram Profile URL</Label>
+                      <Input
+                        id="branchInstagramUrl"
+                        placeholder="https://instagram.com/caffissimo..."
+                        value={currentBranch.branchInstagramUrl || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branchInstagramUrl: e.target.value,
+                          })
+                        }
+                        disabled={!canEdit || !isEditingMode}
                       />
                     </div>
                   </div>
@@ -1490,6 +1545,10 @@ export default function BranchDetailPage({ params }: BranchDetailPageProps) {
 
         <TabsContent value="uber-menus" className="m-0">
           <UberMenusTab branchId={branch.branchId} canEdit={isSuper} />
+        </TabsContent>
+
+        <TabsContent value="payment-gateway" className="m-0">
+          <PaymentGatewayTab branch={branch} currentRole={currentRole} />
         </TabsContent>
       </Tabs>
 

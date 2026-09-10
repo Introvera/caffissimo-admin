@@ -81,6 +81,8 @@ export interface Branch {
   branchDescription?: string;
   branchImageUrl?: string;
   branchImageFile?: File;
+  branchFacebookUrl?: string;
+  branchInstagramUrl?: string;
   branchAddress: string;
   latitude?: number;
   longitude?: number;
@@ -90,6 +92,7 @@ export interface Branch {
   branchEmailAlt?: string;
   isOpen: boolean;
   isActive: boolean;
+  timeZoneId?: string;
   openingHours?: BranchOpeningHours[];
   saleListing?: BranchSaleListing;
   uberEatsUrl?: string;
@@ -160,15 +163,15 @@ export interface BranchProductCatalogItem {
 export type OrderSource = "pos" | "ecommerce" | "uber_eats" | "doordash";
 export type OrderStatus =
   | "pending"
+  | "pending_payment"
   | "confirmed"
   | "preparing"
-  | "ready"
   | "completed"
   | "cancelled"
   | "Pending"
+  | "PendingPayment"
   | "Confirmed"
   | "Preparing"
-  | "Ready"
   | "Completed"
   | "Cancelled";
 export type PaymentMethod = "cash" | "card" | "online" | "external";
@@ -895,6 +898,11 @@ export interface CreateOrderRequest {
 
 export type UpdateOrderRequest = CreateOrderRequest;
 
+export interface UpdateOrderStatusRequest {
+  toStatus: OrderStatus;
+  reason?: string;
+}
+
 export interface CreateOrderItemRequest {
   orderId: string;
   branchProductVariantId: string;
@@ -1591,6 +1599,37 @@ export interface CreateFridgeTemperatureReportRequest {
   date: string;
   temperatures: Record<string, number>;
   notes?: string;
+}
+
+// ============== BACKEND-ALIGNED: ANZ MERCHANT ACCOUNTS ==============
+export interface AnzMerchantAccountResponse {
+  anzMerchantAccountId: string;
+  branchId: string;
+  branchName?: string;
+  environment: PlatformEnvironment;
+  merchantId: string;
+  apiKeyId: string;
+  webhookKeyId: string;
+  defaultCurrency: string;
+  isActive: boolean;
+  hasApiSecret: boolean;
+  hasWebhookSecret: boolean;
+  apiSecretStorage: string;
+  webhookSecretStorage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertAnzMerchantAccountRequest {
+  branchId: string;
+  environment: PlatformEnvironment;
+  merchantId: string;
+  apiKeyId: string;
+  apiSecret?: string;
+  webhookKeyId: string;
+  webhookSecret?: string;
+  defaultCurrency?: string;
+  isActive?: boolean;
 }
 
 

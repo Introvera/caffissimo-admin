@@ -39,7 +39,7 @@ import {
   useGetUberMenusQuery,
   useSyncUberMenuMutation,
   useDeleteUberMenuMutation,
-} from "@/stores/api/uberMenuApi";
+} from "@/stores/api/uberApi";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 

@@ -240,7 +240,7 @@ export default function UberEatsOrdersPage() {
               <Card
                 key={order.uberOrderStagingId}
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => router.push(`/admin/uber-eats/orders/${order.uberOrderStagingId}`)}
+                onClick={() => router.push(`/admin/uber-eats-orders/${order.uberOrderStagingId}`)}
               >
                 <CardContent className="py-4">
                   <div className="flex items-center justify-between gap-4">

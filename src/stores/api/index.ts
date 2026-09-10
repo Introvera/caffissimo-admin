@@ -15,11 +15,12 @@ export * from "./orderApi";
 export * from "./offerApi";
 export * from "./userApi";
 export * from "./branchProductApi";
-export * from "./uberMenuApi";
+export * from "./uberApi";
 export * from "./orderItemApi";
 export * from "./specialDayApi";
 export * from "./analyticsApi";
 export * from "./attendanceApi";
 export * from "./fridgeApi";
+export * from "./anzMerchantAccountApi";
 
 

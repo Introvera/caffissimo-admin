@@ -187,7 +187,7 @@ export default function EmployeesPage() {
   }, [globalFilter, roleFilter, branchFilter, isSuper, assignedBranchId, employees]);
 
   const getBranchName = (branchId?: string) => {
-    if (!branchId) return "—";
+    if (!branchId) return "â€”";
     return branches.find((b) => b.branchId === branchId)?.branchName.replace("Caffissimo", "").trim() || "Unknown";
   };
 
@@ -644,7 +644,7 @@ export default function EmployeesPage() {
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 text-caption font-medium",
-                      currentPage === pageNum && "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      currentPage === pageNum && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                     )}
                     onClick={() => table.setPageIndex(pageNum)}
                   >

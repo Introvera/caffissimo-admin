@@ -8,6 +8,7 @@ import {
   UpdateUserRoleResponse,
   PagedResult,
 } from "@/types";
+import { toFormData, logFormData } from "@/lib/formData";
 
 export interface UserQueryParams {
   page?: number;
@@ -46,21 +47,29 @@ export const userApi = baseApi.injectEndpoints({
 
     // POST /api/firebaseuser  — create staff user (with role)
     createUser: builder.mutation<AppUser, CreateFirebaseUserRequest>({
-      query: (data) => ({
-        url: "/api/firebaseuser",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        const body = toFormData(data as unknown as Record<string, unknown>);
+        logFormData("POST /api/firebaseuser", body);
+        return {
+          url: "/api/firebaseuser",
+          method: "POST",
+          body,
+        };
+      },
       invalidatesTags: ["User"],
     }),
 
     // POST /api/firebaseuser/customer  — create customer account
     createCustomerUser: builder.mutation<AppUser, CreateCustomerFirebaseUserRequest>({
-      query: (data) => ({
-        url: "/api/firebaseuser/customer",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        const body = toFormData(data as unknown as Record<string, unknown>);
+        logFormData("POST /api/firebaseuser/customer", body);
+        return {
+          url: "/api/firebaseuser/customer",
+          method: "POST",
+          body,
+        };
+      },
       invalidatesTags: ["User"],
     }),
 

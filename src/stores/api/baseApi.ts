@@ -58,6 +58,7 @@ export const baseApi = createApi({
     "SpecialDay",
     "Attendance",
     "FridgeReport",
+    "AnzMerchantAccount",
   ],
   endpoints: () => ({}),
 });

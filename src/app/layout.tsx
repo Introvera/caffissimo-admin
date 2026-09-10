@@ -33,16 +33,16 @@ export default function RootLayout({
       <body
         className={`${jakarta.className} ${jakarta.variable} ${geistMono.variable} antialiased`}
       >
-        <ReduxProvider>
-          <AuthProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange
-              storageKey="caffissimo-theme"
-              themes={["light", "dark"]}
-            >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+          storageKey="caffissimo-theme"
+          themes={["light", "dark"]}
+        >
+          <ReduxProvider>
+            <AuthProvider>
               {children}
               <Toaster
                 position="top-right"
@@ -64,9 +64,9 @@ export default function RootLayout({
                   }
                 }}
               />
-            </ThemeProvider>
-          </AuthProvider>
-        </ReduxProvider>
+            </AuthProvider>
+          </ReduxProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -57,7 +57,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const { dateRange, selectedBranchId } = useAppSelector((state) => state.ui);
+  const { dateRange, selectedBranchId, dateRangePreset } = useAppSelector((state) => state.ui);
 
   // Fetch dashboard stats from real analytics API
   const { data: statsData, isLoading: statsLoading } = useGetDashboardStatsQuery({
@@ -145,6 +145,36 @@ export default function DashboardPage() {
   // ── Sales Trend ──────────────────────────────────────────────────────────
   const salesTrendData = useMemo(() => {
     if (!statsData?.salesTrend) return [];
+
+    if (dateRangePreset === "12m") {
+      const monthlyData: Record<string, any> = {};
+      statsData.salesTrend.forEach((item) => {
+        const parsedDate = parseISO(item.date);
+        const monthKey = format(parsedDate, "MMM yyyy");
+        
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = {
+            date: monthKey,
+            total: 0,
+            ECommerce: 0,
+            DineIn: 0,
+            Delivery: 0,
+            POS: 0,
+            timestamp: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1).getTime(),
+          };
+        }
+        monthlyData[monthKey].total += item.total || 0;
+        monthlyData[monthKey].ECommerce += item.takeaway || 0;
+        monthlyData[monthKey].DineIn += item.dineIn || 0;
+        monthlyData[monthKey].Delivery += item.delivery || 0;
+        monthlyData[monthKey].POS += item.pos || 0;
+      });
+
+      return Object.values(monthlyData)
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .map(({ timestamp, ...rest }) => rest);
+    }
+
     return statsData.salesTrend.map((item) => {
       const parsedDate = parseISO(item.date);
       return {
@@ -156,7 +186,7 @@ export default function DashboardPage() {
         POS: item.pos || 0,
       };
     });
-  }, [statsData]);
+  }, [statsData, dateRangePreset]);
 
   // ── Sales by Type (pie) ──────────────────────────────────────────────────
   const salesByType = useMemo(() =>
@@ -330,7 +360,7 @@ export default function DashboardPage() {
                 <CardDescription>Daily total sales performance</CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col justify-between">
-                <div className="h-[360px] w-full flex-1">
+                <div className="min-h-[300px] sm:min-h-[360px] w-full flex-1 min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={salesTrendData}>
                       <defs>
