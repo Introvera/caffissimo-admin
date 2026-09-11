@@ -17,6 +17,11 @@ const rawBaseQuery = fetchBaseQuery({
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
+
+    // Tells the activity log which client a request came from. A hint, not a credential — the
+    // server pins POS traffic by route regardless of what this says.
+    headers.set("X-Client-App", "AdminPortal");
+
     return headers;
   },
 });
@@ -59,6 +64,7 @@ export const baseApi = createApi({
     "Attendance",
     "FridgeReport",
     "AnzMerchantAccount",
+    "ActivityLog",
   ],
   endpoints: () => ({}),
 });

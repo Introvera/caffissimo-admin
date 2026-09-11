@@ -22,5 +22,4 @@ export * from "./analyticsApi";
 export * from "./attendanceApi";
 export * from "./fridgeApi";
 export * from "./anzMerchantAccountApi";
-
-
+export * from "./activityLogApi";

@@ -160,7 +160,11 @@ const navEntries: NavEntry[] = [
     permission: canAccessAdmin,
     children: [
       { title: "POS Login Logs", href: "/admin/attendance", icon: TbClock },
-      { title: "Audit Logs", href: "/admin/audit-logs", icon: TbFileText },
+      // The group gate is canAccessAdmin, which is the same role set as canViewActivityLogs
+      // (supervisor and above), so these need no separate permission. If either rule moves, they
+      // stop agreeing and this needs per-child gating.
+      { title: "Activity Logs", href: "/admin/activity-logs", icon: TbFileText },
+      { title: "My Activity", href: "/admin/my-activity", icon: TbUser },
     ],
   },
   {

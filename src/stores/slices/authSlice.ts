@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { User, UserRole } from "@/types";
 import Cookies from "js-cookie";
+import { reportClientEvent } from "@/lib/report-client-event";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import apiClient from "@/lib/api-client";
@@ -68,6 +69,16 @@ export const loginWithFirebase = createAsyncThunk(
       const msg = friendlyAuthError(error);
       dispatch(setAuthFailure(msg));
       Cookies.remove("auth_token");
+
+      // Firebase rejects the password in the browser, so the API never sees the attempt. Reported
+      // here, or a run of failed sign-ins against one account leaves no server-side trace.
+      // Fire-and-forget: it must not delay the error the user is waiting for.
+      void reportClientEvent({
+        action: "auth.login.failed",
+        attemptedIdentifier: email,
+        reason: (error as { code?: string })?.code,
+      });
+
       return rejectWithValue(msg);
     }
   }
