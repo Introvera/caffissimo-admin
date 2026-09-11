@@ -15,7 +15,6 @@ import {
   AttendanceEntry,
   POSDayRecord,
   POSSession,
-  AuditLog,
   UserRole,
 } from "@/types";
 import { subDays, format, addHours } from "date-fns";
@@ -356,29 +355,3 @@ export const offers: Offer[] = [
 ];
 
 // ============== AUDIT LOGS ==============
-export function generateAuditLogs(): AuditLog[] {
-  const logs: AuditLog[] = [];
-  const actions: AuditLog["action"][] = ["price_change", "order_cancelled", "product_updated", "branch_updated"];
-
-  for (let i = 0; i < 50; i++) {
-    const daysAgo = (i * 17) % 30;
-    const date = subDays(BASE_DATE, daysAgo);
-    const action = actions[i % actions.length];
-    const user = users[i % 4];
-
-    logs.push({
-      id: `log-${i + 1}`,
-      action,
-      entityType: "System",
-      entityId: `entity-${i}`,
-      userId: user.id,
-      userName: user.name,
-      branchId: user.branchId,
-      details: {},
-      createdAt: date.toISOString(),
-    });
-  }
-  return logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
-export const auditLogs = generateAuditLogs();

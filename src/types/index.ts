@@ -655,30 +655,10 @@ export interface POSDayRecord {
 }
 
 // ============== AUDIT LOGS ==============
-export type AuditAction =
-  | "price_change"
-  | "offer_change"
-  | "order_cancelled"
-  | "user_created"
-  | "user_updated"
-  | "branch_updated"
-  | "product_created"
-  | "product_updated"
-  | "stock_report"
-  | "attendance_updated"
-  | "settings_updated";
-
-export interface AuditLog {
-  id: string;
-  action: AuditAction;
-  entityType: string;
-  entityId: string;
-  userId: string;
-  userName: string;
-  branchId?: string;
-  details: Record<string, unknown>;
-  createdAt: string;
-}
+/*
+ * AuditAction and AuditLog lived here to describe fifty generated rows in the seed file. The real
+ * activity log has its own types in types/activity-log.ts, matching what the API actually returns.
+ */
 
 // ============== SETTINGS ==============
 export interface Settings {

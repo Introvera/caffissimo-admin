@@ -18,6 +18,10 @@ async function request<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
+  // Mirrors the RTK Query prepareHeaders. These are two separate request paths, so a header set in
+  // one is missing from the other unless it is set in both.
+  headers.set("X-Client-App", "AdminPortal");
+
   const config: RequestInit = {
     ...options,
     headers,
