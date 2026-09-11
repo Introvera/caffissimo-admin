@@ -9,28 +9,12 @@ import {
   Package,
   Users,
   Store,
-  FileSearch,
   ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
-import { orders, products, users, branches, auditLogs } from "@/data/seed";
+import { orders, products, users, branches } from "@/data/seed";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { AuditAction } from "@/types";
-
-const actionLabels: Record<AuditAction, string> = {
-  price_change: "Price Changed",
-  offer_change: "Offer Modified",
-  order_cancelled: "Order Cancelled",
-  user_created: "User Created",
-  user_updated: "User Updated",
-  branch_updated: "Branch Updated",
-  product_created: "Product Created",
-  product_updated: "Product Updated",
-  stock_report: "Stock Report",
-  attendance_updated: "Attendance Updated",
-  settings_updated: "Settings Updated",
-};
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
@@ -38,7 +22,7 @@ function SearchResultsContent() {
 
   const results = useMemo(() => {
     if (!q) {
-      return { orders: [], products: [], users: [], branches: [], auditLogs: [] };
+      return { orders: [], products: [], users: [], branches: [] };
     }
     const matchOrders = orders.filter(
       (o) =>
@@ -60,18 +44,11 @@ function SearchResultsContent() {
         b.branchName.toLowerCase().includes(q) ||
         (b.branchAddress && b.branchAddress.toLowerCase().includes(q))
     );
-    const matchLogs = auditLogs.filter(
-      (l) =>
-        l.userName.toLowerCase().includes(q) ||
-        l.entityType.toLowerCase().includes(q) ||
-        actionLabels[l.action]?.toLowerCase().includes(q)
-    );
     return {
       orders: matchOrders.slice(0, 5),
       products: matchProducts.slice(0, 5),
       users: matchUsers.slice(0, 5),
       branches: matchBranches.slice(0, 5),
-      auditLogs: matchLogs.slice(0, 5),
     };
   }, [q]);
 
@@ -79,8 +56,7 @@ function SearchResultsContent() {
     results.orders.length +
     results.products.length +
     results.users.length +
-    results.branches.length +
-    results.auditLogs.length;
+    results.branches.length;
 
   if (!q) {
     return (
@@ -224,36 +200,6 @@ function SearchResultsContent() {
         </Card>
       )}
 
-      {results.auditLogs.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-body flex items-center gap-2">
-              <FileSearch className="h-4 w-4" />
-              Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {results.auditLogs.map((log) => (
-                <li key={log.id}>
-                  <Link
-                    href="/admin/audit-logs"
-                    className="flex items-center justify-between rounded-md py-2 px-2 -mx-2 hover:bg-muted text-body"
-                  >
-                    <div>
-                      <span className="font-medium">{actionLabels[log.action]}</span>
-                      <span className="text-muted-foreground text-caption block">
-                        {log.userName} · {formatDateTime(log.createdAt)}
-                      </span>
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
